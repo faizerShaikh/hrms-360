@@ -1,0 +1,2918 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="
+https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.min.js
+"></script>
+    <link
+      href="
+https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.min.css
+"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/report/styles/styles.css" />
+    <script>
+      tailwind.config = {
+        mode: "jit",
+        content: [
+          "./src/**/*.{js,ts,jsx,tsx}",
+          "./pages/**/*.{js,ts,jsx,tsx}",
+          "./components/**/*.{js,ts,jsx,tsx}",
+        ],
+        theme: {
+          extend: {
+            fontSize: {
+              "xs": "18px !important",
+              "sm": "20px !important",
+              "semi-base": "21px !important",
+              "base": "22px !important",
+              "lg": "24px !important",
+              "xl": "26px !important",
+              "2xl": "28px !important",
+              "3xl": "30px !important",
+              "4xl": "36px !important",
+              "5xl": "48px !important",
+              "6xl": "60px !important",
+              "7xl": "72px !important",
+            },
+            colors: {
+              "main": "#828282",
+              "primary": "#0069FF",
+              "primary-light": "#F5F9FF",
+              "secondary": "#FFCD00",
+              "secondary-light": "#F7F3E1",
+              "tertiary": "#78909C",
+              "tertiary-light": "#F2F5F7",
+              "fc-dark": "#4D4D4D",
+              "fc-light": "#616161",
+              "fc-main": "#828282",
+            },
+          },
+          fontFamily: {
+            urbanist: ["Urbanist", "sans-serif"],
+            inter: ["Inter", "sans-serif"],
+          },
+        },
+        variants: { extend: {} },
+        plugins: [],
+      };
+    </script>
+    <style>
+      table tr td,
+      table tr th {
+        page-break-inside: avoid;
+        margin: 4px 0 4px 0;
+      }
+      @media print {
+        @page {
+          margin: 35px 25px;
+        }
+      }
+      table.question-table,
+      th {
+        border: 1px solid white;
+        border-collapse: collapse;
+      }
+      .dont-break {
+        page-break-before: always;
+      }
+      .break-after {
+        page-break-after: auto;
+      }
+      .break-before {
+        page-break-before: always;
+      }
+      .chip-0 {
+        color: #ff0000;
+        padding: 5px;
+        border-radius: 5px;
+        text-align: center;
+      }
+      .chip-1 {
+        color: #ff0000;
+        padding: 5px;
+        border-radius: 5px;
+        text-align: center;
+      }
+      .chip-2 {
+        color: #fcae1e;
+        padding: 5px;
+        border-radius: 5px;
+        text-align: center;
+      }
+      .chip-3 {
+        color: #525252;
+        padding: 5px;
+        border-radius: 5px;
+        text-align: center;
+      }
+      .chip-4 {
+        color: #25bf9e;
+        padding: 5px;
+        border-radius: 5px;
+        text-align: center;
+      }
+      .chip-5 {
+        color: #0069ff;
+        padding: 5px;
+        border-radius: 5px;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Urbanist:wght@100;200;300;400;500;600;700;800;900&display=swap");
+    </style>
+    <main>
+      <div class="dont-break h-full w-full mx-auto p-5">
+        <div class="relative h-full">
+          <div class="h-full flex justify-around flex-col">
+            <div
+              class="dont-break w-[352px] h-full flex items-center justify-center flex-col mx-auto mb-[100px]"
+            >
+              <div
+                class="w-full flex justify-center items-center border-b-2 border-secondary pb-2"
+              >
+                <img
+                  src="http://192.168.1.88:8000/media/images/nboleadership-logo.png"
+                  width="236.91px"
+                  height="80px"
+                  alt="company-logo"
+                />
+              </div>
+
+              <div>
+                <p
+                  class="text-center text-lg mt-2 text-[#4D4D4D] font-medium uppercase font-inter"
+                >
+                  Insight 360 feedback for leaders
+                </p>
+              </div>
+
+              <div class="flex">
+                <div class="flex flex-col mt-4 justify-start">
+                  <p class="font-urbanist font-bold text-neutral-600">
+                    Company Name:
+                  </p>
+
+                  <div class="font-urbanist font-bold text-neutral-600">
+                    Name:
+                  </div>
+
+                  <p class="font-urbanist font-bold text-neutral-600">Date:</p>
+                </div>
+
+                <div class="flex flex-col mt-4 justify-start">
+                  <span
+                    class="mx-4 font-urbanist text-neutral-400"
+                    style="color: #242424"
+                  >
+                    Alvarez and Watson Plc
+                  </span>
+
+                  <span
+                    class="mx-4 font-urbanist text-neutral-400"
+                    style="color: #242424"
+                    id="new"
+                  >
+                    Yasin Ansari
+                  </span>
+
+                  <span
+                    class="mx-4 font-urbanist text-neutral-400"
+                    style="color: #242424"
+                  >
+                    15/05/2023
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="text-center absolute bottom-10 left-0 right-0">
+              <p
+                class="p-4 font-urbanist"
+                style="
+                  font-size: 14.5px;
+                  border: 2px solid red;
+                  color: red;
+                  font-weight: 400;
+                "
+              >
+                All rights reserved. This is a confidential and proprietary
+                information of NBO Leadership Sdn. Bhd. Duplication in any form
+                is strictly prohibited without written consent from NBO
+                Leadership Sdn. Bhd.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <script>
+        var colors = [
+          "FEBD2A",
+          "005BFF",
+          "29AF7F",
+          "260F99",
+          "BEC8D0",
+          "8B0AA5",
+          "A0DA39",
+          "FF7F00",
+          "2C85B2",
+          "19B2FF",
+          "8F7EE5",
+        ];
+        const renderStrengthAndDevNeedsFromManagerChart = (
+          id,
+          id2,
+          overall_avg_id,
+          selfavg_id,
+          avg_id,
+          overall_avg,
+          avg,
+          self
+        ) => {
+          document.getElementById(overall_avg_id).style.width = `${
+            (overall_avg * 100) / 4
+          }%`;
+          document.getElementById(selfavg_id).style.left = `${
+            (self * 100) / 4
+          }%`;
+          document.getElementById(avg_id).style.left = `${(avg * 100) / 4}%`;
+          document.getElementById(id2).style.left = `${(avg * 100) / 4}%`;
+        };
+        const renderRaterWiseData = (id, value, index) => {
+          const value2 = (document.getElementById(id).style.width = `${
+            (value * 100) / 4
+          }%`);
+          const value3 = (document.getElementById(id).style.backgroundColor =
+            colors[index]);
+        };
+      </script>
+      <div
+        class="dont-break break-inside-avoid-page min-h-[1052px] w-full h-fit mx-auto p-5"
+      >
+        <div class="relative h-full">
+          <div
+            class="bg-primary-light text-primary font-urbanist font-bold p-2 text-base uppercase"
+          >
+            Strengths and Development Needs
+          </div>
+          <div>
+            <div class="bg-neutral-100 p-3 mt-5 mb-10">
+              <div
+                class="text-primary text-lg font-semibold font-urbanist mb-1"
+              >
+                Strengths
+              </div>
+              <div
+                class="text-neutral-800 font-inter font-inter"
+                style="font-size: 14px"
+              >
+                These practices were identified by your raters as your
+                Strengths. They have the smallest Average Gap Size. Build on
+                this strong foundation.
+              </div>
+            </div>
+            <div
+              class="items-center border p-3 w-full break-inside-avoid-page mb-4"
+            >
+              <div class="flex justify-center gap-10">
+                <div class="flex justify-start items-center w-[30%]">
+                  <div class="mr-2 w-1 h-6 bg-[#0069ff]"></div>
+                  <div class="font-urbanist text-sm">Average Gap Size</div>
+                </div>
+                <div class="flex justify-start items-center w-[30%]">
+                  <div class="w-10 h-6 mb-2">
+                    <img
+                      src="http://192.168.1.88:8000/media/images/Star.svg"
+                      style="position: absolute; height: 30px"
+                    />
+                  </div>
+                  <div class="font-urbanist text-sm">Self Gap Size</div>
+                </div>
+                <div class="flex justify-start items-center w-[30%]">
+                  <div class="mr-2 w-10 h-6 bg-[#D9E6f9]"></div>
+                  <div class="font-urbanist text-sm">
+                    Overall Survey Average Gap Size
+                  </div>
+                </div>
+              </div>
+              <div
+                class="flex flex-wrap justify-between items-center mt-5 gap-4 rater-class"
+              >
+                <div class="flex justify-start items-center">
+                  <div id="strength-rater-avg-0" class="w-8 h-4 mr-4"></div>
+                  <div class="font-urbanist text-sm">Self</div>
+                </div>
+                <script>
+                  var innerIndex;
+                  innerIndex = 0 % 8;
+                  document.getElementById(
+                    "strength-rater-avg-" + innerIndex
+                  ).style.backgroundColor = colors[innerIndex];
+                </script>
+
+                <div class="flex justify-start items-center">
+                  <div id="strength-rater-avg-1" class="w-8 h-4 mr-4"></div>
+                  <div class="font-urbanist text-sm">
+                    Secondary Line Manager
+                  </div>
+                </div>
+                <script>
+                  var innerIndex;
+                  innerIndex = 1 % 8;
+                  document.getElementById(
+                    "strength-rater-avg-" + innerIndex
+                  ).style.backgroundColor = colors[innerIndex];
+                </script>
+              </div>
+            </div>
+            <div class="flex justify-between flex-col p-4">
+              <div>
+                <div
+                  class="flex justify-between break-inside-avoid-page items-start min-h-[180px] h-auto"
+                  style="min-height: 180px"
+                >
+                  <div class="w-[49%] h-full">
+                    <div>
+                      <p
+                        class="text-primary font-semibold font-urbanist border-b uppercase"
+                      >
+                        Accountability
+                      </p>
+                      <p class="text-sm font-inter mt-1" style="color: #404040">
+                        Show reliability and can be depended upon?
+                      </p>
+                    </div>
+                  </div>
+                  <div class="" style="margin-right: 2px">
+                    <div id="strengths-0"></div>
+                    <div
+                      style="
+                        margin-left: 100px;
+                        position: relative;
+                        width: 270px;
+                        height: 43px;
+                      "
+                    >
+                      <div
+                        id="strengthsAvgAsc-0"
+                        style="
+                          font-family: 'urbanist';
+                          position: relative;
+                          transform: translateX(-4%);
+                        "
+                      >
+                        (0.00)
+                      </div>
+                      <div
+                        style="
+                          border: 0.626113px solid rgba(36, 36, 36, 0.66);
+                          height: 34px;
+                          width: 270px;
+                          position: relative;
+                        "
+                      >
+                        <div
+                          id="avg-0"
+                          style="
+                            position: absolute;
+                            left: 25%;
+                            width: 4px;
+                            height: 100%;
+                            background: #0069ff;
+                            transform: translate(-50%, -50%);
+                            top: 50%;
+                            z-index: 99;
+                          "
+                        ></div>
+                        <div
+                          id="overallavg-0"
+                          style="
+                            position: absolute;
+                            width: 28px;
+                            height: 100%;
+                            background: #d9e6f9;
+                          "
+                        ></div>
+                        <img id=selfavg-0
+                        src=http://192.168.1.88:8000/media/images/Star.svg
+                        style="position:absolute;height:26px;transform:
+                        translate(-50%,-50%);top: 50%;"/>
+                      </div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 0%;
+                          top: 57px;
+                          width: 1px;
+                          height: 15%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 25%;
+                          top: 57px;
+                          width: 1px;
+                          height: 15%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 50%;
+                          top: 57px;
+                          width: 1px;
+                          height: 15%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 75%;
+                          top: 57px;
+                          width: 1px;
+                          height: 15%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 269px;
+                          top: 57px;
+                          width: 1px;
+                          height: 15%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div style="position: relative; margin-top: 8px">
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: -0.9%;
+                          "
+                          >0</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 24%;
+                          "
+                          >1</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 49%;
+                          "
+                          >2</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 74%;
+                          "
+                          >3</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 99%;
+                          "
+                          >4</span
+                        >
+                      </div>
+                      <div
+                        class="border"
+                        style="margin-top: 45px; width: 270px"
+                      >
+                        <div
+                          id="rater-avg-00"
+                          style="
+                            height: 24%;
+                            position: relative;
+                            border-top-right-radius: 3px;
+                            border-bottom-right-radius: 3px;
+                          "
+                        >
+                          <p
+                            style="
+                              position: absolute;
+                              left: 105%;
+                              font-family: 'urbanist';
+                              font-size: 12px;
+                              top: -2.75px;
+                            "
+                          >
+                            0.00
+                          </p>
+                        </div>
+                        <script>
+                          renderRaterWiseData("rater-avg-" + 0 + 0, 0, 0);
+                        </script>
+                        <div
+                          id="rater-avg-01"
+                          style="
+                            height: 24%;
+                            position: relative;
+                            border-top-right-radius: 3px;
+                            border-bottom-right-radius: 3px;
+                          "
+                        >
+                          <p
+                            style="
+                              position: absolute;
+                              left: 105%;
+                              font-family: 'urbanist';
+                              font-size: 12px;
+                              top: -2.75px;
+                            "
+                          >
+                            0.00
+                          </p>
+                        </div>
+                        <script>
+                          renderRaterWiseData("rater-avg-" + 0 + 1, 0, 1);
+                        </script>
+                      </div>
+                    </div>
+                    <script>
+                      renderStrengthAndDevNeedsFromManagerChart(
+                        "strengths-" + 0,
+                        "strengthsAvgAsc-" + 0,
+                        "overallavg-" + 0,
+                        "selfavg-" + 0,
+                        "avg-" + 0,
+                        0.01,
+                        0,
+                        0
+                      );
+                    </script>
+                  </div>
+                </div>
+                <div
+                  class="flex justify-between break-inside-avoid-page items-start min-h-[180px] h-auto"
+                  style="min-height: 180px"
+                >
+                  <div class="w-[49%] h-full">
+                    <div>
+                      <p
+                        class="text-primary font-semibold font-urbanist border-b uppercase"
+                      >
+                        Accountability
+                      </p>
+                      <p class="text-sm font-inter mt-1" style="color: #404040">
+                        Take personal accountability for his/her team’s
+                        performance and actions?
+                      </p>
+                    </div>
+                  </div>
+                  <div class="" style="margin-right: 2px">
+                    <div id="strengths-1"></div>
+                    <div
+                      style="
+                        margin-left: 100px;
+                        position: relative;
+                        width: 270px;
+                        height: 43px;
+                      "
+                    >
+                      <div
+                        id="strengthsAvgAsc-1"
+                        style="
+                          font-family: 'urbanist';
+                          position: relative;
+                          transform: translateX(-4%);
+                        "
+                      >
+                        (0.00)
+                      </div>
+                      <div
+                        style="
+                          border: 0.626113px solid rgba(36, 36, 36, 0.66);
+                          height: 34px;
+                          width: 270px;
+                          position: relative;
+                        "
+                      >
+                        <div
+                          id="avg-1"
+                          style="
+                            position: absolute;
+                            left: 25%;
+                            width: 4px;
+                            height: 100%;
+                            background: #0069ff;
+                            transform: translate(-50%, -50%);
+                            top: 50%;
+                            z-index: 99;
+                          "
+                        ></div>
+                        <div
+                          id="overallavg-1"
+                          style="
+                            position: absolute;
+                            width: 28px;
+                            height: 100%;
+                            background: #d9e6f9;
+                          "
+                        ></div>
+                        <img id=selfavg-1
+                        src=http://192.168.1.88:8000/media/images/Star.svg
+                        style="position:absolute;height:26px;transform:
+                        translate(-50%,-50%);top: 50%;"/>
+                      </div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 0%;
+                          top: 57px;
+                          width: 1px;
+                          height: 15%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 25%;
+                          top: 57px;
+                          width: 1px;
+                          height: 15%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 50%;
+                          top: 57px;
+                          width: 1px;
+                          height: 15%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 75%;
+                          top: 57px;
+                          width: 1px;
+                          height: 15%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 269px;
+                          top: 57px;
+                          width: 1px;
+                          height: 15%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div style="position: relative; margin-top: 8px">
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: -0.9%;
+                          "
+                          >0</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 24%;
+                          "
+                          >1</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 49%;
+                          "
+                          >2</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 74%;
+                          "
+                          >3</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 99%;
+                          "
+                          >4</span
+                        >
+                      </div>
+                      <div
+                        class="border"
+                        style="margin-top: 45px; width: 270px"
+                      >
+                        <div
+                          id="rater-avg-10"
+                          style="
+                            height: 24%;
+                            position: relative;
+                            border-top-right-radius: 3px;
+                            border-bottom-right-radius: 3px;
+                          "
+                        >
+                          <p
+                            style="
+                              position: absolute;
+                              left: 105%;
+                              font-family: 'urbanist';
+                              font-size: 12px;
+                              top: -2.75px;
+                            "
+                          >
+                            3.00
+                          </p>
+                        </div>
+                        <script>
+                          renderRaterWiseData("rater-avg-" + 1 + 0, 3, 0);
+                        </script>
+                        <div
+                          id="rater-avg-11"
+                          style="
+                            height: 24%;
+                            position: relative;
+                            border-top-right-radius: 3px;
+                            border-bottom-right-radius: 3px;
+                          "
+                        >
+                          <p
+                            style="
+                              position: absolute;
+                              left: 105%;
+                              font-family: 'urbanist';
+                              font-size: 12px;
+                              top: -2.75px;
+                            "
+                          >
+                            0.00
+                          </p>
+                        </div>
+                        <script>
+                          renderRaterWiseData("rater-avg-" + 1 + 1, 0, 1);
+                        </script>
+                      </div>
+                    </div>
+                    <script>
+                      renderStrengthAndDevNeedsFromManagerChart(
+                        "strengths-" + 1,
+                        "strengthsAvgAsc-" + 1,
+                        "overallavg-" + 1,
+                        "selfavg-" + 1,
+                        "avg-" + 1,
+                        0.01,
+                        0,
+                        3
+                      );
+                    </script>
+                  </div>
+                </div>
+                <div
+                  class="flex justify-between break-inside-avoid-page items-start min-h-[180px] h-auto"
+                  style="min-height: 180px"
+                >
+                  <div class="w-[49%] h-full">
+                    <div>
+                      <p
+                        class="text-primary font-semibold font-urbanist border-b uppercase"
+                      >
+                        Accountability
+                      </p>
+                      <p class="text-sm font-inter mt-1" style="color: #404040">
+                        Take decisive action as the circumstances change or when
+                        there is partial information?
+                      </p>
+                    </div>
+                  </div>
+                  <div class="" style="margin-right: 2px">
+                    <div id="strengths-2"></div>
+                    <div
+                      style="
+                        margin-left: 100px;
+                        position: relative;
+                        width: 270px;
+                        height: 43px;
+                      "
+                    >
+                      <div
+                        id="strengthsAvgAsc-2"
+                        style="
+                          font-family: 'urbanist';
+                          position: relative;
+                          transform: translateX(-4%);
+                        "
+                      >
+                        (0.00)
+                      </div>
+                      <div
+                        style="
+                          border: 0.626113px solid rgba(36, 36, 36, 0.66);
+                          height: 34px;
+                          width: 270px;
+                          position: relative;
+                        "
+                      >
+                        <div
+                          id="avg-2"
+                          style="
+                            position: absolute;
+                            left: 25%;
+                            width: 4px;
+                            height: 100%;
+                            background: #0069ff;
+                            transform: translate(-50%, -50%);
+                            top: 50%;
+                            z-index: 99;
+                          "
+                        ></div>
+                        <div
+                          id="overallavg-2"
+                          style="
+                            position: absolute;
+                            width: 28px;
+                            height: 100%;
+                            background: #d9e6f9;
+                          "
+                        ></div>
+                        <img id=selfavg-2
+                        src=http://192.168.1.88:8000/media/images/Star.svg
+                        style="position:absolute;height:26px;transform:
+                        translate(-50%,-50%);top: 50%;"/>
+                      </div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 0%;
+                          top: 57px;
+                          width: 1px;
+                          height: 15%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 25%;
+                          top: 57px;
+                          width: 1px;
+                          height: 15%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 50%;
+                          top: 57px;
+                          width: 1px;
+                          height: 15%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 75%;
+                          top: 57px;
+                          width: 1px;
+                          height: 15%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 269px;
+                          top: 57px;
+                          width: 1px;
+                          height: 15%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div style="position: relative; margin-top: 8px">
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: -0.9%;
+                          "
+                          >0</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 24%;
+                          "
+                          >1</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 49%;
+                          "
+                          >2</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 74%;
+                          "
+                          >3</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 99%;
+                          "
+                          >4</span
+                        >
+                      </div>
+                      <div
+                        class="border"
+                        style="margin-top: 45px; width: 270px"
+                      >
+                        <div
+                          id="rater-avg-20"
+                          style="
+                            height: 24%;
+                            position: relative;
+                            border-top-right-radius: 3px;
+                            border-bottom-right-radius: 3px;
+                          "
+                        >
+                          <p
+                            style="
+                              position: absolute;
+                              left: 105%;
+                              font-family: 'urbanist';
+                              font-size: 12px;
+                              top: -2.75px;
+                            "
+                          >
+                            0.00
+                          </p>
+                        </div>
+                        <script>
+                          renderRaterWiseData("rater-avg-" + 2 + 0, 0, 0);
+                        </script>
+                        <div
+                          id="rater-avg-21"
+                          style="
+                            height: 24%;
+                            position: relative;
+                            border-top-right-radius: 3px;
+                            border-bottom-right-radius: 3px;
+                          "
+                        >
+                          <p
+                            style="
+                              position: absolute;
+                              left: 105%;
+                              font-family: 'urbanist';
+                              font-size: 12px;
+                              top: -2.75px;
+                            "
+                          >
+                            0.00
+                          </p>
+                        </div>
+                        <script>
+                          renderRaterWiseData("rater-avg-" + 2 + 1, 0, 1);
+                        </script>
+                      </div>
+                    </div>
+                    <script>
+                      renderStrengthAndDevNeedsFromManagerChart(
+                        "strengths-" + 2,
+                        "strengthsAvgAsc-" + 2,
+                        "overallavg-" + 2,
+                        "selfavg-" + 2,
+                        "avg-" + 2,
+                        0.01,
+                        0,
+                        0
+                      );
+                    </script>
+                  </div>
+                </div>
+                <div
+                  class="flex justify-between break-inside-avoid-page items-start min-h-[180px] h-auto"
+                  style="min-height: 180px"
+                >
+                  <div class="w-[49%] h-full">
+                    <div>
+                      <p
+                        class="text-primary font-semibold font-urbanist border-b uppercase"
+                      >
+                        Agile mindset
+                      </p>
+                      <p class="text-sm font-inter mt-1" style="color: #404040">
+                        Act quickly and decisively with a sense of urgency
+                        especially in time-sensitive situations?
+                      </p>
+                    </div>
+                  </div>
+                  <div class="" style="margin-right: 2px">
+                    <div id="strengths-3"></div>
+                    <div
+                      style="
+                        margin-left: 100px;
+                        position: relative;
+                        width: 270px;
+                        height: 43px;
+                      "
+                    >
+                      <div
+                        id="strengthsAvgAsc-3"
+                        style="
+                          font-family: 'urbanist';
+                          position: relative;
+                          transform: translateX(-4%);
+                        "
+                      >
+                        (0.00)
+                      </div>
+                      <div
+                        style="
+                          border: 0.626113px solid rgba(36, 36, 36, 0.66);
+                          height: 34px;
+                          width: 270px;
+                          position: relative;
+                        "
+                      >
+                        <div
+                          id="avg-3"
+                          style="
+                            position: absolute;
+                            left: 25%;
+                            width: 4px;
+                            height: 100%;
+                            background: #0069ff;
+                            transform: translate(-50%, -50%);
+                            top: 50%;
+                            z-index: 99;
+                          "
+                        ></div>
+                        <div
+                          id="overallavg-3"
+                          style="
+                            position: absolute;
+                            width: 28px;
+                            height: 100%;
+                            background: #d9e6f9;
+                          "
+                        ></div>
+                        <img id=selfavg-3
+                        src=http://192.168.1.88:8000/media/images/Star.svg
+                        style="position:absolute;height:26px;transform:
+                        translate(-50%,-50%);top: 50%;"/>
+                      </div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 0%;
+                          top: 57px;
+                          width: 1px;
+                          height: 15%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 25%;
+                          top: 57px;
+                          width: 1px;
+                          height: 15%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 50%;
+                          top: 57px;
+                          width: 1px;
+                          height: 15%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 75%;
+                          top: 57px;
+                          width: 1px;
+                          height: 15%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 269px;
+                          top: 57px;
+                          width: 1px;
+                          height: 15%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div style="position: relative; margin-top: 8px">
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: -0.9%;
+                          "
+                          >0</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 24%;
+                          "
+                          >1</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 49%;
+                          "
+                          >2</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 74%;
+                          "
+                          >3</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 99%;
+                          "
+                          >4</span
+                        >
+                      </div>
+                      <div
+                        class="border"
+                        style="margin-top: 45px; width: 270px"
+                      >
+                        <div
+                          id="rater-avg-30"
+                          style="
+                            height: 24%;
+                            position: relative;
+                            border-top-right-radius: 3px;
+                            border-bottom-right-radius: 3px;
+                          "
+                        >
+                          <p
+                            style="
+                              position: absolute;
+                              left: 105%;
+                              font-family: 'urbanist';
+                              font-size: 12px;
+                              top: -2.75px;
+                            "
+                          >
+                            0.00
+                          </p>
+                        </div>
+                        <script>
+                          renderRaterWiseData("rater-avg-" + 3 + 0, 0, 0);
+                        </script>
+                        <div
+                          id="rater-avg-31"
+                          style="
+                            height: 24%;
+                            position: relative;
+                            border-top-right-radius: 3px;
+                            border-bottom-right-radius: 3px;
+                          "
+                        >
+                          <p
+                            style="
+                              position: absolute;
+                              left: 105%;
+                              font-family: 'urbanist';
+                              font-size: 12px;
+                              top: -2.75px;
+                            "
+                          >
+                            0.00
+                          </p>
+                        </div>
+                        <script>
+                          renderRaterWiseData("rater-avg-" + 3 + 1, 0, 1);
+                        </script>
+                      </div>
+                    </div>
+                    <script>
+                      renderStrengthAndDevNeedsFromManagerChart(
+                        "strengths-" + 3,
+                        "strengthsAvgAsc-" + 3,
+                        "overallavg-" + 3,
+                        "selfavg-" + 3,
+                        "avg-" + 3,
+                        0.01,
+                        0,
+                        0
+                      );
+                    </script>
+                  </div>
+                </div>
+                <div
+                  class="flex justify-between break-inside-avoid-page items-start min-h-[180px] h-auto"
+                  style="min-height: 180px"
+                >
+                  <div class="w-[49%] h-full">
+                    <div>
+                      <p
+                        class="text-primary font-semibold font-urbanist border-b uppercase"
+                      >
+                        Agile mindset
+                      </p>
+                      <p class="text-sm font-inter mt-1" style="color: #404040">
+                        Adapt business direction / strategy in anticipation of
+                        potential changes in the market?
+                      </p>
+                    </div>
+                  </div>
+                  <div class="" style="margin-right: 2px">
+                    <div id="strengths-4"></div>
+                    <div
+                      style="
+                        margin-left: 100px;
+                        position: relative;
+                        width: 270px;
+                        height: 43px;
+                      "
+                    >
+                      <div
+                        id="strengthsAvgAsc-4"
+                        style="
+                          font-family: 'urbanist';
+                          position: relative;
+                          transform: translateX(-4%);
+                        "
+                      >
+                        (0.00)
+                      </div>
+                      <div
+                        style="
+                          border: 0.626113px solid rgba(36, 36, 36, 0.66);
+                          height: 34px;
+                          width: 270px;
+                          position: relative;
+                        "
+                      >
+                        <div
+                          id="avg-4"
+                          style="
+                            position: absolute;
+                            left: 25%;
+                            width: 4px;
+                            height: 100%;
+                            background: #0069ff;
+                            transform: translate(-50%, -50%);
+                            top: 50%;
+                            z-index: 99;
+                          "
+                        ></div>
+                        <div
+                          id="overallavg-4"
+                          style="
+                            position: absolute;
+                            width: 28px;
+                            height: 100%;
+                            background: #d9e6f9;
+                          "
+                        ></div>
+                        <img id=selfavg-4
+                        src=http://192.168.1.88:8000/media/images/Star.svg
+                        style="position:absolute;height:26px;transform:
+                        translate(-50%,-50%);top: 50%;"/>
+                      </div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 0%;
+                          top: 57px;
+                          width: 1px;
+                          height: 15%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 25%;
+                          top: 57px;
+                          width: 1px;
+                          height: 15%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 50%;
+                          top: 57px;
+                          width: 1px;
+                          height: 15%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 75%;
+                          top: 57px;
+                          width: 1px;
+                          height: 15%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 269px;
+                          top: 57px;
+                          width: 1px;
+                          height: 15%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div style="position: relative; margin-top: 8px">
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: -0.9%;
+                          "
+                          >0</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 24%;
+                          "
+                          >1</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 49%;
+                          "
+                          >2</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 74%;
+                          "
+                          >3</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 99%;
+                          "
+                          >4</span
+                        >
+                      </div>
+                      <div
+                        class="border"
+                        style="margin-top: 45px; width: 270px"
+                      >
+                        <div
+                          id="rater-avg-40"
+                          style="
+                            height: 24%;
+                            position: relative;
+                            border-top-right-radius: 3px;
+                            border-bottom-right-radius: 3px;
+                          "
+                        >
+                          <p
+                            style="
+                              position: absolute;
+                              left: 105%;
+                              font-family: 'urbanist';
+                              font-size: 12px;
+                              top: -2.75px;
+                            "
+                          >
+                            1.00
+                          </p>
+                        </div>
+                        <script>
+                          renderRaterWiseData("rater-avg-" + 4 + 0, 1, 0);
+                        </script>
+                        <div
+                          id="rater-avg-41"
+                          style="
+                            height: 24%;
+                            position: relative;
+                            border-top-right-radius: 3px;
+                            border-bottom-right-radius: 3px;
+                          "
+                        >
+                          <p
+                            style="
+                              position: absolute;
+                              left: 105%;
+                              font-family: 'urbanist';
+                              font-size: 12px;
+                              top: -2.75px;
+                            "
+                          >
+                            0.00
+                          </p>
+                        </div>
+                        <script>
+                          renderRaterWiseData("rater-avg-" + 4 + 1, 0, 1);
+                        </script>
+                      </div>
+                    </div>
+                    <script>
+                      renderStrengthAndDevNeedsFromManagerChart(
+                        "strengths-" + 4,
+                        "strengthsAvgAsc-" + 4,
+                        "overallavg-" + 4,
+                        "selfavg-" + 4,
+                        "avg-" + 4,
+                        0.01,
+                        0,
+                        1
+                      );
+                    </script>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="dont-break break-inside-avoid-page min-h-[1052px] w-full h-fit mx-auto p-5"
+      >
+        <div class="relative h-full">
+          <div
+            class="bg-primary-light text-primary p-2 font-urbanist font-bold text-base uppercase"
+          >
+            Strengths and Development Needs
+          </div>
+          <div>
+            <div class="bg-neutral-100 p-3 mt-5 mb-10">
+              <div
+                class="text-primary text-lg font-semibold font-urbanist mb-1"
+              >
+                Development Needs
+              </div>
+              <div class="text-neutral-800 text-sm font-inter">
+                These practices were identified by your raters as your
+                Development Needs. They have the Largest Average Gap Size. Build
+                on this feedback.
+              </div>
+            </div>
+            <div
+              class="items-center border p-3 w-full break-inside-avoid-page mb-4"
+            >
+              <div class="flex justify-center gap-10">
+                <div class="flex justify-start items-center w-[30%]">
+                  <div class="mr-2 w-1 h-6 bg-[#0069ff]"></div>
+                  <div class="font-urbanist text-sm">Average Gap Size</div>
+                </div>
+                <div class="flex justify-start items-center w-[30%]">
+                  <div class="w-10 h-6 mb-2">
+                    <img
+                      src="http://192.168.1.88:8000/media/images/Star.svg"
+                      style="position: absolute; height: 30px"
+                    />
+                  </div>
+                  <div class="font-urbanist text-sm">Self Gap Size</div>
+                </div>
+                <div class="flex justify-start items-center w-[30%]">
+                  <div class="mr-2 w-10 h-6 bg-[#D9E6f9]"></div>
+                  <div class="font-urbanist text-sm">
+                    Overall Survey Average Gap Size
+                  </div>
+                </div>
+              </div>
+              <div
+                class="flex flex-wrap justify-between items-center mt-5 gap-4 rater-class"
+              >
+                <div class="flex justify-start items-center">
+                  <div id="development-rater-avg-0" class="w-8 h-4 mr-4"></div>
+                  <div class="font-urbanist text-sm">Self</div>
+                </div>
+                <script>
+                  var developmentIndex;
+                  developmentIndex = 0 % 8;
+                  document.getElementById(
+                    "development-rater-avg-" + developmentIndex
+                  ).style.backgroundColor = colors[developmentIndex];
+                </script>
+                <div class="flex justify-start items-center">
+                  <div id="development-rater-avg-1" class="w-8 h-4 mr-4"></div>
+                  <div class="font-urbanist text-sm">
+                    Secondary Line Manager
+                  </div>
+                </div>
+                <script>
+                  var developmentIndex;
+                  developmentIndex = 1 % 8;
+                  document.getElementById(
+                    "development-rater-avg-" + developmentIndex
+                  ).style.backgroundColor = colors[developmentIndex];
+                </script>
+              </div>
+            </div>
+            <div class="flex justify-between flex-col p-4">
+              <div>
+                <div
+                  class="flex justify-between break-inside-avoid-page items-start min-h-[180px] h-auto"
+                  style="min-height: 180px"
+                >
+                  <div class="w-[49%]">
+                    <p
+                      class="text-primary font-urbanist font-semibold border-b uppercase"
+                    >
+                      Collaboration
+                    </p>
+                    <p
+                      class="text-sm text-sm font-inter mt-1"
+                      style="color: #404040"
+                    >
+                      Dependable in making the right decisions for the
+                      organization?
+                    </p>
+                  </div>
+                  <div class="" style="margin-right: 2px">
+                    <div id="developmemntNeeds-0"></div>
+                    <div
+                      style="
+                        margin-left: 100px;
+                        position: relative;
+                        width: 270px;
+                        height: 34px;
+                      "
+                    >
+                      <div
+                        id="developmemntNeedsAvgAsc-0"
+                        style="
+                          font-family: 'urbanist';
+                          position: relative;
+                          transform: translateX(-4%);
+                        "
+                      >
+                        (4.00)
+                      </div>
+                      <div
+                        style="
+                          border: 0.626113px solid rgba(36, 36, 36, 0.66);
+                          height: 34px;
+                          width: 270px;
+                          position: relative;
+                        "
+                      >
+                        <div
+                          id="developmemntNeeds-avg-0"
+                          style="
+                            position: absolute;
+                            left: 25%;
+                            width: 4px;
+                            height: 100%;
+                            background: #0069ff;
+                            transform: translate(-50%, -50%);
+                            top: 50%;
+                            z-index: 99;
+                          "
+                        ></div>
+                        <div
+                          id="developmemntNeeds-overallavg-0"
+                          style="
+                            position: absolute;
+                            width: 28px;
+                            height: 100%;
+                            background: #d9e6f9;
+                          "
+                        ></div>
+                        <img id=developmemntNeeds-selfavg-0
+                        src=http://192.168.1.88:8000/media/images/Star.svg
+                        style="position:absolute;height:26px;transform:
+                        translate(-50%,-50%);top: 50%;"/>
+                      </div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 0%;
+                          top: 57px;
+                          width: 1px;
+                          height: 30%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 25%;
+                          top: 57px;
+                          width: 1px;
+                          height: 30%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 50%;
+                          top: 57px;
+                          width: 1px;
+                          height: 30%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 75%;
+                          top: 57px;
+                          width: 1px;
+                          height: 30%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 269px;
+                          top: 57px;
+                          width: 1px;
+                          height: 30%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div style="position: relative; margin-top: 8px">
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: -0.9%;
+                          "
+                          >0</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 24%;
+                          "
+                          >1</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 49%;
+                          "
+                          >2</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 74%;
+                          "
+                          >3</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 99%;
+                          "
+                          >4</span
+                        >
+                      </div>
+                      <div
+                        class="border"
+                        style="
+                          margin-top: 45px;
+
+                          width: 270px;
+                        "
+                      >
+                        <div
+                          id="developmentNeeds-rater-avg-00"
+                          style="
+                            height: 30%;
+                            position: relative;
+                            border-top-right-radius: 3px;
+                            border-bottom-right-radius: 3px;
+                          "
+                        >
+                          <p
+                            class="font-inter"
+                            style="
+                              position: absolute;
+                              left: 105%;
+                              font-family: 'urbanist';
+                              font-size: 11px;
+                              top: -2.75px;
+                            "
+                          >
+                            0.00
+                          </p>
+                        </div>
+                        <script>
+                          renderRaterWiseData(
+                            "developmentNeeds-rater-avg-" + 0 + 0,
+                            0,
+                            0
+                          );
+                        </script>
+                        <div
+                          id="developmentNeeds-rater-avg-01"
+                          style="
+                            height: 30%;
+                            position: relative;
+                            border-top-right-radius: 3px;
+                            border-bottom-right-radius: 3px;
+                          "
+                        >
+                          <p
+                            class="font-inter"
+                            style="
+                              position: absolute;
+                              left: 105%;
+                              font-family: 'urbanist';
+                              font-size: 11px;
+                              top: -2.75px;
+                            "
+                          >
+                            4.00
+                          </p>
+                        </div>
+                        <script>
+                          renderRaterWiseData(
+                            "developmentNeeds-rater-avg-" + 0 + 1,
+                            4,
+                            1
+                          );
+                        </script>
+                      </div>
+                    </div>
+                    <script>
+                      renderStrengthAndDevNeedsFromManagerChart(
+                        "developmemntNeeds-" + 0,
+                        "developmemntNeedsAvgAsc-" + 0,
+                        "developmemntNeeds-overallavg-" + 0,
+                        "developmemntNeeds-selfavg-" + 0,
+                        "developmemntNeeds-avg-" + 0,
+                        2,
+                        4,
+                        0
+                      );
+                    </script>
+                  </div>
+                </div>
+                <div
+                  class="flex justify-between break-inside-avoid-page items-start min-h-[180px] h-auto"
+                  style="min-height: 180px"
+                >
+                  <div class="w-[49%]">
+                    <p
+                      class="text-primary font-urbanist font-semibold border-b uppercase"
+                    >
+                      Accountability
+                    </p>
+                    <p
+                      class="text-sm text-sm font-inter mt-1"
+                      style="color: #404040"
+                    >
+                      Discharge authority accorded to the position responsibly?
+                    </p>
+                  </div>
+                  <div class="" style="margin-right: 2px">
+                    <div id="developmemntNeeds-1"></div>
+                    <div
+                      style="
+                        margin-left: 100px;
+                        position: relative;
+                        width: 270px;
+                        height: 34px;
+                      "
+                    >
+                      <div
+                        id="developmemntNeedsAvgAsc-1"
+                        style="
+                          font-family: 'urbanist';
+                          position: relative;
+                          transform: translateX(-4%);
+                        "
+                      >
+                        (3.00)
+                      </div>
+                      <div
+                        style="
+                          border: 0.626113px solid rgba(36, 36, 36, 0.66);
+                          height: 34px;
+                          width: 270px;
+                          position: relative;
+                        "
+                      >
+                        <div
+                          id="developmemntNeeds-avg-1"
+                          style="
+                            position: absolute;
+                            left: 25%;
+                            width: 4px;
+                            height: 100%;
+                            background: #0069ff;
+                            transform: translate(-50%, -50%);
+                            top: 50%;
+                            z-index: 99;
+                          "
+                        ></div>
+                        <div
+                          id="developmemntNeeds-overallavg-1"
+                          style="
+                            position: absolute;
+                            width: 28px;
+                            height: 100%;
+                            background: #d9e6f9;
+                          "
+                        ></div>
+                        <img id=developmemntNeeds-selfavg-1
+                        src=http://192.168.1.88:8000/media/images/Star.svg
+                        style="position:absolute;height:26px;transform:
+                        translate(-50%,-50%);top: 50%;"/>
+                      </div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 0%;
+                          top: 57px;
+                          width: 1px;
+                          height: 30%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 25%;
+                          top: 57px;
+                          width: 1px;
+                          height: 30%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 50%;
+                          top: 57px;
+                          width: 1px;
+                          height: 30%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 75%;
+                          top: 57px;
+                          width: 1px;
+                          height: 30%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 269px;
+                          top: 57px;
+                          width: 1px;
+                          height: 30%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div style="position: relative; margin-top: 8px">
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: -0.9%;
+                          "
+                          >0</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 24%;
+                          "
+                          >1</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 49%;
+                          "
+                          >2</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 74%;
+                          "
+                          >3</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 99%;
+                          "
+                          >4</span
+                        >
+                      </div>
+                      <div
+                        class="border"
+                        style="
+                          margin-top: 45px;
+
+                          width: 270px;
+                        "
+                      >
+                        <div
+                          id="developmentNeeds-rater-avg-10"
+                          style="
+                            height: 30%;
+                            position: relative;
+                            border-top-right-radius: 3px;
+                            border-bottom-right-radius: 3px;
+                          "
+                        >
+                          <p
+                            class="font-inter"
+                            style="
+                              position: absolute;
+                              left: 105%;
+                              font-family: 'urbanist';
+                              font-size: 11px;
+                              top: -2.75px;
+                            "
+                          >
+                            0.00
+                          </p>
+                        </div>
+                        <script>
+                          renderRaterWiseData(
+                            "developmentNeeds-rater-avg-" + 1 + 0,
+                            0,
+                            0
+                          );
+                        </script>
+                        <div
+                          id="developmentNeeds-rater-avg-11"
+                          style="
+                            height: 30%;
+                            position: relative;
+                            border-top-right-radius: 3px;
+                            border-bottom-right-radius: 3px;
+                          "
+                        >
+                          <p
+                            class="font-inter"
+                            style="
+                              position: absolute;
+                              left: 105%;
+                              font-family: 'urbanist';
+                              font-size: 11px;
+                              top: -2.75px;
+                            "
+                          >
+                            3.00
+                          </p>
+                        </div>
+                        <script>
+                          renderRaterWiseData(
+                            "developmentNeeds-rater-avg-" + 1 + 1,
+                            3,
+                            1
+                          );
+                        </script>
+                      </div>
+                    </div>
+                    <script>
+                      renderStrengthAndDevNeedsFromManagerChart(
+                        "developmemntNeeds-" + 1,
+                        "developmemntNeedsAvgAsc-" + 1,
+                        "developmemntNeeds-overallavg-" + 1,
+                        "developmemntNeeds-selfavg-" + 1,
+                        "developmemntNeeds-avg-" + 1,
+                        1,
+                        3,
+                        0
+                      );
+                    </script>
+                  </div>
+                </div>
+                <div
+                  class="flex justify-between break-inside-avoid-page items-start min-h-[180px] h-auto"
+                  style="min-height: 180px"
+                >
+                  <div class="w-[49%]">
+                    <p
+                      class="text-primary font-urbanist font-semibold border-b uppercase"
+                    >
+                      Agile mindset
+                    </p>
+                    <p
+                      class="text-sm text-sm font-inter mt-1"
+                      style="color: #404040"
+                    >
+                      Develop and continuously improve change management
+                      strategies / processes to increase effectiveness?
+                    </p>
+                  </div>
+                  <div class="" style="margin-right: 2px">
+                    <div id="developmemntNeeds-2"></div>
+                    <div
+                      style="
+                        margin-left: 100px;
+                        position: relative;
+                        width: 270px;
+                        height: 34px;
+                      "
+                    >
+                      <div
+                        id="developmemntNeedsAvgAsc-2"
+                        style="
+                          font-family: 'urbanist';
+                          position: relative;
+                          transform: translateX(-4%);
+                        "
+                      >
+                        (3.00)
+                      </div>
+                      <div
+                        style="
+                          border: 0.626113px solid rgba(36, 36, 36, 0.66);
+                          height: 34px;
+                          width: 270px;
+                          position: relative;
+                        "
+                      >
+                        <div
+                          id="developmemntNeeds-avg-2"
+                          style="
+                            position: absolute;
+                            left: 25%;
+                            width: 4px;
+                            height: 100%;
+                            background: #0069ff;
+                            transform: translate(-50%, -50%);
+                            top: 50%;
+                            z-index: 99;
+                          "
+                        ></div>
+                        <div
+                          id="developmemntNeeds-overallavg-2"
+                          style="
+                            position: absolute;
+                            width: 28px;
+                            height: 100%;
+                            background: #d9e6f9;
+                          "
+                        ></div>
+                        <img id=developmemntNeeds-selfavg-2
+                        src=http://192.168.1.88:8000/media/images/Star.svg
+                        style="position:absolute;height:26px;transform:
+                        translate(-50%,-50%);top: 50%;"/>
+                      </div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 0%;
+                          top: 57px;
+                          width: 1px;
+                          height: 30%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 25%;
+                          top: 57px;
+                          width: 1px;
+                          height: 30%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 50%;
+                          top: 57px;
+                          width: 1px;
+                          height: 30%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 75%;
+                          top: 57px;
+                          width: 1px;
+                          height: 30%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 269px;
+                          top: 57px;
+                          width: 1px;
+                          height: 30%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div style="position: relative; margin-top: 8px">
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: -0.9%;
+                          "
+                          >0</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 24%;
+                          "
+                          >1</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 49%;
+                          "
+                          >2</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 74%;
+                          "
+                          >3</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 99%;
+                          "
+                          >4</span
+                        >
+                      </div>
+                      <div
+                        class="border"
+                        style="
+                          margin-top: 45px;
+
+                          width: 270px;
+                        "
+                      >
+                        <div
+                          id="developmentNeeds-rater-avg-20"
+                          style="
+                            height: 30%;
+                            position: relative;
+                            border-top-right-radius: 3px;
+                            border-bottom-right-radius: 3px;
+                          "
+                        >
+                          <p
+                            class="font-inter"
+                            style="
+                              position: absolute;
+                              left: 105%;
+                              font-family: 'urbanist';
+                              font-size: 11px;
+                              top: -2.75px;
+                            "
+                          >
+                            0.00
+                          </p>
+                        </div>
+                        <script>
+                          renderRaterWiseData(
+                            "developmentNeeds-rater-avg-" + 2 + 0,
+                            0,
+                            0
+                          );
+                        </script>
+                        <div
+                          id="developmentNeeds-rater-avg-21"
+                          style="
+                            height: 30%;
+                            position: relative;
+                            border-top-right-radius: 3px;
+                            border-bottom-right-radius: 3px;
+                          "
+                        >
+                          <p
+                            class="font-inter"
+                            style="
+                              position: absolute;
+                              left: 105%;
+                              font-family: 'urbanist';
+                              font-size: 11px;
+                              top: -2.75px;
+                            "
+                          >
+                            3.00
+                          </p>
+                        </div>
+                        <script>
+                          renderRaterWiseData(
+                            "developmentNeeds-rater-avg-" + 2 + 1,
+                            3,
+                            1
+                          );
+                        </script>
+                      </div>
+                    </div>
+                    <script>
+                      renderStrengthAndDevNeedsFromManagerChart(
+                        "developmemntNeeds-" + 2,
+                        "developmemntNeedsAvgAsc-" + 2,
+                        "developmemntNeeds-overallavg-" + 2,
+                        "developmemntNeeds-selfavg-" + 2,
+                        "developmemntNeeds-avg-" + 2,
+                        1,
+                        3,
+                        0
+                      );
+                    </script>
+                  </div>
+                </div>
+                <div
+                  class="flex justify-between break-inside-avoid-page items-start min-h-[180px] h-auto"
+                  style="min-height: 180px"
+                >
+                  <div class="w-[49%]">
+                    <p
+                      class="text-primary font-urbanist font-semibold border-b uppercase"
+                    >
+                      Agile mindset
+                    </p>
+                    <p
+                      class="text-sm text-sm font-inter mt-1"
+                      style="color: #404040"
+                    >
+                      Help his/her team to adapt to change and collaborate,
+                      learn, and stay flexible to achieve high-performing
+                      results?
+                    </p>
+                  </div>
+                  <div class="" style="margin-right: 2px">
+                    <div id="developmemntNeeds-3"></div>
+                    <div
+                      style="
+                        margin-left: 100px;
+                        position: relative;
+                        width: 270px;
+                        height: 34px;
+                      "
+                    >
+                      <div
+                        id="developmemntNeedsAvgAsc-3"
+                        style="
+                          font-family: 'urbanist';
+                          position: relative;
+                          transform: translateX(-4%);
+                        "
+                      >
+                        (3.00)
+                      </div>
+                      <div
+                        style="
+                          border: 0.626113px solid rgba(36, 36, 36, 0.66);
+                          height: 34px;
+                          width: 270px;
+                          position: relative;
+                        "
+                      >
+                        <div
+                          id="developmemntNeeds-avg-3"
+                          style="
+                            position: absolute;
+                            left: 25%;
+                            width: 4px;
+                            height: 100%;
+                            background: #0069ff;
+                            transform: translate(-50%, -50%);
+                            top: 50%;
+                            z-index: 99;
+                          "
+                        ></div>
+                        <div
+                          id="developmemntNeeds-overallavg-3"
+                          style="
+                            position: absolute;
+                            width: 28px;
+                            height: 100%;
+                            background: #d9e6f9;
+                          "
+                        ></div>
+                        <img id=developmemntNeeds-selfavg-3
+                        src=http://192.168.1.88:8000/media/images/Star.svg
+                        style="position:absolute;height:26px;transform:
+                        translate(-50%,-50%);top: 50%;"/>
+                      </div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 0%;
+                          top: 57px;
+                          width: 1px;
+                          height: 30%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 25%;
+                          top: 57px;
+                          width: 1px;
+                          height: 30%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 50%;
+                          top: 57px;
+                          width: 1px;
+                          height: 30%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 75%;
+                          top: 57px;
+                          width: 1px;
+                          height: 30%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 269px;
+                          top: 57px;
+                          width: 1px;
+                          height: 30%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div style="position: relative; margin-top: 8px">
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: -0.9%;
+                          "
+                          >0</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 24%;
+                          "
+                          >1</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 49%;
+                          "
+                          >2</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 74%;
+                          "
+                          >3</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 99%;
+                          "
+                          >4</span
+                        >
+                      </div>
+                      <div
+                        class="border"
+                        style="
+                          margin-top: 45px;
+
+                          width: 270px;
+                        "
+                      >
+                        <div
+                          id="developmentNeeds-rater-avg-30"
+                          style="
+                            height: 30%;
+                            position: relative;
+                            border-top-right-radius: 3px;
+                            border-bottom-right-radius: 3px;
+                          "
+                        >
+                          <p
+                            class="font-inter"
+                            style="
+                              position: absolute;
+                              left: 105%;
+                              font-family: 'urbanist';
+                              font-size: 11px;
+                              top: -2.75px;
+                            "
+                          >
+                            1.00
+                          </p>
+                        </div>
+                        <script>
+                          renderRaterWiseData(
+                            "developmentNeeds-rater-avg-" + 3 + 0,
+                            1,
+                            0
+                          );
+                        </script>
+                        <div
+                          id="developmentNeeds-rater-avg-31"
+                          style="
+                            height: 30%;
+                            position: relative;
+                            border-top-right-radius: 3px;
+                            border-bottom-right-radius: 3px;
+                          "
+                        >
+                          <p
+                            class="font-inter"
+                            style="
+                              position: absolute;
+                              left: 105%;
+                              font-family: 'urbanist';
+                              font-size: 11px;
+                              top: -2.75px;
+                            "
+                          >
+                            3.00
+                          </p>
+                        </div>
+                        <script>
+                          renderRaterWiseData(
+                            "developmentNeeds-rater-avg-" + 3 + 1,
+                            3,
+                            1
+                          );
+                        </script>
+                      </div>
+                    </div>
+                    <script>
+                      renderStrengthAndDevNeedsFromManagerChart(
+                        "developmemntNeeds-" + 3,
+                        "developmemntNeedsAvgAsc-" + 3,
+                        "developmemntNeeds-overallavg-" + 3,
+                        "developmemntNeeds-selfavg-" + 3,
+                        "developmemntNeeds-avg-" + 3,
+                        1,
+                        3,
+                        1
+                      );
+                    </script>
+                  </div>
+                </div>
+                <div
+                  class="flex justify-between break-inside-avoid-page items-start min-h-[180px] h-auto"
+                  style="min-height: 180px"
+                >
+                  <div class="w-[49%]">
+                    <p
+                      class="text-primary font-urbanist font-semibold border-b uppercase"
+                    >
+                      Agile mindset
+                    </p>
+                    <p
+                      class="text-sm text-sm font-inter mt-1"
+                      style="color: #404040"
+                    >
+                      Show proactiveness and think ahead?
+                    </p>
+                  </div>
+                  <div class="" style="margin-right: 2px">
+                    <div id="developmemntNeeds-4"></div>
+                    <div
+                      style="
+                        margin-left: 100px;
+                        position: relative;
+                        width: 270px;
+                        height: 34px;
+                      "
+                    >
+                      <div
+                        id="developmemntNeedsAvgAsc-4"
+                        style="
+                          font-family: 'urbanist';
+                          position: relative;
+                          transform: translateX(-4%);
+                        "
+                      >
+                        (3.00)
+                      </div>
+                      <div
+                        style="
+                          border: 0.626113px solid rgba(36, 36, 36, 0.66);
+                          height: 34px;
+                          width: 270px;
+                          position: relative;
+                        "
+                      >
+                        <div
+                          id="developmemntNeeds-avg-4"
+                          style="
+                            position: absolute;
+                            left: 25%;
+                            width: 4px;
+                            height: 100%;
+                            background: #0069ff;
+                            transform: translate(-50%, -50%);
+                            top: 50%;
+                            z-index: 99;
+                          "
+                        ></div>
+                        <div
+                          id="developmemntNeeds-overallavg-4"
+                          style="
+                            position: absolute;
+                            width: 28px;
+                            height: 100%;
+                            background: #d9e6f9;
+                          "
+                        ></div>
+                        <img id=developmemntNeeds-selfavg-4
+                        src=http://192.168.1.88:8000/media/images/Star.svg
+                        style="position:absolute;height:26px;transform:
+                        translate(-50%,-50%);top: 50%;"/>
+                      </div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 0%;
+                          top: 57px;
+                          width: 1px;
+                          height: 30%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 25%;
+                          top: 57px;
+                          width: 1px;
+                          height: 30%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 50%;
+                          top: 57px;
+                          width: 1px;
+                          height: 30%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 75%;
+                          top: 57px;
+                          width: 1px;
+                          height: 30%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          position: absolute;
+                          left: 269px;
+                          top: 57px;
+                          width: 1px;
+                          height: 30%;
+                          background: rgba(36, 36, 36, 0.66);
+                        "
+                      ></div>
+                      <div style="position: relative; margin-top: 8px">
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: -0.9%;
+                          "
+                          >0</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 24%;
+                          "
+                          >1</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 49%;
+                          "
+                          >2</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 74%;
+                          "
+                          >3</span
+                        >
+                        <span
+                          style="
+                            position: absolute;
+                            font-family: 'urbanist';
+                            font-style: normal;
+                            font-weight: 400;
+                            left: 99%;
+                          "
+                          >4</span
+                        >
+                      </div>
+                      <div
+                        class="border"
+                        style="
+                          margin-top: 45px;
+
+                          width: 270px;
+                        "
+                      >
+                        <div
+                          id="developmentNeeds-rater-avg-40"
+                          style="
+                            height: 30%;
+                            position: relative;
+                            border-top-right-radius: 3px;
+                            border-bottom-right-radius: 3px;
+                          "
+                        >
+                          <p
+                            class="font-inter"
+                            style="
+                              position: absolute;
+                              left: 105%;
+                              font-family: 'urbanist';
+                              font-size: 11px;
+                              top: -2.75px;
+                            "
+                          >
+                            2.00
+                          </p>
+                        </div>
+                        <script>
+                          renderRaterWiseData(
+                            "developmentNeeds-rater-avg-" + 4 + 0,
+                            2,
+                            0
+                          );
+                        </script>
+                        <div
+                          id="developmentNeeds-rater-avg-41"
+                          style="
+                            height: 30%;
+                            position: relative;
+                            border-top-right-radius: 3px;
+                            border-bottom-right-radius: 3px;
+                          "
+                        >
+                          <p
+                            class="font-inter"
+                            style="
+                              position: absolute;
+                              left: 105%;
+                              font-family: 'urbanist';
+                              font-size: 11px;
+                              top: -2.75px;
+                            "
+                          >
+                            3.00
+                          </p>
+                        </div>
+                        <script>
+                          renderRaterWiseData(
+                            "developmentNeeds-rater-avg-" + 4 + 1,
+                            3,
+                            1
+                          );
+                        </script>
+                      </div>
+                    </div>
+                    <script>
+                      renderStrengthAndDevNeedsFromManagerChart(
+                        "developmemntNeeds-" + 4,
+                        "developmemntNeedsAvgAsc-" + 4,
+                        "developmemntNeeds-overallavg-" + 4,
+                        "developmemntNeeds-selfavg-" + 4,
+                        "developmemntNeeds-avg-" + 4,
+                        3,
+                        3,
+                        2
+                      );
+                    </script>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

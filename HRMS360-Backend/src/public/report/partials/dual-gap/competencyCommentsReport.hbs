@@ -1,0 +1,74 @@
+{{!-- <div class="dont-break break-inside-avoid-page w-[820.7007874px] min-h-[1122px] h-full mx-auto p-5"> --}}
+  <div class="dont-break break-inside-avoid-page w-full min-h-[1044px] h-fit mx-auto  p-5">
+
+  <div class="relative h-full">
+    {{> dual-gap/cornerFrames }}
+
+    <div
+      class="bg-primary-light text-primary font-urbanist font-bold p-2 text-base uppercase"
+    >
+      Qualitative Feedback 
+    </div>
+    <div class="h-full ">
+      {{!-- {{#each competencyCommentsData as |competency|}}
+        <div
+          class="text-neutral-800 font-semibold font-urbanist text-base bg-neutral-100 py-2 px-4 rounded-lg w-fit my-5 mt-10"
+          style="margin-top: 35px;"
+        >
+          {{competency.title}}
+        </div>
+        
+        <div class="pl-6">
+          {{#each competency.comments as |comment|}} 
+            {{#isSameRater @index comment competency.comments}}
+ 
+            {{/isSameRater}}
+            {{#if comment.comments.length }}
+              <div
+                class="flex justify-start items-center text-sm mb-9 text-neutral-700 pl-5"
+              >
+                <div class="p-[2px] mr-2 rounded-full bg-neutral-700"></div>
+                <div class="font-inter " style="color:#525252">{{comment.comments}}</div>
+              </div>
+            {{else}}
+            {{/if}}
+          {{/each}} 
+        </div>
+      {{/each}} --}}
+      <div
+          class="text-neutral-800 font-semibold font-urbanist text-base bg-neutral-100 py-2 px-4 rounded-lg w-fit my-5 mt-10"
+          style="margin-top: 35px;"
+        >
+          {{!-- Strengths --}}
+          What do you perceive as the 2 top strengths of this participant and how has the participant demonstrated them in the workplace?
+        </div>
+        {{#each competencyCommentsData as |competency|}}
+        {{#ifEquals competency.question_type "strength" }}
+              <div
+                class="flex justify-start items-center text-sm mb-9 text-neutral-700 pl-5"
+              >
+                <div class="p-[2px] mr-2 rounded-full bg-neutral-700"></div>
+                <div class="font-inter " style="color:#525252">{{competency.response_text}}</div>
+              </div>
+          {{/ifEquals}}
+        {{/each}}
+      <div
+          class="text-neutral-800 font-semibold font-urbanist text-base bg-neutral-100 py-2 px-4 rounded-lg w-fit my-5 mt-10"
+          style="margin-top: 35px;"
+        >
+          {{!-- Weakness --}}
+          What are the 2 areas that the participant can develop to make him or her more effective in the organisation?
+        </div>
+        {{#each competencyCommentsData as |competency|}}
+        {{#ifEquals competency.question_type  "weakness"}}
+              <div
+                class="flex justify-start items-center text-sm mb-9 text-neutral-700 pl-5"
+              >
+                <div class="p-[2px] mr-2 rounded-full bg-neutral-700"></div>
+                <div class="font-inter " style="color:#525252">{{competency.response_text}}</div>
+              </div>
+          {{/ifEquals}}
+        {{/each}}
+    </div>
+  </div>
+</div>

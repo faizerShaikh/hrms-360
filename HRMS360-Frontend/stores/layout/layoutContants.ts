@@ -1,0 +1,2 @@
+export const SET_NAVBAR_TITLE = "SET_NAVBAR_TITLE";
+export const SET_SIDEBAR_MENU = "SET_SIDEBAR_MENU";

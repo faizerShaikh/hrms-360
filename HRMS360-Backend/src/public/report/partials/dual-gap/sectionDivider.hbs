@@ -1,0 +1,122 @@
+<div class="dont-break w-full h-full mx-auto p-5">
+
+    <div class="relative h-full">
+      {{> dual-gap/cornerFrames}}
+
+      <div class="h-full flex justify-around flex-col">
+        <div
+          class="dont-break w-[352px] h-full flex items-center justify-center flex-col mx-auto mb-[100px]"
+        >
+          <div
+            class="w-full flex justify-center items-center border-b-2 border-secondary pb-2"
+          >
+            <img
+              src="{{logo_path}}"
+              alt="company-logo"
+            />
+          </div>
+          <div>
+            <p
+              class="text-center text-lg mt-2 text-[#4D4D4D] font-medium uppercase font-inter"
+            >
+              Insight 360 feedback for leaders
+            </p>
+          </div>
+          <div class="flex flex-col w-full">
+            <div class="flex w-full"> 
+              <div class="w-[40%] flex justify-end items-start">     
+                <p class="text-lg font-urbanist font-bold text-neutral-600">
+                Company Name:
+                </p> 
+              </div>
+              <div class="w-[60%]">
+                <span
+                class=" text-lg  mx-3 font-urbanist text-neutral-400 truncate"
+                style="color: #242424"
+                >
+                {{tenant}}
+                </span>
+              </div>
+            </div>
+             {{#if survey.surveys.length}}
+            <div class="flex w-full"> 
+              <div class="w-[40%] flex justify-end items-start">     
+                <p class="text-lg font-urbanist font-bold text-neutral-600">
+                Name:
+                </p> 
+              </div>
+              <div class="w-[60%]">
+                 <span
+                class="text-lg mx-3 font-urbanist text-neutral-400  truncate"
+                style="color: #242424"
+              >
+                {{#with survey.surveys.[0]}} {{employee.name}}  {{/with}}
+              </span>
+              </div>
+            </div>
+          {{/if}}
+            <div class="flex w-full"> 
+              <div class="w-[40%] flex justify-end items-start">     
+                <p class=" text-lg font-urbanist font-bold text-neutral-600">Date:</p>
+              </div>
+              <div class="w-[60%]">
+              <span
+                class="text-lg mx-3 font-urbanist text-neutral-400"
+                style="color: #242424"
+              >
+            {{!-- {{#if survey.surveys.length}}
+            {{getFormatedDate survey.updatedAt}}
+            {{else}}  --}}
+
+            {{getFormatedDate survey.updatedAt}}
+            {{!-- {{/if}} --}}
+              </span>
+              </div>
+            </div>
+        
+          </div>
+          
+        </div>
+
+        {{#if survey.surveys.length}}
+
+        <div class="text-center absolute bottom-10 left-0 right-0">
+          <p
+            class="p-4 "
+            style="font-family:'urbanist';font-size: 14.5px !important;border: 2px solid red; color: red; font-weight: 400"
+          >
+            All rights reserved. This is a confidential and proprietary
+            information of NBO Leadership Sdn. Bhd. Duplication in any form is
+            strictly prohibited without written consent from NBO Leadership Sdn.
+            Bhd.
+          </p>
+        </div>
+
+        {{else}}
+
+        <div class="text-center absolute bottom-10 left-0 right-0">
+          <p
+            class="p-4 "
+            style="
+            font-family:'urbanist';
+              font-size: 14.5px !important;
+
+              border: 2px solid red;
+
+              color: red;
+
+              font-weight: 400;
+            "
+          >
+            All rights reserved. This is a confidential and proprietary
+            information of NBO Leadership Sdn. Bhd. Duplication in any form is
+            strictly prohibited without written consent from NBO Sdn. Bhd.
+          </p>
+        </div>
+
+        {{/if}}
+      </div>
+    </div>
+  </div>
+</div>
+ 

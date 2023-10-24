@@ -1,0 +1,275 @@
+  <script>
+  const renderStrengthAndDevNeedsFromChart = (id,id2,avg) => {
+    if(!avg){
+      avg = 0
+    }
+    document.getElementById(id).style.left = `${(avg* 100) / 4}%`;
+    document.getElementById(id2).style.left = `${(avg* 100) / 4}%`;
+
+  };
+
+</script>
+
+  <div class="dont-break break-inside-avoid-page w-full min-h-[1044px] h-[1044px] mx-auto  p-5">
+  <div class="relative h-full">
+    {{> dual-gap/cornerFrames }}
+    <div class="bg-primary-light text-primary font-urbanist font-bold p-2 text-base uppercase">
+      Strengths and Development Needs 
+    </div>
+    <div>
+      <div class="bg-neutral-100 p-3 mt-5 mb-10">
+        <div class="text-primary text-lg font-semibold font-urbanist mb-1">Group Strengths</div>
+        <div class="text-neutral-800 font-inter text-sm font-normal">
+     These practices were identified by all raters as the Group's Strengths. They have the smallest Average Gap Size.
+        
+        </div>
+      </div>
+      <div class="flex  border p-3 mb-5">
+  
+          <div class="flex  items-center">
+    <div
+      class="bg-[#0069ff]" style="width: 3.13px;height: 25px;;margin-right:10px"
+    >
+    </div>
+    <div class="font-urbanist text-sm">Average Gap Size</div>
+        </div>
+       </div>
+       {{!-- min-h-[calc(1122px_-_250px)] --}}
+      <div class="flex justify-between  h-full flex-col p-4">
+        <div>
+        {{#each topFiveStrengths as |question|}}
+           <div class="flex justify-between items-start mb-10" style="min-height: 100px;">
+          <div class="w-[49%]">
+            <p class="text-primary text-lg font-medium font-urbanist border-b uppercase">
+              {{question.competency.title}}
+            </p>
+            <p class="text-neutral-800 text-sm font-inter font-normal mt-1" style="color:#404040">
+              {{#with question.questionnaireQuestion.[0]}}
+                {{!-- Q{{order}}. {{question.text}} --}}
+                {{/with}}
+                Q{{findIndexofText ../topFiveStrengthsSorted question.id}}. {{question.text}}
+            </p>
+          </div>
+          <div style="margin-left: 2px;">
+              <diV
+  style="
+            margin-left:100px;
+            position:relative;
+            width:234px;
+            height:34px
+            "
+>
+          <div id={{concat "strengths-" @index}} class="font-urbanist" style="position:relative;transform: translateX(-4%);">({{decimalUpto2digit question.avg_gap}})</div>
+  <div
+    style="border:0.626113px solid rgba(36, 36, 36, 0.66);
+                  height:34px;
+                  width:234px;
+                  position:relative"
+  >
+    <div
+      id={{concat "strengthsValue-" @index}}
+      style="position:absolute;width:4px;height:100%;background:#0069ff;transform: translate(-50%,-50%);top: 50%;"
+    ></div>
+  </div>
+  <div
+    style="position:absolute;left:0%;top:57px; width:1px;height:30%;background:rgba(36, 36, 36, 0.66)"
+  ></div>
+  <div
+    style="position:absolute;left:25%;;top:57px; width:1px;height:30%;background:rgba(36, 36, 36, 0.66)"
+  ></div>
+  <div
+    style="position:absolute;left:50%;;top:57px; width:1px;height:30%;background:rgba(36, 36, 36, 0.66)"
+  ></div>
+  <div
+    style="position:absolute;left:75%;;top:57px; width:1px;height:30%;background:rgba(36, 36, 36, 0.66)"
+  ></div>
+  <div
+    style="position:absolute;left:233px;top:57px; width:1px;height:30%;background:rgba(36, 36, 36, 0.66)"
+  ></div>
+  <div
+    style="position:relative;
+              margin-top:13px
+              "
+  >
+    <span
+    class="font-urbanist"
+      style="position:absolute;
+                  font-style: normal;
+                  font-weight: 400;
+                  font-size: 13px;left:0%"
+    >0</span>
+    <span
+    class="font-urbanist"
+      style="position:absolute;
+                  font-style: normal;
+                  font-weight: 400;
+                  font-size: 13px;left:25%"
+    >1</span>
+    <span
+    class="font-urbanist"
+      style="position:absolute;
+                  font-style: normal;
+                  font-weight: 400;
+                  font-size: 13px;left:50%"
+    >2</span>
+    <span
+    class="font-urbanist"
+      style="position:absolute;
+                  font-style: normal;
+                  font-weight: 400;
+                  font-size: 13px;left:75%"
+    >3</span>
+    <span
+    class="font-urbanist"
+      style="position:absolute;
+                  font-style: normal;
+                  font-weight: 400;
+                  font-size: 13px;
+                  left:233px"
+    >4</span>
+  </div>
+
+          </div>
+            <script>
+              renderStrengthAndDevNeedsFromChart( "strengths-" + {{@index}},"strengthsValue-" + {{@index}},{{question.avg_gap}})
+            </script>
+          </div>
+        </div>
+        {{/each}}
+        </div>
+       
+      </div>
+    </div>
+  </div>
+    
+</div> 
+<div class="dont-break break-inside-avoid-page w-full min-h-[1044px] h-[1044px] mx-auto  p-5">
+<div class="relative h-full">
+    {{> dual-gap/cornerFrames }}
+    <div class="bg-primary-light text-primary p-2 font-urbanist font-bold text-base uppercase">
+      Strengths and Development Needs 
+    </div>
+    <div>
+      <div class="bg-neutral-100 p-3 mt-5 mb-10">
+        <div class="text-primary text-lg font-semibold font-urbanist mb-1"> Group Development Needs</div>
+        <div class="text-neutral-800 text-sm font-inter font-normal">
+          These practices were identified by all raters as the Group's Development Needs. They
+          have the Largest Average Gap Size. 
+        </div>
+      </div>
+        <div class="flex  border p-3 mb-5">
+        <div class="flex  items-center">
+    <div
+     class="bg-[#0069ff]" style="width: 3.13px;height: 25px;margin-right:10px"
+    >
+    </div>
+    <div class="font-urbanist text-sm">Average Gap Size</div>
+        </div>
+       </div>
+      <div class="flex justify-between h-full flex-col p-4">
+        <div>
+        {{#each toFiveDevelopmentNeeds as |question|}}
+           <div class="flex justify-between items-start mb-10" style="min-height: 100px;">
+          <div class="w-[49%]">
+            <p class="text-primary text-lg font-urbanist font-medium border-b uppercase">
+              {{question.competency.title}}
+            </p>
+            <p class="text-neutral-800 text-sm font-inter font-normal mt-1" style="color:#404040">
+               {{#with question.questionnaireQuestion.[0]}}
+                {{!-- Q{{order}}. {{question.text}} --}}
+                Q{{findIndexofText ../../topFiveStrengthsSorted question.id}}. {{question.text}}
+                {{/with}}
+           {{!-- Q{{question.order}}. {{question.text}} --}}
+            </p>
+          </div>
+          <div  style="    margin-left: 2px;">
+               <diV
+  style="
+            margin-left:100px;
+            position:relative;
+            width:234px;
+            height:34px
+            "
+>
+          <div id={{concat "developmemntNeeds-" @index}} style="position:relative;transform: translateX(-4%);" class="font-urbanist">({{decimalUpto2digit question.avg_gap}})</div>
+  <div
+    style="border:0.626113px solid rgba(36, 36, 36, 0.66);
+                  height:34px;
+                  width:234px;
+                  position:relative"
+  >
+    <div
+      id={{concat "developmemntNeedsValue-" @index}}
+      style="position:absolute;width:4px;height:100%;background:#0069ff;transform: translate(-50%,-50%);top: 50%;"
+    ></div>
+  </div>
+  <div
+    style="position:absolute;left:0%;top:57px; width:1px;height:30%;background:rgba(36, 36, 36, 0.66)"
+  ></div>
+  <div
+    style="position:absolute;left:25%;;top:57px; width:1px;height:30%;background:rgba(36, 36, 36, 0.66)"
+  ></div>
+  <div
+    style="position:absolute;left:50%;;top:57px; width:1px;height:30%;background:rgba(36, 36, 36, 0.66)"
+  ></div>
+  <div
+    style="position:absolute;left:75%;;top:57px; width:1px;height:30%;background:rgba(36, 36, 36, 0.66)"
+  ></div>
+  <div
+    style="position:absolute;left:233px;top:57px; width:1px;height:30%;background:rgba(36, 36, 36, 0.66)"
+  ></div>
+  <div
+    style="position:relative;
+              margin-top:13px
+              "
+  >
+    <span
+      class="font-urbanist"
+      style="position:absolute;
+                  font-style: normal;
+                  font-weight: 400;
+                  font-size: 13px;left:0%"
+    >0</span>
+    <span
+      class="font-urbanist"
+      style="position:absolute;
+                  font-style: normal;
+                  font-weight: 400;
+                  font-size: 13px;left:25%"
+    >1</span>
+    <span
+      class="font-urbanist"
+      style="position:absolute;
+                  font-style: normal;
+                  font-weight: 400;
+                  font-size: 13px;left:50%"
+    >2</span>
+    <span
+      class="font-urbanist"
+      style="position:absolute;
+                  font-style: normal;
+                  font-weight: 400;
+                  font-size: 13px;left:75%"
+    >3</span>
+    <span
+      class="font-urbanist"
+      style="position:absolute;
+                  font-style: normal;
+                  font-weight: 400;
+                  font-size: 13px;left:99%"
+    >4</span>
+  </div>
+
+          </div>
+            <script>
+              renderStrengthAndDevNeedsFromChart( "developmemntNeeds-" + {{@index}},"developmemntNeedsValue-" + {{@index}},{{question.avg_gap}})
+            </script>
+          </div>
+        </div>
+        {{/each}}
+        </div>
+     
+      </div>
+    </div>
+  </div>
+  </div>

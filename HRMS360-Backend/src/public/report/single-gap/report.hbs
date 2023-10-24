@@ -1,0 +1,532 @@
+<main id="main" class="dont-break">
+  {{!-- Report Intro Page --}} 
+  {{> single-gap/reportIntro reportIntro}} 
+  {{!-- Competency level report --}} 
+  {{> single-gap/sectionDivider competencyDeviderData}} 
+  {{!-- Competency Rating in Ascending Order --}}
+  <div class="dont-break w-[210mm] h-[297mm] mx-auto aller p-5">
+    <div class="border p-5 relative h-full">
+      <div class="absolute top-0 right-0">
+        <img
+          src="/report/single-gap/images/reportRightCurv.png"
+          width="59px"
+          alt="right-curv"
+          height="59px"
+        />
+      </div>
+      <div>
+        <h3 class="text-[#242424] century-gothic text-base border-b">
+          Competency Rating in Ascending Order
+        </h3>
+        <div
+          class="h-1 ml-auto w-[calc(100%_-_210px)] flex justify-start items-center mt-20"
+        >
+          <div
+            class="relative bg-[#DE425B] text-[#DE425B] w-[calc(100%_/_5)] h-full"
+          >
+            <p class="absolute -top-5 m-0 text-sm w-full text-[#DE425B]">
+              Poor
+            </p>
+          </div>
+          <div
+            class="relative bg-[#F28C54] text-[#F28C54] w-[calc(100%_/_5)] h-full"
+          ></div>
+          <div
+            class="relative bg-[#FFD47A] text-[#FFD47A] w-[calc(100%_/_5)] h-full"
+          ></div>
+          <div
+            class="relative bg-[#A6C254] text-[#A6C254] w-[calc(100%_/_5)] h-full"
+          ></div>
+          <div
+            class="relative bg-[#18AB56] text-[#18AB56] w-[calc(100%_/_5)] h-full"
+          >
+            <p
+              class="absolute -top-5 m-0 text-sm w-full text-[#18AB56] text-right"
+            >
+              Excellent
+            </p>
+          </div>
+        </div>
+        <div id="competencyRatingInAscendingOrder"></div>
+      </div>
+    </div>
+  </div>
+  {{!-- Top five competency --}}
+  <div class="dont-break w-[210mm] h-[297mm] mx-auto aller p-5">
+    <div class="border p-5 relative h-full flex flex-col justify-between">
+      <div class="absolute top-0 right-0">
+        <img
+          src="/report/single-gap/images/reportRightCurv.png"
+          width="59px"
+          alt="right-curv"
+          height="59px"
+        />
+      </div>
+      <div>
+        <h3 class="text-[#242424] century-gothic text-base border-b">
+          Top 5 Strengths
+        </h3>
+        <div
+          class="h-1 ml-auto w-[calc(100%_-_210px)] flex justify-start items-center mt-20"
+        >
+          <div
+            class="relative bg-[#DE425B] text-[#DE425B] w-[calc(100%_/_5)] h-full"
+          >
+            <p class="absolute -top-5 m-0 text-sm w-full text-[#DE425B]">
+              Poor
+            </p>
+          </div>
+          <div
+            class="relative bg-[#F28C54] text-[#F28C54] w-[calc(100%_/_5)] h-full"
+          ></div>
+          <div
+            class="relative bg-[#FFD47A] text-[#FFD47A] w-[calc(100%_/_5)] h-full"
+          ></div>
+          <div
+            class="relative bg-[#A6C254] text-[#A6C254] w-[calc(100%_/_5)] h-full"
+          ></div>
+          <div
+            class="relative bg-[#18AB56] text-[#18AB56] w-[calc(100%_/_5)] h-full"
+          >
+            <p
+              class="absolute -top-5 m-0 text-sm w-full text-[#18AB56] text-right"
+            >
+              Excellent
+            </p>
+          </div>
+        </div>
+        <div id="topFiveStrengths"></div>
+      </div>
+      <div>
+        <h3 class="text-[#242424] century-gothic text-base border-b">
+          Top 5 Weaknesses
+        </h3>
+        <div
+          class="h-1 ml-auto w-[calc(100%_-_210px)] flex justify-start items-center mt-20"
+        >
+          <div
+            class="relative bg-[#DE425B] text-[#DE425B] w-[calc(100%_/_5)] h-full"
+          >
+            <p class="absolute -top-5 m-0 text-sm w-full text-[#DE425B]">
+              Poor
+            </p>
+          </div>
+          <div
+            class="relative bg-[#F28C54] text-[#F28C54] w-[calc(100%_/_5)] h-full"
+          ></div>
+          <div
+            class="relative bg-[#FFD47A] text-[#FFD47A] w-[calc(100%_/_5)] h-full"
+          ></div>
+          <div
+            class="relative bg-[#A6C254] text-[#A6C254] w-[calc(100%_/_5)] h-full"
+          ></div>
+          <div
+            class="relative bg-[#18AB56] text-[#18AB56] w-[calc(100%_/_5)] h-full"
+          >
+            <p
+              class="absolute -top-5 m-0 text-sm w-full text-[#18AB56] text-right"
+            >
+              Excellent
+            </p>
+          </div>
+        </div>
+        <div id="topFiveWeakness"></div>
+      </div>
+    </div>
+  </div>
+  {{!-- Benchmark Charts --}} 
+  {{> single-gap/benchmarksReports benchmarkData}}
+  {{!-- {{ Radar Chart - Competency wise Score --}}
+  <div class="dont-break w-[210mm] h-[297mm] mx-auto aller p-5">
+    <div class="border p-5 relative h-full">
+      <div class="absolute top-0 right-0">
+        <img
+          src="/report/single-gap/images/reportRightCurv.png"
+          width="59px"
+          alt="right-curv"
+          height="59px"
+        />
+      </div>
+      <div class="">
+        <h3 class="text-[#242424] century-gothic text-base border-b">
+          Radar Chart - Competency wise Score
+        </h3>
+        <div id="competencyWiseScore" class="mt-20"></div>
+      </div>
+    </div>
+  </div>
+  {{!-- Heat Map - Average Rating per Role Group by Competency --}}
+  <div class="dont-break w-[210mm] h-[297mm] mx-auto aller p-5">
+    <div class="border p-5 relative h-full">
+      <div class="absolute top-0 right-0">
+        <img
+          src="/report/single-gap/images/reportRightCurv.png"
+          width="59px"
+          alt="right-curv"
+          height="59px"
+        />
+      </div>
+      <div class="">
+        <h3 class="text-[#242424] century-gothic text-base border-b">
+          Heat Map - Average Rating per Role Group by Competency
+        </h3>
+        <div class="relative mt-12">
+          <div id="averageRatingPerRoleGroup"></div>
+          <div class="absolute top-7 right-4">
+            <div class="w-2 h-8 bg-[#EEFBDB]"></div>
+            <div class="w-2 h-8 bg-[#D9F8B9]"></div>
+            <div class="w-2 h-8 bg-[#BAEB91]"></div>
+            <div class="w-2 h-8 bg-[#98D870]"></div>
+            <div class="w-2 h-8 bg-[#6cbe45]"></div>
+          </div>
+          <div
+            class="absolute top-7 right-0 text-[12px] h-[160px] flex justify-between items-center flex-col"
+          >
+            <div class="w-2 h-8 flex justify-center items-center">1</div>
+
+            <div class="w-2 h-8 flex justify-center items-center">2</div>
+
+            <div class="w-2 h-8 flex justify-center items-center">3</div>
+
+            <div class="w-2 h-8 flex justify-center items-center">4</div>
+
+            <div class="w-2 h-8 flex justify-center items-center">5</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {{> single-gap/sectionDivider questionDeviderData}} 
+  {{> single-gap/likertScaleReport questionsData}} 
+  {{> single-gap/singleChoiceReport questionsData}} 
+  {{> single-gap/multipleChoiceReport questionsData}} 
+  {{> single-gap/commentReport questionsData}}
+</main>
+
+{{!-- Competency Rating in Ascending Order --}}
+<script>
+  let data = {{{competencyLevelData}}}.map(item  =>  item.value)
+  let categories = {{{competencyLevelData}}}.map((item) => item.name)
+  let colors = [
+    "#DE425B",
+    "#F28C54",
+    "#FFD47A",
+    "#A6C254",
+    "#18AB56",
+  ];
+  let baseOptions = {
+    chart: {
+      type: "bar",
+      height: data.length === 1 ? 130 : data.length * 70,
+      toolbar: {
+        show: false,
+      },
+      animations: {
+        enabled: false,
+      },
+    },
+    tooltip: {
+      enabled: false,
+    },
+    grid: {
+      show: true,
+      strokeDashArray: 5,
+      xaxis: {
+        lines: {
+          show: true,
+        },
+      },
+      yaxis: {
+        lines: {
+          show: false,
+        },
+      },
+    },
+    stroke: {
+      colors: ["transparent"],
+      width: 3,
+    },
+    plotOptions: {
+      bar: {
+        distributed: true,
+        borderRadius: 2,
+        horizontal: true,
+        barHeight: "40%",
+        rangeBarGroupRows: false,
+      },
+    },
+    dataLabels: {
+      enabled: false,
+    },
+    legend: {
+      show: false,
+    },
+    yaxis: {
+      max: 5,
+      labels: {
+        show: true,
+        align: "right",
+        minWidth: 200,
+        maxWidth: 200,
+        style: {
+          colors: "#52606d",
+          fontSize: "14px",
+          fontFamily: '"Aller", "sans-serif"',
+        },
+      },
+    },
+    colors:data.map(item =>colors[Math.ceil(item)-1]),
+    xaxis: {
+      axisBorder: {
+        show: false,
+      },
+      labels: {
+        style: {
+          colors: "#52606d",
+          fontSize: "14px",
+          fontFamily: '"Aller", "sans-serif"',
+        },
+      },
+    },
+  };
+
+  //   Competency Rating in Ascending Order
+  let competencyRatingInAscendingOrderOptions = {
+    ...baseOptions,
+    xaxis: {
+      ...baseOptions.xaxis,
+      categories,
+    },
+    series: [
+      {
+        data,
+      },
+    ],
+  };
+  var chart = new ApexCharts(
+    document.querySelector("#competencyRatingInAscendingOrder"),
+    competencyRatingInAscendingOrderOptions
+  );
+  chart.render();
+
+  // Top five competency
+  let topFiveStrengthsOptions = {
+    ...baseOptions,
+    xaxis: {
+      ...baseOptions.xaxis,
+      categories: categories.slice(0, 5),
+    },
+    series: [
+      {
+        data: data.slice(0, 5),
+      },
+    ],
+  };
+  var chart = new ApexCharts(
+    document.querySelector("#topFiveStrengths"),
+    topFiveStrengthsOptions
+  );
+  chart.render();
+
+  let topFiveWeaknessOptions = {
+    ...baseOptions,
+    xaxis: {
+      ...baseOptions.xaxis,
+      categories: categories.reverse().slice(0, 5),
+    },
+    series: [
+      {
+        data: data.reverse().slice(0, 5),
+      },
+    ],
+  };
+  var chart = new ApexCharts(
+    document.querySelector("#topFiveWeakness"),
+    topFiveWeaknessOptions
+  );
+  chart.render();
+
+  // Competency wise Score
+  let competencyWiseScoreOptions = {
+    series: [
+      {
+        name: "Series 1",
+        data,
+      },
+    ],
+    chart: {
+      type: "radar",
+      height: 600,
+      toolbar: {
+        show: false,
+      },
+      animations: {
+        enabled: false,
+      },
+    },
+    tooltip: {
+      enabled: false,
+    },
+    colors: ["#6CBE45"],
+    markers: {
+      size: 4,
+      colors: undefined,
+      strokeColors: "#ffffff",
+      strokeWidth: 1,
+      strokeOpacity: 1,
+      strokeDashArray: 0,
+      fillOpacity: 1,
+      discrete: [],
+      shape: "circle",
+      radius: 2,
+      offsetX: 0,
+      offsetY: 0,
+      onClick: undefined,
+      onDblClick: undefined,
+      showNullDataPoints: true,
+      hover: {
+        size: undefined,
+        sizeOffset: 3,
+      },
+    },
+    grid: {
+      show: false,
+      xaxis: {
+        lines: {
+          show: false,
+        },
+      },
+      yaxis: {
+        lines: {
+          show: false,
+        },
+      },
+    },
+    yaxis: {
+      min: 0,
+      max: 5,
+      tickAmount: 5,
+      labels: {
+        show: true,
+        offsetX: 10,
+      },
+    },
+    xaxis: {
+      categories,
+      labels: {
+        show: true,
+        trim: true,
+        style: {
+          colors: Array(data.length).fill("#52606d"),
+          fontSize: "14px",
+          fontFamily: '"Aller", "sans-serif"',
+        },
+      },
+    },
+  };
+  var chart = new ApexCharts(
+    document.querySelector("#competencyWiseScore"),
+    competencyWiseScoreOptions
+  );
+  chart.render();
+
+let heatMapData = {{{avgPerRoalGroupData}}}
+  // Average Rating Per Role Group
+  let averageRatingPerRoleGroupOptions = {
+    plotOptions: {
+      heatmap: {
+        enableShades: false,
+        useFillColorAsStroke: true,
+        colorScale: {
+          ranges: [
+            {
+              from: 0,
+              to: 1,
+              color: "#EEFBDB",
+              name: "0-1",
+            },
+            {
+              from: 1,
+              to: 2,
+              color: "#D9F8B9",
+              name: "1-2",
+            },
+            {
+              from: 2,
+              to: 3,
+              color: "#BAEB91",
+              name: "2-3",
+            },
+            {
+              from: 3,
+              to: 4,
+              color: "#98D870",
+              name: "3-4",
+            },
+            {
+              from: 4,
+              to: 5,
+              color: "#6cbe45",
+              name: "4-5",
+            },
+          ],
+        },
+        distributed: true,
+      },
+    },
+    chart: {
+      type: "heatmap",
+      height:  heatMapData.length >= 5 ? heatMapData.length * 60 : heatMapData.length * 85,
+      width: "98%",
+      toolbar: {
+        show: false,
+      },
+      animations: {
+        enabled: false,
+      },
+    },
+    dataLabels: {
+      enabled: true,
+      style: {
+        colors: ["#242424"],
+        fontSize: "10px",
+      },
+    },
+    legend: {
+      show: false,
+    },
+    tooltip: {
+      enabled: false,
+    },
+    yaxis: {
+      labels: {
+        show: true,
+        align: "right",
+        minWidth: 160,
+        maxWidth: 160,
+        style: {
+          colors: "#52606d",
+          fontSize: "14px",
+          fontFamily: '"Aller", "sans-serif"',
+        },
+      },
+    },
+    xaxis: {
+      labels: {
+        show: true,
+        style: {
+          colors: "#52606d",
+          fontSize: "12px",
+          fontWeight: "200",
+          fontFamily: '"Aller", "sans-serif"',
+        },
+      },
+    },
+    series: heatMapData
+  };
+  var chart = new ApexCharts(
+    document.querySelector("#averageRatingPerRoleGroup"),
+    averageRatingPerRoleGroupOptions
+  );
+  chart.render();
+</script>

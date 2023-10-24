@@ -1,0 +1,13 @@
+{
+  "folders": [
+	{
+		"path": "../../.."
+	},
+	{
+		"path": "../../../../hrms360-frontend"
+	}
+],
+  "settings": {
+    "liveServer.settings.multiRootWorkspaceName": "hrms360-backend"
+  }
+}

@@ -1,0 +1,220 @@
+<script>
+  const renderBlindSpotsChart = (id, index, avgGap, selfGap) => {
+    let topFiveStrengthsBarBaseOptions = {
+      chart: {
+        type: "bar",
+        toolbar: {
+          show: false,
+        },
+        height: 120,
+        width: 380,
+        animations: {
+          enabled: false,
+        },
+      },
+      series: [
+        { name: "Self Gap Size", data: [selfGap===0?0.0001:selfGap.toFixed(2)] },
+        { name: "Average Gap Size", data: [avgGap===0?0.0001:avgGap.toFixed(2)] },
+      ],
+      tooltip: {
+        enabled: false,
+      },
+      grid: {
+        show: true,
+        strokeDashArray: 5,
+        xaxis: {
+          lines: {
+            show: true,
+          },
+        },
+        yaxis: {
+          lines: {
+            show: false,
+          },
+        },
+      },
+      stroke: {
+        colors: ["transparent"],
+        width: 3,
+      },
+      plotOptions: {
+        bar: {
+          borderRadius: 0,
+          horizontal: true,
+          barHeight: "100%",
+          rangeBarGroupRows: false,
+          dataLabels: {
+            position: "top",
+          },
+        },
+      },
+      dataLabels: {
+        enabled: true,
+        offsetX: 40,
+        formatter:(val)=>{
+          return val === 0.0001 ? 0.00 : val.toFixed(2);
+        },
+        style: {
+          fontSize: "14px",
+          fontFamily: "Helvetica, Arial, sans-serif",
+          fontWeight: 400,
+          colors: ["#000000"],
+        },
+      },
+      legend: {
+        show: false,
+      },
+      yaxis: {
+        show: false,
+        max: 5,
+        tickAmount: 4,
+        labels: {
+          show: true,
+          align: "right",
+          style: {
+            colors: "#52606d",
+            fontSize: "14px",
+            fontFamily: '"Urbanist", "sans-serif"',
+          },
+        },
+      },
+      colors: ["#3786EE", "#D7E7FC"],
+      xaxis: {
+        categories: ["sdadasd"],
+        axisBorder: {
+          show: true,
+        },
+        labels: {
+          style: {
+            colors: "#52606d",
+            fontSize: "14px",
+            fontFamily: '"Urbanist", "sans-serif"',
+          },
+        },
+      },
+    };
+
+    var chart = new ApexCharts(
+      document.querySelector("#" + id + index),
+      topFiveStrengthsBarBaseOptions
+    );
+    chart.render();
+  };
+</script> 
+
+<div class="dont-break break-inside-avoid-page w-full h-fit mx-auto p-5">
+  
+  <div class="relative h-full">
+    {{> dual-gap/cornerFrames }}
+    <div class="bg-primary-light font-urbanist font-semibold text-primary p-2 text-base uppercase">
+      TOP 5 BLIND SPOTS
+    </div>
+
+    <div class="flex justify-start  h-full flex-col">
+      <div class="border-b my-10 pb-1 flex justify-between items-center">
+        <div class="text-neutral-800 uppercase font-urbanist font-semibold text-base">
+          Average Gap (All Raters) against Self Gap
+        </div>
+        <div class="flex justify-between items-center">
+          <div class="flex justify-between items-center mr-2">
+            <div class="w-5 h-2 mr-2 font-inter bg-[#3786EE]"></div>
+            <div class="text-xs text-neutral-600">Self Rating</div>
+          </div>
+          <div class="flex justify-between items-center">
+            <div class="w-5 h-2 mr-2 font-inter bg-[#DBECF8]"></div>
+            <div class="text-xs text-neutral-600">Average Gap Rating</div>
+          </div>
+        </div>
+      </div>
+
+      {{#if blindSpots.length}}
+      {{#each blindSpots as |question|}} 
+        {{#if @last}}
+          <div class="flex  items-center mb-5 p-4">
+        {{else}}
+          <div class="flex  items-center p-4">
+        {{/if}}
+          <div class="w-1/2">
+            {{!-- <div class="text-primary text-base uppercase font-semibold font-urbanist">
+              {{question.competency.title}}
+            </div> --}}
+               <p
+                  class="text-primary font-semibold font-urbanist border-b uppercase"
+                  style="font-size: 16px;"
+                >
+              {{question.competency.title}}
+                </p>
+            {{!-- <p class="text-sm font-inter mt-1" style="color: #404040;font-size:14px">Q{{question.order}}. {{question.text}}</p> --}}
+            <p class="text-sm font-inter mt-1" style="color: #404040;font-size:14px">Q{{findIndexofText ../individualQuestionData question.id}}.  {{question.text}}</p>
+          </div>
+          <div class="w-1/2" style="margin-left: 110px;">
+            <div id={{concat "blindSpotsCompetencies" @index}}>
+          </div>
+        </div>
+        <script>
+          renderBlindSpotsChart("blindSpotsCompetencies",{{@index}},{{question.avg_gap}},{{question.selfGap}})
+        </script>
+      </div>
+      {{/each}}
+      {{else}}
+        <p class="font-urbanist w-full text-center">-- There are no Blind Spots to show --</p>
+      {{/if}}
+    </div>
+  </div>
+</div>
+<div class="dont-break break-inside-avoid-page w-full h-fit mx-auto  p-5">
+  <div class="relative h-full">
+    {{> dual-gap/cornerFrames }}
+    <div class="bg-primary-light text-primary font-urbanist font-semibold p-2 text-base uppercase">
+      TOP 5 UNDERESTIMATED COMPETENCIES
+    </div>
+
+       <div class="flex justify-start h-full flex-col">
+      <div class="border-b my-10 pb-1 flex justify-between items-center p-2">
+        <div class="text-neutral-800 uppercase font-urbanist font-semibold text-base">
+          Average Gap (All Raters) against Self Gap
+        </div>
+        <div class="flex justify-between items-center">
+          <div class="flex justify-between items-center mr-2">
+            <div class="w-5 h-2 mr-2 font-inter bg-[#3786EE]"></div>
+            <div class="text-xs text-neutral-600">Self Rating</div>
+          </div>
+          <div class="flex justify-between items-center">
+            <div class="w-5 h-2 font-inter mr-2 bg-[#DBECF8]"></div>
+            <div class="text-xs text-neutral-600">Average Gap Rating</div>
+          </div>
+        </div>
+      </div>
+      {{#if underestimated.length}}
+      {{#each underestimated as |question|}} 
+        {{#if @last}}
+          <div class="flex  items-center mb-5 p-4">
+        {{else}}
+          <div class="flex  items-center p-4">
+        {{/if}}
+          <div class="w-1/2">
+               <p
+                  class="text-primary font-semibold font-urbanist border-b uppercase"
+                  style="font-size: 16px;"
+                >
+              {{question.competency.title}}
+                </p>
+            {{!-- <p class="text-sm font-inter mt-1" style="color: #404040;font-size:14px">Q{{question.order}}. {{question.text}}</p> --}}
+            <p class="text-sm font-inter mt-1" style="color: #404040;font-size:14px">Q{{findIndexofText ../individualQuestionData question.id}}. {{question.text}}</p>
+          </div>
+          <div class="w-1/2" style="margin-left: 110px;" >
+            <div id={{concat "underestimatedComepetencies" @index}}>
+          </div>
+        </div>
+        <script>
+          renderBlindSpotsChart("underestimatedComepetencies",{{@index}},{{question.avg_gap}},{{question.selfGap}})
+        </script>
+      </div>
+      {{/each}}
+      {{else}}
+      <p class="font-urbanist w-full text-center">-- There are no Underestimated Competencies to show --</p>
+      {{/if}}
+    </div>
+  </div>
+</div>
+</div>

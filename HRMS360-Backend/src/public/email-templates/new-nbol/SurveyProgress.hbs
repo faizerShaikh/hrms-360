@@ -1,0 +1,326 @@
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Email</title>
+    <style>
+      .main-conatiner { margin-left: auto; margin-right: auto; width: 470px;
+      max-width: 470px; padding: 1.25rem; border-collapse: collapse; border: 1px
+      solid #f2bf1a; text-align: center; } .para-text { font-style: normal;
+      font-weight: 400; font-size: 12px; line-height: 130%; color: #404040;
+      text-align: start; } .banner { font-style: normal; font-weight: 400;
+      font-size: 10px; line-height: 13px; color: #616161; background: #f5f8f9;
+      border-left: 2px solid #1c9cf6; padding: 4px 10px; } .table-data {
+      font-family: "Tahoma"; font-style: normal; font-weight: 400; font-size:
+      10px; line-height: 132.5%; color: #262626; } .table-row { padding: 10px
+      40px; }
+    </style>
+  </head>
+  <body
+    style="
+      padding: 10px;
+      letter-spacing: 0.04em;
+      font-family: Tahoma, Arial, sans-serif;
+    "
+  >
+    <div class="main-conatiner" width="470px">
+      <table style="margin: auto; text-align: center">
+        <tbody>
+          <tr style="padding-bottom: 60px">
+            <td>
+              <img
+                src="{{logo}}"
+                alt="company logo"
+                {{! height="78px"
+                width="200px" }}
+                style="height: 60px; width: 180px"
+              />
+            </td>
+          </tr>
+          <tr>
+            <td class="para-text">
+              <p style="border-left: 2px solid #ffcd00; padding-left: 10px">
+                Dear Admin
+              </p>
+              <p style="padding-left: 10px">
+                Please find below completion status for the survey
+                {{surveyName}}.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="text-align: start">
+              <p
+                style="
+                  font-style: normal;
+                  font-weight: 400;
+                  font-size: 12px;
+                  line-height: 14px;
+                  color: #0069ff;
+                  padding-bottom: 5px;
+                  border-bottom: 1px solid #3786ee;
+                  font-family: 'Trebuchet MS';
+                "
+              >
+                STATUS BY RESPONSE GROUP
+              </p>
+            </td>
+          </tr>
+
+        </tbody>
+      </table>
+      <table width="410px" style="width: 410px; max-width: 410px; margin: auto">
+        <tbody>
+          <tr style="text-align: start">
+            <td
+              class="table-data table-row-top"
+              style="background: #f5f9ff; color: #262626; width=68px;padding: 10px 10px"
+            >
+              Response Group
+            </td>
+            <td
+              class="table-data table-row-top"
+              style="background: #f5f9ff; color: #262626; width=68px;padding: 10px 10px"
+            >
+              Total Headcount
+            </td>
+            <td
+              class="table-data table-row-top"
+              style="background: #f5f9ff; color: #262626; width=68px;padding: 10px 10px"
+            >
+              Completed
+            </td>
+            <td
+              class="table-data table-row-top"
+              style="background: #f5f9ff; color: #262626; width=68px;padding: 10px 10px"
+            >
+              Pending
+            </td>
+            <td
+              class="table-data table-row-top"
+              style="background: #f5f9ff; color: #262626; width=68px;padding: 10px 10px"
+            >
+              %&nbsp;Completed
+            </td>
+            <td
+              class="table-data table-row-top"
+              style="background: #f5f9ff; color: #262626; width=68px;padding: 10px 10px"
+            >
+              %&nbsp;Pending
+            </td>
+          </tr>
+          {{#if data.length}}
+            {{#each data as |rater|}}
+              <tr style="text-align: start">
+                <td
+                  class="table-data table-row"
+                  style="width=68px;padding: 10px 10px"
+                >
+                  {{this.category_name}}
+                </td>
+                <td
+                  class="table-data table-row"
+                  style="width=68px;padding: 10px 10px"
+                >
+                  {{#if this.surveyRespondant.length}}
+                    {{this.surveyRespondant.length}}
+                  {{else}}
+                    {{this.surveyExternalRespondant.length}}
+                  {{/if}}
+                </td>
+                <td
+                  class="table-data table-row"
+                  style="width=68px;padding: 10px 10px"
+                >
+                  {{#if this.surveyRespondant.length}}
+                    {{CompletedResponseStatus this.surveyRespondant per}}
+                  {{else}}
+                    {{CompletedResponseStatus
+                      this.surveyExternalRespondant
+                      per
+                    }}
+                  {{/if}}
+                </td>
+                <td
+                  class="table-data table-row"
+                  style="width=68px;padding: 10px 10px"
+                >
+                  {{#if this.surveyRespondant.length}}
+                    {{PendingResponseStatus this.surveyRespondant per}}
+                  {{else}}
+                    {{PendingResponseStatus this.surveyExternalRespondant per}}
+                  {{/if}}
+                </td>
+                <td
+                  class="table-data table-row"
+                  style="width=68px;padding: 10px 10px"
+                >
+                  {{#if this.surveyRespondant.length}}
+                    {{CompletedResponseStatus this.surveyRespondant}}
+                  {{else}}
+                    {{CompletedResponseStatus this.surveyExternalRespondant}}
+                  {{/if}}
+                </td>
+                <td
+                  class="table-data table-row"
+                  style="width=68px;padding: 10px 10px"
+                >
+                  {{#if this.surveyRespondant.length}}
+                    {{PendingResponseStatus this.surveyRespondant}}
+                  {{else}}
+                    {{PendingResponseStatus this.surveyExternalRespondant}}
+                  {{/if}}
+                </td>
+              </tr>
+            {{/each}}
+          {{/if}}
+        </tbody>
+      </table>
+      <table style="width: 100%">
+        <tbody>
+          <tr>
+            <td style="text-align: start">
+              <p
+                style="
+                  font-style: normal;
+                  font-weight: 400;
+                  font-size: 12px;
+                  line-height: 14px;
+                  color: #0069ff;
+                  padding-bottom: 5px;
+                  border-bottom: 1px solid #3786ee;
+                  font-family: 'Trebuchet MS';
+                "
+              >
+                STATUS BY COMPLETION
+              </p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <table width="410px" style="width: 410px; max-width: 410px; margin: auto">
+        <tbody>
+          <tr style="text-align: start">
+            <td
+              class="table-data table-row"
+              style="background: #f5f9ff; color: #262626"
+            >
+              Response Group
+            </td>
+            <td
+              class="table-data table-row"
+              style="background: #f5f9ff; color: #262626"
+            >
+              Total Headcount
+            </td>
+            <td
+              class="table-data table-row"
+              style="background: #f5f9ff; color: #262626"
+            >
+              %&nbsp;Distribution
+            </td>
+          </tr>
+          <tr style="text-align: start">
+            <td class="table-data table-row" style="">
+              Completed
+            </td>
+            <td class="table-data table-row" style="">
+              {{StatusByCompletion allRespondant position=1}}
+            </td>
+            <td class="table-data table-row" style="">
+              {{StatusByCompletionPercenatge allRespondant position=1}}
+            </td>
+
+          </tr>
+          <tr style="text-align: start">
+            <td class="table-data table-row" style="">
+              In Progress
+            </td>
+            <td class="table-data table-row" style="">
+              {{StatusByCompletion allRespondant position=2}}
+            </td>
+            <td class="table-data table-row" style="">
+              {{StatusByCompletionPercenatge allRespondant position=2}}
+
+            </td>
+
+          </tr>
+          <tr style="text-align: start">
+            <td class="table-data table-row" style="">
+              Not Started
+            </td>
+            <td class="table-data table-row" style="">
+              {{StatusByCompletion allRespondant position=3}}
+            </td>
+            <td class="table-data table-row" style="">
+              {{StatusByCompletionPercenatge allRespondant position=3}}
+
+            </td>
+
+          </tr>
+
+        </tbody>
+      </table>
+      <table
+        width="410px"
+        style="width: 410px; max-width: 410px; margin: auto; padding-top: 20px"
+      >
+        <tbody>
+          <tr>
+            <td style="padding-bottom: 60px">
+              <a href="{{system_link}}" style="text-decoration: none">
+                <p
+                  style="
+                    padding: 9px 10px;
+                    gap: 6.64px;
+                    width: 200px;
+                    background: #f5f9ff;
+                    box-shadow: 0px 2px 4px rgba(0, 105, 255, 0.15);
+                    border: 1px solid #0069ff;
+                    border-radius: 5.06356px;
+                    margin: auto;
+                    cursor: pointer;
+                  "
+                >
+                  <span style="padding-right: 10px">
+                    {{!-- <img src="{{arrow_icon}}" alt="" /> --}}
+                  </span>
+                  <span
+                    style="
+                      font-weight: 400;
+                      font-size: 12px;
+                      line-height: 13px;
+                      color: #0069ff;
+                      font-family: 'Trebuchet MS';
+                    "
+                  >
+                    Open NBOL 360 Application
+                  </span>
+                </p>
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p
+                style="
+                  padding-top: 10px;
+                  border-top: 1px solid #f2bf1a;
+                  font-style: normal;
+                  font-weight: 500;
+                  font-size: 12px;
+                  line-height: 10px;
+                  font-family: 'Trebuchet MS';
+                  text-align: center;
+                "
+              >
+                &copy; NBO Leadership
+              </p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </body>
+</html>

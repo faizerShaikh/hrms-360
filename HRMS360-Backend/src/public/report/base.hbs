@@ -1,0 +1,61 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    {{! <link
+      href="https://fonts.googleapis.com/css2?family=Urbanist:wght@100;200;300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    /> }}
+    {{! <link
+      href="https://fonts.googleapis.com/css2?family=Urbanist:wght@100;200;300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    /> }}
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script
+      src="
+https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.min.js
+"
+    ></script>
+    <link
+      href="
+https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.min.css
+"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/report/styles/styles.css" />
+    <link
+      rel="stylesheet"
+      href="/report/styles/print-styles.css/"
+      media="print"
+    />
+    <script>
+      tailwind.config =
+      {{{tailwindConfig}}};
+    </script>
+
+    <style media="print">
+      body{ font-size:50pt !important; }
+    </style>
+    <style>
+      body{ font-size: 14px !important; } table tr td, table tr th {
+      page-break-inside: avoid; margin: 4px 0 4px 0; } @media print { @page{
+      margin:43px 25px } } table.question-table, th { border: 1px solid white;
+      border-collapse: collapse; } .dont-break { page-break-before: always; }
+      .break-after{ page-break-after:auto; } .break-before{
+      page-break-before:always; } .chip-0 { color: #FF0000; padding: 5px;
+      border-radius: 5px; text-align: center; } .chip-1 { color: #FF0000;
+      padding: 5px; border-radius: 5px; text-align: center; } .chip-2 { color:
+      #FCAE1E padding: 5px; border-radius: 5px; text-align: center; } .chip-3 {
+      color: #525252; padding: 5px; border-radius: 5px; text-align: center; }
+      .chip-4 { color: #25BF9E; padding: 5px; border-radius: 5px; text-align:
+      center; } .chip-5 { color: #0069FF; padding: 5px; border-radius: 5px;
+      text-align: center; }
+    </style>
+  </head>
+  <body>
+    <div class="report-container">
+      {{{body}}}
+    </div>
+  </body>
+</html>

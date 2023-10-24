@@ -1,0 +1,94 @@
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      td { padding: 20px 40px; } .btn-primary { width: 177px; height: 36px;
+      border-radius: 5px; padding: 5px 10px; background-color: #1c9cf6; color:
+      #fff; font-weight: 600; font-size: 12px; border: none; cursor: pointer; }
+      .mx-auto { margin-left: auto; margin-right: auto; } .clear-fix { overflow:
+      auto; } .clearfix::after { content: ""; clear: both; display: table; }
+      .inline-block { display: inline-block; margin-left: 15px; margin-right:
+      15px; } .main-conatiner { margin-left: auto; margin-right: auto; width:
+      470px; max-width: 470px; min-width: 470px; padding: 1.25rem;
+      border-collapse: collapse; border: 1px solid #ffcd00; text-align: center;
+      } .main-logo { height: 90px; width: 280px; } .header-box { padding-bottom:
+      0.25rem; border-bottom: 0.6px solid #ffcd00; width: 100%; } .box-logo {
+      width: 39px; height: 30px; } .footer-info { margin-top: 10px; border-top:
+      0.194032px solid rgba(0, 0, 0, 0.704); width: 75%; text-align: center;
+      margin-left: auto; margin-right: auto; } .social-logo-box { text-align:
+      center; width: 75%; margin-top: 0.5rem; display: flex; justify-content:
+      space-around; align-items: center; } .link { color: #1c9cf6;
+      text-decoration: none; word-break: break-all; }
+    </style>
+    <title>Email</title>
+  </head>
+
+  <body
+    style="
+      padding: 10px;
+      letter-spacing: 0.04em;
+      font-family: Arial, sans-serif;
+    "
+  >
+    <table class="main-conatiner">
+      <tbody>
+        <tr>
+          <td>
+            <img
+              src="{{logo}}"
+              class="main-logo mx-auto"
+              {{! height="78px"
+              width="200px" }}
+              alt="company logo"
+            />
+          </td>
+        </tr>
+
+        <tr>
+          <td style="font-size: 14px; text-align: start">
+            <p style="font-weight: 600">Hi {{username}}</p>
+            <p>
+              Your 360 degree feedback assesment report is now available for
+              download.
+            </p>
+            <p>Please click on the link below to download the same -</p>
+            <p>
+              In case you need any assistance, please kindly get in touch with
+              the HR.
+            </p>
+
+            <p>Thank you.</p>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <a href="{{link}}" style="margin-bottom: 1rem">
+              <button class="btn-primary">Download Report</button>
+            </a>
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <p
+              style="
+                padding-top: 10px;
+                border-top: 1px solid #f2bf1a;
+                font-style: normal;
+                font-weight: 500;
+                font-size: 12px;
+                line-height: 10px;
+                font-family: 'Trebuchet MS';
+                text-align: center;
+              "
+            >
+              &copy; NBO Leadership
+            </p>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </body>
+</html>

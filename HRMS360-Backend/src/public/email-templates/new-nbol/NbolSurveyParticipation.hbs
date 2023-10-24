@@ -1,0 +1,90 @@
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Email</title>
+    <style>
+      td { padding: 20px 30px; } .main-conatiner { margin-left: auto;
+      margin-right: auto; width: 470px; max-width: 470px; padding: 1.25rem;
+      border-collapse: collapse; text-align: center; } .para-text { font-style:
+      normal; font-weight: 400; font-size: 12px; line-height: 130%; color:
+      #404040; text-align: justify; } .banner { font-style: normal; font-weight:
+      400; font-size: 10px; line-height: 13px; color: #616161; background:
+      #f5f8f9; border-left: 2px solid #1c9cf6; padding: 4px 10px; } .table-data
+      { font-family: "Tahoma"; font-style: normal; font-weight: 400; font-size:
+      10px; line-height: 132.5%; color: #262626; } .table-row { padding: 10px
+      10px; } .table-row-top { padding: 10px 5px; }
+    </style>
+  </head>
+  <body
+    style="
+      padding: 10px;
+      letter-spacing: 0.04em;
+      font-family: Tahoma, Arial, sans-serif;
+    "
+  >
+    <div class="main-conatiner" width="470px">
+      <table style="margin: auto; text-align: center">
+        <tbody>
+          <tr style="padding-bottom: 60px">
+            <td>
+              <img
+                src="{{logo}}"
+                alt="company logo"
+                {{! height="81.5px"
+                width="203px" }}
+                {{! style="height: 60px; width: 180px"  }}
+              />
+            </td>
+          </tr>
+          <tr>
+            <td class="para-text">
+              <p style="border-left: 2px solid #ffcd00; padding-left: 10px">
+                Dear
+                {{username}}
+                {{!-- {{lastName}}, --}}
+              </p>
+              <p style="padding-left: 10px">
+                {{tenantName}}
+                is currently conducting Insight360 Feedback for Leaders and you
+                have been selected to provide feedback on the participant(s).
+
+              </p>
+              <p style="padding-left: 10px">
+                Your feedback will provide valuable input for the participant’s
+                leadership development. Your feedback is completely confidential
+                as the results will be summarised together with the data from
+                your rater group.
+              </p>
+              <p style="padding-left: 10px">
+                Please use the link below to complete the survey no later than
+                {{endDate}}. We appreciate your timely completion of the survey.
+              </p>
+              <p style="padding-left: 10px">
+                Please click on the link(s) in the below table to start
+                completing the surveys.
+
+              </p>
+              <div style="text-align: left;padding-left: 10px">
+                <a href="{{link}}" style="word-break: break-all;">Link To Survey</a>
+              </div>
+              {{! <p style="padding-left: 10px">
+                <b>SURVEY STATUS</b>
+              </p> }}
+              <p style="padding-left: 10px">
+                If you have any questions, please contact Amin Zawawi at
+                018-2023840 or email insight360@nboleadership.com
+              </p>
+              <p style="padding-left: 10px">
+                Yours Sincerely
+                <br />
+                NBO Leadership
+              </p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </body>
+</html>

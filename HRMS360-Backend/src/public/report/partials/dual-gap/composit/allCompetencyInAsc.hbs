@@ -1,0 +1,147 @@
+<script>
+  const renderStrengthAndDevNeedsFromChartAsc = (id,id2,value)=>{
+
+    document.getElementById(id).style.left = `${(value * 100) / 4}%`;
+    document.getElementById(id2).style.left = `${(value * 100) / 4}%`;
+
+  }
+
+  </script>
+<div class="dont-break break-inside-avoid-page w-full min-h-[1044px] h-fit mx-auto p-5">
+  <div class="relative h-full">
+    {{> dual-gap/cornerFrames }}
+    <div
+      class="bg-primary-light font-urbanist font-semibold text-primary p-2 text-base uppercase"
+    >
+      Competencies report in ASCENDING ORDER
+    </div>
+    <div class="flex  border p-3 mt-5">
+        <div class="flex  items-center">
+    <div
+      style="width: 3.13px;height: 25px;background:#0069ff;margin-right:10px"
+    >
+    </div>
+    <div class="font-urbanist text-sm" >Average Gap Size</div>
+        </div>
+    </div>
+    {{!-- min-h-[calc(1122px_-_102px + _49px)] --}}
+    <div class="flex justify-between  h-full flex-col p-4">
+      <div style="padding-bottom:30px;margin-left:20px">
+        {{#each competencyData.competencyData as |competency|}}
+       <diV class="break-inside-avoid-page flex justify-between items-center" style="height:130px">
+          <div class="w-[49%]">
+           <p
+              {{!--
+              class="text-neutral-700 text-lg font-medium font-urbanist uppercase pb-2"
+              --}}
+              class="font-urbanist"
+              style="
+                height: 20px;
+                font-style: normal;
+                font-weight: 500;
+                font-size: 15px;
+                line-height: 20px;
+                margin-top: 12px;
+                text-transform: uppercase;
+                color: #525252;
+              "
+            >
+              {{competency.name}}
+            </p>
+          </div>
+           <div class="">
+            <diV
+  style="
+            margin-left:100px;
+            position:relative;
+            width:234px;
+            height:34px
+            "
+>
+          <div id={{concat "competencyInSurveySequence-avg-gap-Asc-" @index}} style="position:relative;transform: translateX(-4%);font-family: 'urbanist';">({{decimalUpto2digit competency.avg_gap}})</div>
+  <div
+    style="border:0.626113px solid rgba(36, 36, 36, 0.66);
+                  height:34px;
+                  width:234px;
+                  position:relative"
+  >
+    <div
+      id={{concat "competencyInSurveySequenceAsc-" @index}}
+      style="position:absolute;width:4px;height:100%;background:#0069ff;transform: translateX(-50%);"
+    ></div>
+  </div>
+  <div
+    style="position:absolute;left:0%;top:57px; width:1px;height:30%;background:rgba(36, 36, 36, 0.66)"
+  ></div>
+  <div
+    style="position:absolute;left:25%;;top:57px; width:1px;height:30%;background:rgba(36, 36, 36, 0.66)"
+  ></div>
+  <div
+    style="position:absolute;left:50%;;top:57px; width:1px;height:30%;background:rgba(36, 36, 36, 0.66)"
+  ></div>
+  <div
+    style="position:absolute;left:75%;;top:57px; width:1px;height:30%;background:rgba(36, 36, 36, 0.66)"
+  ></div>
+  <div
+    style="position:absolute;left:233px;top:57px; width:1px;height:30%;background:rgba(36, 36, 36, 0.66)"
+  ></div>
+  <div
+    style="position:relative;
+              margin-top:13px
+              "
+  >
+    <span
+      style="position:absolute;
+                  font-family: 'urbanist';
+                  font-style: normal;
+                  font-weight: 400;
+                  {{!-- font-size: 13px; --}}
+                  left:-0.9%"
+    >0</span>
+    <span
+      style="position:absolute;
+                  font-family: 'urbanist';
+                  font-style: normal;
+                  font-weight: 400;
+                  {{!-- font-size: 13px; --}}
+                  left:24%"
+    >1</span>
+    <span
+      style="position:absolute;
+                  font-family: 'urbanist';
+                  font-style: normal;
+                  font-weight: 400;
+                  {{!-- font-size: 13px; --}}
+                  left:49%"
+    >2</span>
+    <span
+      style="position:absolute;
+                  font-family: 'urbanist';
+                  font-style: normal;
+                  font-weight: 400;
+                  {{!-- font-size: 13px; --}}
+                  left:74%"
+    >3</span>
+    <span
+      style="position:absolute;
+                  font-family: 'urbanist';
+                  font-style: normal;
+                  font-weight: 400;
+                  {{!-- font-size: 13px; --}}
+                  left:99%"
+    >4</span>
+  </div>
+
+          </div>
+          <script>
+            renderStrengthAndDevNeedsFromChartAsc( "competencyInSurveySequenceAsc-" + {{@index}},"competencyInSurveySequence-avg-gap-Asc-" + {{@index}},{{competency.avg_gap}})
+          </script>
+            
+        </div>
+      </div>
+      {{/each}}
+    </div>
+    
+  </div>
+</div>
+</div>

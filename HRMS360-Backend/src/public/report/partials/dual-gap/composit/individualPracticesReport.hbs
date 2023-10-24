@@ -1,0 +1,136 @@
+{{!-- w-full --}}
+<div class="dont-break break-inside-avoid-page w-full min-h-[1044px] h-fit mx-auto p-5">
+  <div class="relative h-full">
+    {{> dual-gap/cornerFrames }}
+    <div class="bg-primary-light font-urbanist font-semibold text-primary p-2 text-base uppercase">
+      individual practices report
+    </div>
+    {{!-- min-h-[calc(1122px_-_102px + _14px)] --}}
+    <div class="h-full ">
+       {{#each individualQuestionData as |question|}}
+<div class="break-inside-avoid-page">
+      {{#isSameCompetency @index question.competency.title ../individualQuestionData}}
+        <div class="text-neutral-800 font-semibold text-base bg-neutral-100 py-2 px-4 rounded-lg  w-fit mt-9 mb-2 font-urbanist">
+          {{question.competency.title}}
+        </div>
+      {{/isSameCompetency}}
+         
+      <div class="flex justify-between items-center border-b-2 pb-10 mb-5 pt-5 break-inside-avoid-page">
+        <div class="w-[42%] pr-5">
+          <div>
+        <p class="text-semi-base text-[#4d4d4d] font-inter mt-10" style="    font-size: 13px;">
+          {{!-- Q{{question.question_order}}. {{question.text}} --}}
+          Q{{concat @index 1}}. {{question.text}}
+        </p>
+          </div>
+         
+        </div>
+        <div class="">
+          <table class="">
+            <thead>
+              <tr class="bg-[#EBF6FF]">
+                <th
+                  class="py-[6px] text-neutral-900 pl-2 border-r-2 border-white text-left text-[9px] font-medium font-inter w-[90px]"
+                style="font-size: 11px;"
+                >
+                  Rater Group
+                </th>
+                <th
+                  class="py-[6px] text-neutral-900 pl-2 border-r-2 border-white text-left text-[9px] font-medium font-inter text-center w-[60px]"
+                style="font-size: 11px;"
+                >
+                  Avg Gap Size
+                </th>
+                <th
+                  class="py-[6px] text-neutral-900 border-r-2 border-white text-[9px] font-medium font-inter w-[60px]"
+                style="font-size: 11px;"                >
+                  R
+                </th>
+                <th
+                  class="py-[6px] text-neutral-900 border-r-2 border-white text-[9px] font-medium font-inter w-[60px]"
+                style="font-size: 11px;"                >
+                  0
+                </th>
+                <th
+                  class="py-[6px] text-neutral-900 border-r-2 border-white text-[9px] font-medium font-inter w-[60px]"
+                style="font-size: 11px;"                >
+                  1
+                </th>
+                <th
+                  class="py-[6px] text-neutral-900 border-r-2 border-white text-[9px] font-medium font-inter w-[60px]"
+                style="font-size: 11px;"                >
+                  2
+                </th>
+                <th
+                  class="py-[6px] text-neutral-900 border-r-2 border-white text-[9px] font-medium font-inter w-[60px]"
+                style="font-size: 11px;"                >
+                  3
+                </th>
+                <th class="py-[6px] text-neutral-900 text-[9px] font-medium font-inter w-[60px]" style="font-size: 11px;">4</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{#each tableData as |rater|}}
+                <tr class="even:bg-neutral-100 text-neutral-700">
+                <td class="py-[6px] border-r-2 text-[10px] text-neutral-700 font-normal font-inter px-2">{{rater.rater}}</td>
+                <td class="py-[6px] border-r-2 text-[10px] text-neutral-700 font-normal font-inter text-center">
+                  {{decimalUpto2digit rater.avg}}
+                </td>
+                <td class="py-[6px] border-r-2 text-[10px] text-neutral-700 font-normal font-inter text-center">
+                  {{getObjValue rater 'R' false}}%
+                </td>
+                <td class="py-[6px] border-r-2 text-[10px] text-neutral-700 font-normal font-inter text-center">
+                  {{getObjValue rater '0' false}}%
+                </td>
+                <td class="py-[6px] border-r-2 text-[10px] text-neutral-700 font-normal font-inter text-center">
+                  {{getObjValue rater '1' false}}%
+                </td>
+                <td class="py-[6px] border-r-2 text-[10px] text-neutral-700 font-normal font-inter text-center">
+                  {{getObjValue rater '2' false}}%
+                </td>
+                <td class="py-[6px] border-r-2 text-[10px] text-neutral-700 font-normal font-inter text-center">
+                  {{getObjValue rater '3' false}}%
+                </td>
+                <td class="py-[6px] text-[10px] text-neutral-700 font-normal font-inter text-center">
+                  {{getObjValue rater '4' false}}%
+                  </td>
+              </tr>
+              {{/each}}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      </div>
+      {{/each}} 
+     
+    </div>
+  </div>
+</div>
+{{!-- w-full --}}
+<div class="dont-break break-inside-avoid-page w-full min-h-[1044px] h-fit mx-auto p-5">
+  <div class="relative h-full">
+    {{> dual-gap/cornerFrames }}
+    <div class="bg-primary-light font-urbanist font-semibold text-primary p-2 text-base uppercase">
+      Individual Practices Report in Ascending Order
+    </div>
+    <div class="bg-neutral-100 p-3 mt-6 mb-8">
+      <div class="text-neutral-800 font-inter text-sm font-normal"  style="color:#404040">
+        This list shows the practices arranged by Average Gap size in ascending order.
+      </div>
+    </div>  
+    <div class="h-full  mx-4">
+      {{#each individualQuestionDataSorted as |question|}}
+        <div class="flex justify-between items-center my-10">
+          <p class="text-semi-base text-neutral-800 font-inter"  style="color:#4d4d4d;width:656px">
+            Q{{findIndexofText ../individualQuestionData question.id}}. {{question.text}}
+            {{!-- Q{{question.order}}. {{question.text}} --}}
+            {{!-- {{concat @index 1}}. {{question.text}} --}}
+          </p>
+          <div class="font-urbanist" style="color:#262626">
+            {{decimalUpto2digit question.avg_gap}}
+          </div>
+        </div>
+      {{/each}} 
+    </div>
+  </div>
+</div>
