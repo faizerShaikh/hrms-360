@@ -8,11 +8,10 @@ import {
   HasOne,
   Index,
   IsUUID,
-  Model,
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
-import { BaseModel, enumValidator } from "src/common/helpers";
+import { enumValidator, BaseModel } from "src/common/helpers";
 import { Rater } from "src/modules/settings/modules/rater/models";
 import { User } from "src/modules/users/models";
 import { SurveyRespondantStatus } from "../type";
@@ -27,18 +26,6 @@ import { CompetencyComment } from ".";
   defaultScope: {
     order: [["createdAt", "DESC"]],
   },
-  indexes: [
-    {
-      name: "survey_respondent_unique",
-      unique: true,
-      fields: ["survey_id", "respondant_id"],
-    },
-    {
-      name: "survey_respondent_relation_unique",
-      unique: true,
-      fields: ["survey_id", "respondant_id", "relationship_with_employee_id"],
-    },
-  ],
 })
 export class SurveyRespondant extends BaseModel {
   @Index
@@ -119,10 +106,6 @@ export class SurveyRespondant extends BaseModel {
   })
   survey_responses: SurveyResponse[];
 
-  @HasMany(() => CompetencyComment, {
-    onUpdate: "CASCADE",
-    onDelete: "CASCADE",
-    hooks: true,
-  })
+  @HasMany(() => CompetencyComment)
   comments: CompetencyComment[];
 }

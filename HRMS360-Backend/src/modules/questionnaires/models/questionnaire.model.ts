@@ -7,16 +7,15 @@ import {
   HasOne,
   Index,
   IsUUID,
-  Model,
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
+import { BaseModel } from "src/common/helpers";
 import { Competency } from "src/modules/competencies/models";
 import { Question } from "src/modules/competencies/modules/questions/models";
 import { SurveyDescription } from "src/modules/surveys/models/surveyDescription.model";
 import { QuestionnaireCompetency } from "./questionnaireCompetency.model";
 import { QuestionnaireQuestion } from "./questionnaireQuestions.model";
-import { BaseModel } from "src/common/helpers";
 
 @Table({
   tableName: "questionnaires",

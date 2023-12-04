@@ -3,16 +3,16 @@ import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { literal, Op, QueryTypes } from "sequelize";
+import { Sequelize } from "sequelize-typescript";
 import { DB_PUBLIC_SCHEMA } from "src/common/constants";
+import { databaseConfig } from "src/config";
+import { Designation } from "src/modules/settings/modules/designation/models";
 import { Rater } from "src/modules/settings/modules/rater/models";
-const ExcelJS = require("exceljs");
-
 import {
   Survey,
   SurveyDescription,
   SurveyExternalRespondant,
   SurveyRespondant,
-  SurveyResponse,
 } from "src/modules/surveys/models";
 import {
   SurveyDescriptionStatus,
@@ -21,12 +21,9 @@ import {
 } from "src/modules/surveys/type";
 import { Tenant, TenantUser } from "src/modules/tenants/models";
 import { User } from "src/modules/users/models";
-import { MailsService } from "../mails";
-import { defaultAttachments, defaultContext } from "../mails/constants";
-import { Sequelize } from "sequelize-typescript";
-import { databaseConfig } from "src/config";
 import { publicTables, schemaTables } from "../db";
-import * as moment from "moment";
+import { MailsService } from "../mails";
+import { defaultContext } from "../mails/constants";
 
 @Injectable()
 export class CronjobService {
@@ -34,168 +31,306 @@ export class CronjobService {
   constructor(
     private readonly mailService: MailsService,
     private readonly config: ConfigService,
-    private readonly jwtService: JwtService // @Inject(MOMENT) moment: Moment, // @Inject(MOMENT_TZ) mtz: MomentTz
+    private readonly jwtService: JwtService
   ) {
     this.sequelize = new Sequelize({
       ...databaseConfig[config.get("NODE_ENV") || "development"],
+      logging: true,
       models: [...publicTables, ...schemaTables],
+      dialectOptions: {
+        clientMinMessages: false,
+      },
+      keepDefaultTimezone: true,
     });
   }
 
   // @Cron("5 * * * * *")
-  @Cron(CronExpression.EVERY_DAY_AT_7AM)
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async surveyAlertJob() {
-    const tenants = await Tenant.schema(DB_PUBLIC_SCHEMA).findAll({
-      where: { is_channel_partner: false },
-    });
-
-    for (let tenant of tenants) {
-      const Respondents = await SurveyRespondant.schema(
-        tenant.schema_name
-      ).findAll({
-        where: {
-          status: SurveyRespondantStatus.Ongoing,
-        },
-        include: [
-          {
-            model: Survey.schema(tenant.schema_name),
-            include: [
-              {
-                model: User.schema(tenant.schema_name),
-                attributes: ["name", "email"],
-              },
-              {
-                model: SurveyDescription.schema(tenant.schema_name),
-                attributes: ["title", "end_date"],
-              },
-            ],
-          },
-          {
-            model: Rater.schema(tenant.schema_name),
-            attributes: ["category_name"],
-          },
-        ],
+    try {
+      const tenants = await Tenant.schema(DB_PUBLIC_SCHEMA).findAll({
+        where: { is_channel_partner: false, is_active: true },
       });
 
-      const ExternalRespondents = await SurveyExternalRespondant.schema(
-        tenant.schema_name
-      ).findAll({
-        where: {
-          status: SurveyRespondantStatus.Ongoing,
-        },
-        include: [
-          {
-            model: Survey.schema(tenant.schema_name),
-            include: [
-              {
-                model: User.schema(tenant.schema_name),
-                attributes: ["name", "email"],
-              },
-              {
-                model: SurveyDescription.schema(tenant.schema_name),
-                attributes: ["title", "end_date"],
-              },
-            ],
+      for (let tenant of tenants) {
+        const surveyDescriptions = await SurveyDescription.schema(
+          tenant.schema_name
+        ).findAll({
+          where: {
+            status: SurveyDescriptionStatus.Ongoing,
           },
-          {
-            model: Rater.schema(tenant.schema_name),
-            attributes: ["category_name"],
-          },
-        ],
-      });
+        });
 
-      for (const resp of Respondents) {
-        if (new Date(resp.survey.survey_description.end_date) > new Date()) {
-          const token = await this.jwtService.signAsync(
-            {
-              id: resp.id,
-              schema_name: tenant.schema_name,
-              is_external: false,
-            },
-            {
-              secret: this.config.get("JWTKEY"),
+        for (const surveyDescription of surveyDescriptions) {
+          if (surveyDescription?.response_form === "Multiple Ratee") {
+            try {
+              const respondents = await SurveyRespondant.schema(
+                tenant.schema_name
+              ).findAll({
+                where: {
+                  status: SurveyRespondantStatus.Ongoing,
+                },
+                include: [
+                  {
+                    attributes: [],
+                    model: Survey,
+                    where: {
+                      survey_id: surveyDescription.id,
+                      status: SurveyStatus.Ongoing,
+                    },
+                  },
+                  {
+                    model: User,
+                    attributes: ["name", "email", "id"],
+                  },
+                  { model: Rater },
+                ],
+              });
+              const externalRespondants = await SurveyExternalRespondant.schema(
+                tenant.schema_name
+              )
+                .unscoped()
+                .findAll({
+                  where: {
+                    status: SurveyRespondantStatus.Ongoing,
+                  },
+                  include: [
+                    {
+                      attributes: [],
+                      model: Survey,
+                      where: {
+                        survey_id: surveyDescription.id,
+                        status: SurveyStatus.Ongoing,
+                      },
+                    },
+                  ],
+                });
+              const maxLength = Math.max(
+                respondents.length,
+                externalRespondants.length
+              );
+
+              let alreadySent = [];
+              let alreadySentExternal = [];
+
+              for (let index = 0; index < maxLength; index++) {
+                const url = "multiple";
+                if (
+                  respondents[index] &&
+                  !alreadySent.includes(respondents[index].respondant.email)
+                ) {
+                  const token = await this.jwtService.signAsync(
+                    {
+                      id: respondents[index].respondant_id,
+                      respondant_id: respondents[index].id,
+                      survey_id: surveyDescription.id,
+                      schema_name: tenant.schema_name,
+                      is_external: false,
+                    },
+                    {
+                      secret: this.config.get("JWTKEY"),
+                    }
+                  );
+                  let Mail = {
+                    to: respondents[index].respondant.email,
+                    subject: `Reminder to complete Survey | ${surveyDescription.title}`,
+                    context: {
+                      link: `${this.config.get(
+                        "FE_URL"
+                      )}/survey/assessment/${url}/${token}`,
+                      username: respondents[index].respondant.name,
+                      logo: "cid:company-logo",
+                      survey_name: surveyDescription.title,
+                    },
+                    attachments: [
+                      {
+                        filename: "company-logo",
+                        path: "src/public/media/images/company-logo.png",
+                        cid: "company-logo",
+                      },
+                    ],
+                  };
+                  this.mailService.SurveyAlertMail(Mail);
+                  alreadySent.push(respondents[index].respondant.email);
+                }
+
+                if (
+                  externalRespondants[index] &&
+                  !alreadySentExternal.includes(
+                    externalRespondants[index].respondant_email
+                  )
+                ) {
+                  const token = await this.jwtService.signAsync(
+                    {
+                      email: externalRespondants[index].respondant_email,
+                      schema_name: tenant.schema_name,
+                      is_external: true,
+                      survey_id: surveyDescription.id,
+                    },
+                    {
+                      secret: this.config.get("JWTKEY"),
+                    }
+                  );
+
+                  let Mail = {
+                    to: externalRespondants[index].respondant_email,
+                    subject: `Reminder to complete Survey | ${surveyDescription.title}`,
+                    context: {
+                      link: `${this.config.get(
+                        "FE_URL"
+                      )}/survey/assessment/${url}/${token}`,
+                      username: externalRespondants[index].respondant_name,
+                      logo: "cid:company-logo",
+                      survey_name: surveyDescription.title,
+                      ...defaultContext,
+                    },
+                    attachments: [
+                      {
+                        filename: "company-logo",
+                        path: "src/public/media/images/company-logo.png",
+                        cid: "company-logo",
+                      },
+                    ],
+                  };
+                  this.mailService.SurveyAlertMail(Mail);
+                  alreadySentExternal.push(
+                    externalRespondants[index].respondant_email
+                  );
+                }
+              }
+
+              console.log(alreadySent);
+            } catch (error) {
+              throw error;
             }
-          );
-          let Mail = {
-            to: resp.respondant.email,
-            subject: `Reminder to fill Feedback Survey | ${resp.survey.survey_description.title}`,
-            context: {
-              link: `${this.config.get("FE_URL")}/survey/assessment/${token}`,
-              username: resp.respondant.name,
-              logo: "cid:company-logo",
-              requester: `${resp.survey.employee.name} (${resp.survey.employee.designation.name})`,
-              relation: resp.rater.category_name,
-              survey_name: resp.survey.survey_description.title,
-              ...defaultContext,
-            },
-            attachments: [
-              {
-                filename: "nbol-email-logo",
-                path: "src/public/media/images/nbol-email-logo.png",
-                cid: "company-logo",
-              },
-              ...defaultAttachments,
-            ],
-          };
-          this.mailService.SurveyAlertMail(Mail);
+          } else {
+            try {
+              const surveys = await Survey.schema(tenant.schema_name).findAll({
+                where: {
+                  status: SurveyStatus.Ongoing,
+                  survey_id: surveyDescription.id,
+                },
+              });
+
+              for (const survey of surveys) {
+                const respondents = await SurveyRespondant.schema(
+                  tenant.schema_name
+                ).findAll({
+                  where: { survey_id: survey.id },
+                  attributes: ["id"],
+                  include: [
+                    {
+                      model: User,
+                      attributes: ["name", "email", "id"],
+                    },
+                    {
+                      model: Rater,
+                      attributes: ["category_name"],
+                    },
+                  ],
+                });
+
+                const externalRespondents =
+                  await SurveyExternalRespondant.schema(
+                    tenant.schema_name
+                  ).findAll({
+                    where: { survey_id: survey.id },
+                    attributes: ["id", "respondant_email", "respondant_name"],
+                    include: [
+                      {
+                        model: Rater,
+                        attributes: ["category_name"],
+                      },
+                    ],
+                  });
+
+                const maxLength = Math.max(
+                  respondents.length,
+                  externalRespondents.length
+                );
+
+                for (let index = 0; index < maxLength; index++) {
+                  const url = "single";
+                  if (respondents[index]) {
+                    const token = await this.jwtService.signAsync(
+                      {
+                        id: respondents[index].respondant_id,
+                        respondant_id: respondents[index].id,
+                        survey_id: survey.survey_id,
+                        schema_name: tenant.schema_name,
+                        is_external: false,
+                      },
+                      {
+                        secret: this.config.get("JWTKEY"),
+                      }
+                    );
+                    let Mail = {
+                      to: respondents[index].respondant.email,
+                      subject: `Reminder to complete Survey | ${surveyDescription.title}`,
+                      context: {
+                        link: `${this.config.get(
+                          "FE_URL"
+                        )}/survey/assessment/${url}/${token}`,
+                        username: respondents[index].respondant.email,
+                        logo: "cid:company-logo",
+                        survey_name: surveyDescription.title,
+                        ...defaultContext,
+                      },
+                      attachments: [
+                        {
+                          filename: "company-logo",
+                          path: "src/public/media/images/company-logo.png",
+                          cid: "company-logo",
+                        },
+                      ],
+                    };
+                    this.mailService.SurveyAlertMail(Mail);
+                  }
+                  if (externalRespondents[index]) {
+                    const token = await this.jwtService.signAsync(
+                      {
+                        respondant_id: externalRespondents[index].id,
+                        survey_id: survey.survey_id,
+                        schema_name: tenant.schema_name,
+                        is_external: false,
+                      },
+                      {
+                        secret: this.config.get("JWTKEY"),
+                      }
+                    );
+                    let Mail = {
+                      to: externalRespondents[index].respondant_email,
+                      subject: `Reminder to complete Survey | ${surveyDescription.title}`,
+                      context: {
+                        link: `${this.config.get(
+                          "FE_URL"
+                        )}/survey/assessment/${url}/${token}`,
+                        username: externalRespondents[index].respondant_name,
+                        logo: "cid:company-logo",
+                        survey_name: surveyDescription.title,
+                        ...defaultContext,
+                      },
+                      attachments: [
+                        {
+                          filename: "company-logo",
+                          path: "src/public/media/images/company-logo.png",
+                          cid: "company-logo",
+                        },
+                      ],
+                    };
+                    this.mailService.SurveyAlertMail(Mail);
+                  }
+                }
+              }
+            } catch (error) {
+              throw error;
+            }
+          }
         }
       }
-
-      for (const resp of ExternalRespondents) {
-        if (new Date(resp.survey.survey_description.end_date) > new Date()) {
-          const token = await this.jwtService.signAsync(
-            {
-              id: resp.id,
-              schema_name: tenant.schema_name,
-              is_external: false,
-            },
-            {
-              secret: this.config.get("JWTKEY"),
-            }
-          );
-          let Mail = {
-            to: resp.respondant_email,
-            subject: `Reminder to fill Feedback Survey  | ${resp.survey.survey_description.title}`,
-            context: {
-              link: `${this.config.get("FE_URL")}/survey/assessment/${token}`,
-              username: resp.respondant_name,
-              logo: "cid:company-logo",
-              requester: `${resp.survey.employee.name} (${resp.survey.employee.designation.name})`,
-              relation: resp.rater.category_name,
-              survey_name: resp.survey.survey_description.title,
-              ...defaultContext,
-            },
-            attachments: [
-              {
-                filename: "nbol-email-logo",
-                path: "src/public/media/images/nbol-email-logo.png",
-                cid: "company-logo",
-              },
-              ...defaultAttachments,
-            ],
-          };
-          this.mailService.SurveyAlertMail(Mail);
-        }
-      }
+    } catch (error) {
+      console.log(error);
     }
-  }
-
-  @Cron(CronExpression.EVERY_DAY_AT_7AM)
-  async surveyAlertJob2() {
-    await this.ReminderMailFrequency(1, "Day");
-    await this.ReminderMailFrequency(2, "Day");
-    await this.ReminderMailFrequency(3, "Day");
-    await this.ReminderMailFrequency(4, "Day");
-    await this.ReminderMailFrequency(5, "Day");
-    await this.ReminderMailFrequency(6, "Day");
-    await this.ReminderMailFrequency(7, "Day");
-    // await this.ReminderMailFrequency(1, "Week");
-    // await this.ReminderMailFrequency(2, "Week");
-    // await this.ReminderMailFrequency(3, "Week");
-    // await this.ReminderMailFrequency(4, "Week");
-    // await this.ReminderMailFrequency(5, "Week");
-    // await this.ReminderMailFrequency(6, "Week");
-    // await this.ReminderMailFrequency(7, "Week");
   }
 
   @Cron(CronExpression.EVERY_1ST_DAY_OF_MONTH_AT_MIDNIGHT)
@@ -217,7 +352,7 @@ export class CronjobService {
       },
       include: [
         {
-          model: TenantUser.schema(DB_PUBLIC_SCHEMA),
+          model: TenantUser,
           as: "admin",
         },
       ],
@@ -232,18 +367,17 @@ export class CronjobService {
         let Mail = {
           to: tenant.admin.email,
           subject:
-            "Intimation for end of subscription | Insight 360 Feedback for Leaders",
+            "Intimation for end of subscription | HRMS 360 Feedback Tool",
           context: {
             link: `${this.config.get("FE_URL")}`,
             username: tenant.admin.name,
             end_date: new Date(tenant.end_date).toLocaleDateString(),
             logo: "cid:company-logo",
-            ...defaultContext,
           },
           attachments: [
             {
-              filename: "nbol-email-logo",
-              path: "src/public/media/images/nbol-email-logo.png",
+              filename: "company-logo",
+              path: "src/public/media/images/company-logo.png",
               cid: "company-logo",
             },
           ],
@@ -253,657 +387,56 @@ export class CronjobService {
     }
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_7AM)
-  async dailySurveyExpiryCheck() {
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async dailyExpiryCheck() {
     const tenants = await Tenant.schema(DB_PUBLIC_SCHEMA).findAll({
       where: {
-        is_channel_partner: false,
+        is_active: true,
       },
-    });
-    for (const tenant of tenants) {
-      const surveys = await SurveyDescription.schema(
-        tenant.schema_name
-      ).findAll({
-        where: {
-          status: {
-            [Op.notIn]: ["Completed"],
-          },
-          end_date: {
-            [Op.lt]: literal("current_date"),
-          },
-        },
-      });
-
-      for (const survey of surveys) {
-        await survey.update({
-          status: SurveyDescriptionStatus.Closed,
-          previous_status: survey.status,
-        });
-      }
-      await Survey.schema(tenant.schema_name).update(
-        { status: "Closed", previous_status: literal("status") },
-        { where: { survey_id: surveys.map((item) => item.id) } }
-      );
-    }
-  }
-
-  @Cron(CronExpression.EVERY_DAY_AT_7AM)
-  async dailySurveyProgressMail() {
-    const tenants = await Tenant.schema(DB_PUBLIC_SCHEMA).findAll({
-      where: {
-        is_channel_partner: false,
-      },
-      group: [
-        "Tenant.id",
-        "admin.id",
-        "parent_tenant.id",
-        "parent_tenant.admin.id",
-      ],
       include: [
         {
-          model: TenantUser.schema(DB_PUBLIC_SCHEMA),
+          model: TenantUser,
           as: "admin",
-          where: {
-            is_tenant_admin: true,
-          },
-          required: false,
-        },
-        {
-          model: Tenant.schema(DB_PUBLIC_SCHEMA),
-          as: "parent_tenant",
-          include: [
-            {
-              model: TenantUser.schema(DB_PUBLIC_SCHEMA),
-              as: "admin",
-            },
-          ],
         },
       ],
     });
 
     for (const tenant of tenants) {
-      // console.log(tenant);
-      const workbook = new ExcelJS.Workbook();
-
-      const sheet = workbook.addWorksheet("Report", {
-        views: [{ state: "frozen", ySplit: 1 }],
-        pageSetup: {
-          horizontalCentered: true,
-          verticalCentered: true,
-        },
-      });
-      let rowData = [];
-      const channel_partner = await Tenant.schema(DB_PUBLIC_SCHEMA).findOne({
-        where: {
-          id: tenant.parent_tenant_id,
-        },
-        include: [
+      let end_date = new Date(tenant.end_date);
+      let current_date = new Date();
+      if (end_date < current_date) {
+        await Tenant.schema(DB_PUBLIC_SCHEMA).update(
+          { is_active: false },
           {
-            as: "users",
-            model: TenantUser,
-            required: false,
-            attributes: ["email", "name"],
-          },
-        ],
-      });
-      let allsystemadmins = channel_partner.users
-        .map((obj) => obj.email)
-        .join(", ");
-
-      const surveys = await SurveyDescription.schema(
-        tenant.schema_name
-      ).findAll({
-        where: {
-          status: {
-            [Op.notIn]: ["Completed"],
-          },
-          end_date: {
-            [Op.gt]: literal("current_date"),
-          },
-        },
-        include: [
-          {
-            model: Rater.schema(tenant.schema_name),
-            include: [
-              {
-                model: SurveyRespondant.schema(tenant.schema_name),
-                include: [
-                  {
-                    model: SurveyResponse.schema(tenant.schema_name),
-                  },
-                ],
-              },
-              {
-                model: SurveyExternalRespondant.schema(tenant.schema_name),
-                include: [
-                  {
-                    model: SurveyResponse.schema(tenant.schema_name),
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      });
-
-      const surveyDescriptions = await SurveyDescription.schema(
-        tenant.schema_name
-      ).findAll({
-        where: {
-          status: {
-            [Op.notIn]: [
-              SurveyDescriptionStatus.Terminated,
-              SurveyDescriptionStatus.Closed,
-            ],
-          },
-          end_date: {
-            [Op.gt]: literal("current_date"),
-          },
-        },
-        include: [
-          {
-            model: Survey.schema(tenant.schema_name),
-            include: [
-              {
-                model: User.schema(tenant.schema_name),
-              },
-              {
-                model: SurveyRespondant.schema(tenant.schema_name),
-                include: [
-                  {
-                    model: Rater.schema(tenant.schema_name),
-                  },
-                  {
-                    model: User.schema(tenant.schema_name),
-                  },
-                ],
-              },
-              {
-                model: SurveyExternalRespondant.schema(tenant.schema_name),
-                include: [
-                  {
-                    model: Rater.schema(tenant.schema_name),
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      });
-
-      let rowValue = [
-        "Client Name",
-        "Survey Name",
-        "Ratee Survey Status",
-        "Ratee Name",
-        "Rater Name",
-        "No. of Reminders sent",
-        "Rater Category",
-        "Survey Completed",
-        "Completion Date",
-      ];
-      rowData.push(rowValue);
-      for (const surveyDescription of surveyDescriptions) {
-        let rowData2 = [];
-        const workbook2 = new ExcelJS.Workbook();
-
-        const sheet2 = workbook2.addWorksheet("Individual-Report", {
-          views: [{ state: "frozen", ySplit: 1 }],
-          pageSetup: {
-            horizontalCentered: true,
-            verticalCentered: true,
-          },
-        });
-        rowData2.push(rowValue);
-        for (const survey of surveyDescription.surveys) {
-          if (survey.survey_respondants.length > 0) {
-            for (const respodants of survey.survey_respondants) {
-              rowData.push([
-                tenant?.name,
-                surveyDescription?.title,
-                survey?.status,
-                survey?.employee?.name,
-                respodants?.respondant?.name,
-                0,
-                respodants?.rater?.category_name,
-                respodants.status === "Completed" ? "Y" : "N",
-                respodants.status === "Completed" ? respodants.updatedAt : "-",
-              ]);
-              rowData2.push([
-                tenant?.name,
-                surveyDescription?.title,
-                survey?.status,
-                survey?.employee?.name,
-                respodants?.respondant?.name,
-                0,
-                respodants?.rater?.category_name,
-                respodants.status === "Completed" ? "Y" : "N",
-                respodants.status === "Completed" ? respodants.updatedAt : "-",
-              ]);
-            }
+            where: {
+              id: tenant.id,
+            },
           }
-          if (survey.survey_external_respondants.length > 0) {
-            for (const respodants of survey.survey_external_respondants) {
-              rowData.push([
-                tenant.name,
-                surveyDescription?.title,
-                survey.status,
-                survey?.employee?.name,
-                respodants?.respondant_name,
-                0,
-                respodants?.rater?.category_name,
-                respodants.status === "Completed" ? "Y" : "N",
-                respodants.status === "Completed" ? respodants.updatedAt : "-",
-              ]);
-              rowData2.push([
-                tenant.name,
-                surveyDescription?.title,
-                survey.status,
-                survey?.employee?.name,
-                respodants?.respondant_name,
-                0,
-                respodants?.rater?.category_name,
-                respodants.status === "Completed" ? "Y" : "N",
-                respodants.status === "Completed" ? respodants.updatedAt : "-",
-              ]);
-            }
-          }
-        }
-        rowData2.forEach((row) => {
-          sheet2.addRow(row);
-        });
-        sheet2.columns.forEach((column) => {
-          column.width = 30; // Adjust the desired width here
-        });
-        sheet2.getRow(1).fill = {
-          type: "pattern",
-          pattern: "solid",
-          fgColor: { argb: "FFFFFF00" },
-          bgColor: { argb: "FF00FF00" },
-        };
-        var formattedTitle = surveyDescription.title.replace(/ /g, "-");
-        await workbook2.xlsx.writeFile(
-          `./src/public/media/excels/${formattedTitle}.xlsx`
         );
-        rowData2.length = 0;
-      }
-      rowData.forEach((row) => {
-        sheet.addRow(row);
-      });
-
-      sheet.columns.forEach((column) => {
-        column.width = 30; // Adjust the desired width here
-      });
-      sheet.getRow(1).fill = {
-        type: "pattern",
-        pattern: "solid",
-        fgColor: { argb: "FFFFFF00" },
-        bgColor: { argb: "FF00FF00" },
-      };
-      await workbook.xlsx.writeFile(
-        `./src/public/media/excels/${tenant.name}.xlsx`
-      );
-      rowData.length = 0;
-      let mailsentArr = [];
-
-      if (
-        surveys.length > 0 &&
-        !mailsentArr.includes(tenant?.admin?.email + tenant.schema_name)
-      ) {
-        mailsentArr.push(tenant?.admin?.email + tenant.schema_name);
         let Mail = {
-          to: tenant?.admin?.email,
-          cc: allsystemadmins,
-          // bcc: channel_partner.users.email,
-          subject: `All Survey Progress | ${tenant.schema_name}`,
+          to: tenant.admin.email,
+          subject: "End of subscription | HRMS 360 Feedback Tool",
           context: {
-            firstName: tenant?.admin?.name,
             link: `${this.config.get("FE_URL")}`,
-            data: surveys,
-            username: tenant?.admin?.name,
-            // end_date: new Date(tenant.end_date).toLocaleDateString(),
+            username: tenant.admin.name,
+            end_date: new Date(tenant.end_date).toLocaleDateString(),
             logo: "cid:company-logo",
-            ...defaultContext,
           },
           attachments: [
             {
-              filename: "nbol-email-logo",
-              path: "src/public/media/images/nbol-email-logo.png",
+              filename: "company-logo",
+              path: "src/public/media/images/company-logo.png",
               cid: "company-logo",
-            },
-            {
-              filename: `${tenant.name}.xlsx`,
-              path: `src/public/media/excels/${tenant.name}.xlsx`,
-              cid: "report",
             },
           ],
         };
-        this.mailService.DailySurveyProgressMail(Mail);
-      }
-      for (const survey of surveys) {
-        let allrespodants = [];
-        let mailSentSingle = [];
-        if (
-          survey.raters.length > 0 &&
-          !mailsentArr.includes(tenant?.admin?.email + survey.title)
-        ) {
-          mailSentSingle.push(tenant?.admin?.email + survey.title);
-
-          for (const item of survey.raters) {
-            if (item.surveyRespondant.length > 0) {
-              item.surveyRespondant.map((i) => {
-                allrespodants.push(i);
-              });
-            }
-            if (item.surveyExternalRespondant.length > 0) {
-              item.surveyExternalRespondant.map((i) => {
-                allrespodants.push(i);
-              });
-            }
-          }
-          var formattedTitle = survey.title.replace(/ /g, "-");
-          let Mail = {
-            to: tenant?.admin?.email,
-            cc: allsystemadmins,
-            subject: `Survey Progress for ${survey.title}`,
-            context: {
-              firstName: tenant?.admin?.name,
-              link: `${this.config.get("FE_URL")}`,
-              surveyName: survey.title,
-              data: survey.raters,
-              allRespondant: allrespodants,
-              username: tenant?.admin?.name,
-              system_link: `${this.config.get("FE_URL")}/sign-in`,
-              hero_logo: "cid:hero-logo",
-              box_logo: "cid:box-logo",
-              // end_date: new Date(tenant.end_date).toLocaleDateString(),
-              logo: "cid:company-logo",
-              ...defaultContext,
-            },
-            attachments: [
-              {
-                filename: `${formattedTitle}.xlsx`,
-                path: `src/public/media/excels/${formattedTitle}.xlsx`,
-                cid: "report",
-              },
-              {
-                filename: "nbol-email-logo",
-                path: "src/public/media/images/nbol-email-logo.png",
-                cid: "company-logo",
-              },
-            ],
-          };
-          this.mailService.DailySingleSurveyProgressMail(Mail);
-        }
+        this.mailService.TenantSubscriptionAlertMail(Mail, true);
       }
     }
   }
 
-  async ReminderMailFrequency(value, parameter) {
-    const tenants = await Tenant.schema(DB_PUBLIC_SCHEMA).findAll({
-      where: {
-        is_channel_partner: false,
-      },
-    });
-
-    for (let tenant of tenants) {
-      let days = parameter === "Day" ? value : 7 * value;
-      let reminder = value + " " + parameter;
-      const Respondents = await SurveyRespondant.schema(
-        tenant.schema_name
-      ).findAll({
-        where: {
-          status: SurveyRespondantStatus.Ongoing,
-        },
-        // group: ['"SurveyRespondant"."User"."id"'],
-        include: [
-          {
-            model: Survey.schema(tenant.schema_name),
-            include: [
-              {
-                model: User.schema(tenant.schema_name),
-                attributes: ["name", "email"],
-              },
-              {
-                model: SurveyDescription.schema(tenant.schema_name),
-                attributes: [
-                  "id",
-                  "title",
-                  "end_date",
-                  [
-                    literal(
-                      `EXTRACT(DAY FROM AGE(CURRENT_DATE, "survey->survey_description"."createdAt"))::integer % ${days}`
-                    ),
-                    "date_difference",
-                  ],
-                  [
-                    literal(
-                      `EXTRACT(DAY FROM AGE(CURRENT_DATE, "survey->survey_description"."createdAt"))`
-                    ),
-                    "daysSinceCreation",
-                  ],
-                  "createdAt",
-                  "reminder_frequency",
-                ],
-                where: {
-                  [Op.and]: [
-                    Sequelize.literal(
-                      `EXTRACT(DAY FROM AGE(CURRENT_DATE, "survey->survey_description"."createdAt"))::integer % ${days}=0`
-                    ),
-                    Sequelize.literal(`"reminder_frequency" = '${reminder}'`),
-                  ],
-                },
-              },
-            ],
-            where: {
-              status: SurveyStatus.Ongoing,
-            },
-            required: true,
-          },
-          {
-            model: User.schema(tenant.schema_name),
-            attributes: ["id", "name", "email"],
-          },
-          {
-            model: Rater.schema(tenant.schema_name),
-            attributes: ["category_name"],
-          },
-        ],
-      });
-
-      let mailsentArr = [];
-
-      for (const resp of Respondents) {
-        if (new Date(resp.survey.survey_description.end_date) > new Date()) {
-          // const token = await this.jwtService.signAsync(
-          //   {
-          //     id: resp.id,
-          //     survey_id: resp.survey.survey_description.id,
-          //     schema_name: tenant.schema_name,
-          //     is_external: false,
-          //   },
-          //   {
-          //     secret: this.config.get("JWTKEY"),
-          //   }
-
-          const token = await this.jwtService.signAsync(
-            {
-              id: resp?.respondant?.id,
-              survey_respondant_id: resp.id,
-              survey_id: resp.survey.survey_description.id,
-              schema_name: tenant.schema_name,
-              is_external: false,
-            },
-            {
-              secret: this.config.get("JWTKEY"),
-            }
-          );
-
-          if (
-            !mailsentArr.includes(
-              resp?.respondant?.email + resp.survey.survey_description.title
-            )
-          ) {
-            mailsentArr.push(
-              resp?.respondant?.email + resp.survey.survey_description.title
-            );
-
-            let Mail = {
-              to: resp?.respondant?.email,
-              subject: `Reminder to fill Feedback Survey | ${resp.survey.survey_description.title}`,
-              context: {
-                link: `${this.config.get(
-                  "FE_URL"
-                )}/survey/assessment/instructions/${token}`,
-                username: resp?.respondant?.name,
-                tenantName: tenant.name,
-                logo: "cid:company-logo",
-                requester: `${resp.survey.employee.name} (${resp.survey?.employee?.designation?.name})`,
-                relation: resp.rater.category_name,
-                survey_name: resp.survey.survey_description.title,
-                endDate: moment(resp.survey.survey_description.end_date).format(
-                  "DD/MM/YY"
-                ),
-                ...defaultContext,
-              },
-              attachments: [
-                {
-                  filename: "nbol-email-logo",
-                  path: "src/public/media/images/nbol-email-logo.png",
-                  cid: "company-logo",
-                },
-                ...defaultAttachments,
-              ],
-            };
-            this.mailService.SurveyMail(Mail);
-          }
-        }
-      }
-
-      const ExternalRespondents = await SurveyExternalRespondant.schema(
-        tenant.schema_name
-      ).findAll({
-        where: {
-          status: SurveyRespondantStatus.Ongoing,
-        },
-        include: [
-          {
-            model: Survey.schema(tenant.schema_name),
-            include: [
-              {
-                model: User.schema(tenant.schema_name),
-                attributes: ["name", "email"],
-              },
-              {
-                model: SurveyDescription.schema(tenant.schema_name),
-                attributes: [
-                  "title",
-                  "end_date",
-                  [
-                    literal(
-                      `EXTRACT(DAY FROM AGE(CURRENT_DATE, "survey->survey_description"."createdAt"))::integer % ${days}`
-                    ),
-                    "date_difference",
-                  ],
-                  [
-                    literal(
-                      `EXTRACT(DAY FROM AGE(CURRENT_DATE, "survey->survey_description"."createdAt"))`
-                    ),
-                    "daysSinceCreation",
-                  ],
-                  "createdAt",
-                  "reminder_frequency",
-                ],
-                where: {
-                  // reminder_frequency: "3 Day",
-                  [Op.and]: [
-                    Sequelize.literal(
-                      `EXTRACT(DAY FROM AGE(CURRENT_DATE, "survey->survey_description"."createdAt"))::integer % ${days}=0`
-                    ),
-                    Sequelize.literal(`"reminder_frequency" = '${reminder}'`),
-                  ],
-                },
-              },
-            ],
-            where: {
-              status: SurveyStatus.Ongoing,
-            },
-            required: true,
-          },
-          {
-            model: Rater.schema(tenant.schema_name),
-            attributes: ["category_name"],
-          },
-        ],
-      });
-
-      // var externalmailSent = [];
-      for (const resp of ExternalRespondents) {
-        if (new Date(resp.survey.survey_description.end_date) > new Date()) {
-          // const token = await this.jwtService.signAsync({
-          //   id: resp.id,
-          //   survey_id: resp.survey.survey_description.id,
-          //   schema_name: tenant.schema_name,
-          //   is_external: false,
-          // });
-          const token = await this.jwtService.signAsync(
-            {
-              id: resp.id,
-              survey_id: resp.survey.survey_description.id,
-              schema_name: tenant.schema_name,
-              is_external: true,
-            },
-            {
-              secret: this.config.get("JWTKEY"),
-            }
-          );
-          if (!mailsentArr.includes(resp.respondant_email)) {
-            mailsentArr.push(resp.respondant_email);
-            let Mail = {
-              to: resp.respondant_email,
-              subject: `Reminder to fill Feedback Survey  | ${resp.survey.survey_description.title}`,
-              // context: {
-              //   link: `${this.config.get("FE_URL")}/survey/assessment/${token}`,
-              //   username: resp.respondant_name,
-              //   logo: "cid:company-logo",
-              //   requester: `${resp.survey.employee.name} (${resp.survey?.employee?.designation?.name})`,
-              //   relation: resp.rater.category_name,
-              //   survey_name: resp.survey.survey_description.title,
-              //   ...defaultContext,
-              // },
-              context: {
-                link: `${this.config.get(
-                  "FE_URL"
-                )}/survey/assessment/instructions/${token}`,
-                username: resp?.respondant_name,
-                tenantName: tenant.name,
-                logo: "cid:company-logo",
-                requester: `${resp.survey.employee.name} (${resp.survey?.employee?.designation?.name})`,
-                relation: resp.rater.category_name,
-                survey_name: resp.survey.survey_description.title,
-                endDate: moment(resp.survey.survey_description.end_date).format(
-                  "DD/MM/YY"
-                ),
-                ...defaultContext,
-              },
-              attachments: [
-                {
-                  filename: "nbol-email-logo",
-                  path: "src/public/media/images/nbol-email-logo.png",
-                  cid: "company-logo",
-                },
-                ...defaultAttachments,
-              ],
-            };
-            this.mailService.SurveyMail(Mail);
-          }
-        }
-      }
-    }
-  }
-
-  @Cron(CronExpression.EVERY_30_MINUTES)
-  async dailySurveyExpiryCheck2() {
+  @Cron(CronExpression.EVERY_30_SECONDS)
+  async dailySurveyExpiryCheck() {
     try {
       await this.sequelize.query("CALL survey_datetime_check();", {
         type: QueryTypes.RAW,

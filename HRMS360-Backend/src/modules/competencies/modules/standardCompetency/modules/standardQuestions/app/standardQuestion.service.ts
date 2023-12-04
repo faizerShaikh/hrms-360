@@ -31,7 +31,9 @@ import {
   TenantHistoryTypes,
 } from "src/modules/tenants/types";
 import { validateQuestion } from "src/common/helpers/validateQuestion.helper";
-import { Op, Sequelize, literal } from "sequelize";
+import { Op } from "sequelize";
+import { Sequelize } from "sequelize-typescript";
+import { join } from "path";
 
 const XLSX = require("xlsx");
 
@@ -72,6 +74,7 @@ export class StandardQuestionService {
           where: {
             parent_tenant_id: this.requestParams.tenant.id,
           },
+          paranoid: false,
         });
       const competency = await this.standardCompetency
         .schema(DB_PUBLIC_SCHEMA)
@@ -97,17 +100,14 @@ export class StandardQuestionService {
 
       let question = await this.standardQuestion
         .schema(DB_PUBLIC_SCHEMA)
-        .create(
-          { ...body, order: competency.no_of_questions + 1 },
-          { transaction }
-        );
+        .create({ ...body }, { transaction });
 
       let respObj = {};
       let responses = body.responses.map((item, index) => {
         if (body.response_type === QuestionResponseOptions.likert_scale) {
           if (respObj[item.score]) {
             throw new BadRequestException(
-              `Found responses with same score (${item.score})`
+              `Found responses with same score (${item.score}), please recheck scoring`
             );
           }
           respObj[item.score] = true;
@@ -140,28 +140,14 @@ export class StandardQuestionService {
         .schema(DB_PUBLIC_SCHEMA)
         .bulkCreate(area_assessments, { transaction });
 
-      const areaAssessments = JSON.parse(
-        JSON.stringify(
-          await this.areaAssessment.schema(DB_PUBLIC_SCHEMA).findAll({
-            where: {
-              id: body.area_assessments,
-            },
-          })
-        )
-      );
-
       for (const tenant of tenants) {
         await this.question
           .schema(tenant.schema_name)
-          .create<Question>(
-            { ...body, id: question.id, order: competency.no_of_questions + 1 },
-            { transaction }
-          );
+          .create<Question>({ ...body, id: question.id }, { transaction });
 
         await this.questionResponse
           .schema(tenant.schema_name)
           .bulkCreate(responses, { transaction });
-
         await this.questionAreaAssessment
           .schema(tenant.schema_name)
           .bulkCreate(area_assessments, { transaction });
@@ -206,272 +192,203 @@ export class StandardQuestionService {
   }
 
   async updateQuestion(body: UpdateQuestionDTO, id: string) {
-    const isQuestionExist = await this.standardQuestion
-      .schema(DB_PUBLIC_SCHEMA)
-      .findOne({
-        where: {
-          text: body.text,
-          competency_id: body.competency_id,
-          id: {
-            [Op.ne]: id,
+    const transaction = await this.sequelize.transaction();
+    try {
+      const isQuestionExist = await this.standardQuestion
+        .schema(DB_PUBLIC_SCHEMA)
+        .findOne({
+          where: {
+            text: body.text,
+            competency_id: body.competency_id,
+            id: {
+              [Op.ne]: id,
+            },
           },
+        });
+
+      if (isQuestionExist)
+        throw new BadRequestException(
+          "Same question in this competency already exists"
+        );
+
+      await this.standardQuestion.schema(DB_PUBLIC_SCHEMA).update(body, {
+        where: {
+          id,
         },
+        transaction,
       });
 
-    if (isQuestionExist)
-      throw new BadRequestException(
-        "Same question in this competency already exists"
-      );
+      let responses = [];
+      let area_assessments = [];
 
-    await this.standardQuestion.schema(DB_PUBLIC_SCHEMA).update(body, {
-      where: {
-        id,
-      },
-    });
-
-    let responses = [];
-    let area_assessments = [];
-
-    if (body.responses) {
-      let respObj = {};
-      let responses = body.responses.map((item, index) => {
-        if (body.response_type === QuestionResponseOptions.likert_scale) {
-          if (respObj[item.score]) {
-            throw new BadRequestException(
-              `Found responses with same score (${item.score})`
-            );
+      if (body.responses) {
+        let respObj = {};
+        let responses = body.responses.map((item, index) => {
+          if (body.response_type === QuestionResponseOptions.likert_scale) {
+            if (respObj[item.score]) {
+              throw new BadRequestException(
+                `Found responses with same score (${item.score}), please recheck scoring`
+              );
+            }
+            respObj[item.score] = true;
           }
-          respObj[item.score] = true;
+          return {
+            ...item,
+            order: index,
+            question_id: id,
+          };
+        });
+        if (body.response_type === QuestionResponseOptions.likert_scale) {
+          responses.push({
+            type: QuestionResponseOptions.likert_scale,
+            label: "Don't Know",
+            score: 0,
+            question_id: id,
+            order: body.responses.length + 1,
+          });
         }
-        return {
-          ...item,
-          order: index,
-          question_id: id,
-        };
-      });
-      await this.standardQuestionResponse.schema(DB_PUBLIC_SCHEMA).destroy({
-        where: {
-          question_id: id,
-        },
-      });
-      await this.standardQuestionResponse
-        .schema(DB_PUBLIC_SCHEMA)
-        .bulkCreate(responses);
-    }
-
-    if (body.area_assessments) {
-      area_assessments = body.area_assessments.map((item) => ({
-        question_id: id,
-        area_assessment_id: item,
-      }));
-
-      if (body.response_type === QuestionResponseOptions.likert_scale) {
-        responses.push({
-          type: QuestionResponseOptions.likert_scale,
-          label: "Don't Know",
-          score: 0,
-          question_id: id,
-          order: body.responses.length + 1,
+        await this.standardQuestionResponse.schema(DB_PUBLIC_SCHEMA).destroy({
+          where: {
+            question_id: id,
+          },
+          transaction,
         });
+        await this.standardQuestionResponse
+          .schema(DB_PUBLIC_SCHEMA)
+          .bulkCreate(responses, { transaction });
       }
 
-      await this.standardQuestionAreaAssessment
+      if (body.area_assessments) {
+        area_assessments = body.area_assessments.map((item) => ({
+          question_id: id,
+          area_assessment_id: item,
+        }));
+
+        await this.standardQuestionAreaAssessment
+          .schema(DB_PUBLIC_SCHEMA)
+          .destroy({
+            where: {
+              question_id: id,
+            },
+            transaction,
+          });
+
+        await this.standardQuestionAreaAssessment
+          .schema(DB_PUBLIC_SCHEMA)
+          .bulkCreate(area_assessments, { transaction });
+      }
+
+      const tenants = await this.tenant
         .schema(DB_PUBLIC_SCHEMA)
-        .destroy({
+        .findAll<Tenant>({
           where: {
-            question_id: id,
+            parent_tenant_id: this.requestParams.tenant.id,
           },
+          paranoid: false,
         });
 
-      await this.standardQuestionAreaAssessment
-        .schema(DB_PUBLIC_SCHEMA)
-        .bulkCreate(area_assessments);
-    }
-
-    const tenants = await this.tenant.schema(DB_PUBLIC_SCHEMA).findAll<Tenant>({
-      where: {
-        parent_tenant_id: this.requestParams.tenant.id,
-      },
-    });
-
-    for (const tenant of tenants) {
-      await this.question
-        .schema(tenant.schema_name)
-        .update<Question>({ ...body }, { where: { id } });
-
-      if (responses.length) {
-        await this.questionResponse.schema(tenant.schema_name).destroy({
-          where: {
-            question_id: id,
-          },
-        });
-        await this.questionResponse
+      for (const tenant of tenants) {
+        await this.question
           .schema(tenant.schema_name)
-          .bulkCreate(responses);
+          .update<Question>({ ...body }, { where: { id }, transaction });
+
+        if (responses.length) {
+          await this.questionResponse.schema(tenant.schema_name).destroy({
+            where: {
+              question_id: id,
+            },
+            transaction,
+          });
+          await this.questionResponse
+            .schema(tenant.schema_name)
+            .bulkCreate(responses, { transaction });
+        }
+
+        if (area_assessments.length) {
+          await this.questionAreaAssessment.schema(tenant.schema_name).destroy({
+            where: {
+              question_id: id,
+            },
+            transaction,
+          });
+
+          await this.questionAreaAssessment
+            .schema(tenant.schema_name)
+            .bulkCreate(area_assessments, { transaction });
+        }
       }
 
-      if (area_assessments.length) {
-        await this.questionAreaAssessment.schema(tenant.schema_name).destroy({
-          where: {
-            question_id: id,
-          },
-        });
-
-        await this.questionAreaAssessment
-          .schema(tenant.schema_name)
-          .bulkCreate(area_assessments);
-      }
+      await transaction.commit();
+      return "Question updated successfully";
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
     }
-
-    return "Question updated successfully";
   }
 
   async deleteQuestion(id: string) {
-    const question = await this.standardQuestion
-      .schema(DB_PUBLIC_SCHEMA)
-      .findOne({
-        where: { id },
-      });
+    const transaction = await this.sequelize.transaction();
+    try {
+      const question = await this.standardQuestion
+        .schema(DB_PUBLIC_SCHEMA)
+        .findOne({
+          where: { id },
+        });
 
-    if (!question) throw new NotFoundException("Question not found");
-    await question.destroy();
+      if (!question) throw new NotFoundException("Question not found");
 
-    await this.standardQuestion.schema(DB_PUBLIC_SCHEMA).decrement(
-      { order: 1 },
-      {
-        where: {
-          order: {
-            [Op.gt]: question.order,
-          },
-        },
-      }
-    );
-
-    await this.standardCompetency
-      .schema(DB_PUBLIC_SCHEMA)
-      .decrement("no_of_questions", {
-        where: {
-          id: question.competency_id,
-        },
-      });
-    const tenants = await this.tenant.schema(DB_PUBLIC_SCHEMA).findAll<Tenant>({
-      where: {
-        parent_tenant_id: this.requestParams.tenant.id,
-      },
-    });
-
-    for (const tenant of tenants) {
-      await this.question.schema(tenant.schema_name).destroy({ where: { id } });
-      await this.question.schema(tenant.schema_name).decrement(
-        { order: 1 },
-        {
-          where: {
-            order: {
-              [Op.gt]: question.order,
-            },
-          },
-        }
-      );
-      await this.competency
-        .schema(tenant.schema_name)
+      await question.destroy({ transaction });
+      await this.standardCompetency
+        .schema(DB_PUBLIC_SCHEMA)
         .decrement("no_of_questions", {
           where: {
             id: question.competency_id,
           },
+          transaction,
         });
+      const tenants = await this.tenant
+        .schema(DB_PUBLIC_SCHEMA)
+        .findAll<Tenant>({
+          where: {
+            parent_tenant_id: this.requestParams.tenant.id,
+          },
+          paranoid: false,
+        });
+
+      for (const tenant of tenants) {
+        await this.question
+          .schema(tenant.schema_name)
+          .destroy({ where: { id }, transaction });
+
+        await this.competency
+          .schema(tenant.schema_name)
+          .decrement("no_of_questions", {
+            where: {
+              id: question.competency_id,
+            },
+            transaction,
+          });
+      }
+
+      await this.tenantHistory
+        .schema(DB_PUBLIC_SCHEMA)
+        .destroy({ where: { reference_id: id }, transaction });
+      await transaction.commit();
+      return "Question deleted successfully";
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
     }
-
-    await this.tenantHistory
-      .schema(DB_PUBLIC_SCHEMA)
-      .destroy({ where: { reference_id: id } });
-    return "Question deleted successfully";
   }
-
-  // async manageOrder<T extends {} = any>(dto: any): Promise<T | any> {
-  //   const question = await this.standardQuestion
-  //     .schema(DB_PUBLIC_SCHEMA)
-  //     .findOne({
-  //       where: {
-  //         id: dto?.id,
-  //       },
-  //     });
-  //   const tenants = await this.tenant.schema(DB_PUBLIC_SCHEMA).findAll<Tenant>({
-  //     where: {
-  //       parent_tenant_id: this.requestParams.tenant.id,
-  //       is_channel_partner: false,
-  //     },
-  //   });
-
-  //   for (const tenant of tenants) {
-  //     const tenantquestion = await this.question
-  //       .schema(tenant.schema_name)
-  //       .findOne({
-  //         where: {
-  //           is_copy: false,
-  //           id: dto?.id,
-  //         },
-  //       });
-  //     if (dto?.orderType === "promote") {
-  //       await this.question.schema(tenant.schema_name).update(
-  //         { order: question?.order },
-  //         {
-  //           where: {
-  //             order: question?.order - 1,
-  //             is_copy: false,
-  //           },
-  //         }
-  //       );
-
-  //       await tenantquestion.update({ order: question?.order - 1 });
-  //     }
-
-  //     if (dto?.orderType === "demote") {
-  //       console.log(question, "<=====questionrrrrrr", question?.order - 1);
-
-  //       await this.question.schema(tenant.schema_name).update(
-  //         { order: question?.order },
-  //         {
-  //           where: {
-  //             order: question?.order + 1,
-  //             is_copy: false,
-  //           },
-  //         }
-  //       );
-
-  //       await tenantquestion.update({ order: question?.order + 1 });
-  //     }
-  //   }
-  //   if (dto?.orderType === "promote") {
-  //     await this.standardQuestion
-  //       .schema(DB_PUBLIC_SCHEMA)
-  //       .update(
-  //         { order: question?.order },
-  //         { where: { order: question?.order - 1 } }
-  //       );
-
-  //     return await question.update({ order: question?.order - 1 });
-  //   }
-
-  //   if (dto?.orderType === "demote") {
-  //     console.log(question, "<=====questionrrrrrr DEMOTE", question?.order + 1);
-
-  //     await this.standardQuestion
-  //       .schema(DB_PUBLIC_SCHEMA)
-  //       .update(
-  //         { order: question?.order },
-  //         { where: { order: question?.order + 1 } }
-  //       );
-
-  //     return await question.update({ order: question?.order + 1 });
-  //   }
-  // }
 
   async importQuestionsNew(file: Express.Multer.File, competency_id: string) {
     const transaction = await this.sequelize.transaction();
     try {
       const workbook = XLSX.readFile(file.path);
       if (!workbook.SheetNames.includes("Questions"))
-        throw new NotFoundException("Sheet not found");
+        throw new NotFoundException(
+          "Sheet not found, please check for sheet with name as 'Questions' or download the sample file again"
+        );
 
       const sheetData = XLSX.utils.sheet_to_json(workbook.Sheets["Questions"]);
 
@@ -503,7 +420,6 @@ export class StandardQuestionService {
             },
             defaults: {
               ...row,
-              // order: index + 1,
               competency_id: competency.id,
             },
           });
@@ -522,7 +438,7 @@ export class StandardQuestionService {
         for (let a = 0; a < row.areaAssessments.length; a++) {
           const areaAssessment = row.areaAssessments[a];
           if (areaAssessment) {
-            const [areaAssessmentFromDB, created] = await this.areaAssessment
+            const [areaAssessmentFromDB] = await this.areaAssessment
               .schema(DB_PUBLIC_SCHEMA)
               .findOrBuild({
                 where: {
@@ -535,25 +451,13 @@ export class StandardQuestionService {
                 },
                 raw: true,
                 plain: true,
-                paranoid: false,
               });
-
-            if (areaAssessmentFromDB.deletedAt) {
-              await this.areaAssessment
-                .schema(DB_PUBLIC_SCHEMA)
-                .update(
-                  { deletedAt: null },
-                  { where: { id: areaAssessmentFromDB.id } }
-                );
-            }
 
             if (!areaAssessmentsIncluded[areaAssessment.trim()]) {
               let x = areaAssessmentFromDB["dataValues"]
                 ? areaAssessmentFromDB["dataValues"]
                 : areaAssessmentFromDB;
-              if (created) {
-                areaAssessments.push(x);
-              }
+              areaAssessments.push(x);
               areaAssessmentsIncluded[areaAssessment.trim()] = x.id;
             }
 
@@ -587,7 +491,6 @@ export class StandardQuestionService {
         data.map((item) => item.dataValues),
         { transaction }
       );
-
       await this.standardQuestionResponse
         .schema(DB_PUBLIC_SCHEMA)
         .bulkCreate(responses, { transaction });
@@ -622,6 +525,7 @@ export class StandardQuestionService {
           where: {
             parent_tenant_id: this.requestParams.tenant.id,
           },
+          paranoid: false,
         });
 
       for (const tenant of tenants) {
@@ -656,7 +560,7 @@ export class StandardQuestionService {
           });
       }
 
-      unlink(file.path, () => {
+      unlink(join(__dirname, "../../../../../../../../", file.path), () => {
         console.log("done...");
       });
       await transaction.commit();

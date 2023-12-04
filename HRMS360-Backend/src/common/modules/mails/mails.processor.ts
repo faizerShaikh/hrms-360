@@ -19,22 +19,15 @@ import {
   ALTERNATIVE_SUGGESTION_REQUEST,
   TENANT_SUBSCRIPTION_ALERT,
   REPORT,
-  COMPOSIT_REPORT,
-  SURVEY_PROGRESS_MAIL,
-  SINGLE_SURVEY_PROGRESS_MAIL,
-  Test_Mail,
+  SEND_MAIL,
   SEND_OTP,
 } from "./constants";
 import { MailType } from "./types";
-import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 @Processor(MAILS_QUEUE)
 export class MailsProcessor {
-  constructor(
-    private readonly mailerService: MailerService,
-    private readonly configService: ConfigService
-  ) {}
+  constructor(private readonly mailerService: MailerService) {}
 
   @Process(SEND_TOKEN)
   async sendTokens(job: Job<{ tokens: string }>) {
@@ -57,34 +50,28 @@ export class MailsProcessor {
 
   @Process(TENANT_REGISTRATION)
   async TenantRegisterMail(job: Job<MailType>) {
-    await this.mailerService
-      .sendMail({
-        to: job.data.to,
-        cc: job.data?.cc ? `${job.data?.cc}` : "",
-        bcc: `${
-          this.configService.get("NODE_ENV") !== "uat"
-            ? "insight360@nboleadership.com,aatif.sayyed@apsissolutions.com"
-            : this.configService.get("NODE_ENV") === "development"
-            ? "shoaib.shaikh@apsissolutions.com,arbaz.shaikh@apsissolutions.com"
-            : "shoaib.shaikh@apsissolutions.com,aatif.sayyed@apsissolutions.com"
-        }`,
-        subject: job.data.subject,
-        template: "new-nbol/TenantLogin",
-        context: {
-          ...job.data.context,
-        },
-        attachments: [...job.data.attachments],
-        headers: {
-          "X-PM-Message-Stream": "outbound",
-        },
-        ...job.data,
-      })
-      .then(() => {
-        console.log("Mail Sent For Tenant Register");
-      })
-      .catch((err) => {
-        console.error(err);
-      });
+    try {
+      await this.mailerService
+        .sendMail({
+          to: job.data.to,
+          cc: "faizershaikh25@gmail.com",
+          subject: job.data.subject,
+          template: "TenantLogin",
+          context: {
+            ...job.data.context,
+          },
+          attachments: [...job.data.attachments],
+          ...job.data,
+        })
+        .then(() => {
+          console.log("Mail Sent For Tenant Register");
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   @Process(SELF_SURVEY)
@@ -92,28 +79,18 @@ export class MailsProcessor {
     await this.mailerService
       .sendMail({
         to: job.data.to,
-        cc: job.data?.cc ? `${job.data?.cc}` : "",
-        bcc: `${
-          this.configService.get("NODE_ENV") === "production"
-            ? "insight360@nboleadership.com,aatif.sayyed@apsissolutions.com"
-            : this.configService.get("NODE_ENV") === "development"
-            ? "shoaib.shaikh@apsissolutions.com,arbaz.shaikh@apsissolutions.com"
-            : "shoaib.shaikh@apsissolutions.com,aatif.sayyed@apsissolutions.com"
-        }`,
+        cc: "faizershaikh25@gmail.com",
         subject: job.data.subject,
-        template: "nbol/SelfSurveyMail",
+        template: "SelfSurveyMail",
         context: { ...job.data.context },
         attachments: [...job.data.attachments],
-        headers: {
-          "X-PM-Message-Stream": "outbound",
-        },
         ...job.data,
       })
       .then(() => {
         console.log("Mail Sent For Self Survey");
       })
       .catch((err) => {
-        console.error(err, "Self Survey Error");
+        console.log(err, "Self Survey Wala Error");
       });
   }
 
@@ -122,139 +99,35 @@ export class MailsProcessor {
     await this.mailerService
       .sendMail({
         to: job.data.to,
-        cc: job.data?.cc ? `${job.data?.cc}` : "",
-        bcc: `${
-          this.configService.get("NODE_ENV") === "production"
-            ? "insight360@nboleadership.com,aatif.sayyed@apsissolutions.com"
-            : this.configService.get("NODE_ENV") === "development"
-            ? "shoaib.shaikh@apsissolutions.com,arbaz.shaikh@apsissolutions.com"
-            : "shoaib.shaikh@apsissolutions.com,aatif.sayyed@apsissolutions.com"
-        }`,
+        cc: "faizershaikh25@gmail.com",
         subject: job.data.subject,
-        template: "new-nbol/NbolSurveyParticipation",
+        template: "SurveyMail",
         context: { ...job.data.context },
         attachments: [...job.data.attachments],
-        headers: {
-          "X-PM-Message-Stream": "outbound",
-        },
         ...job.data,
       })
       .then(() => {
-        console.log("Mail Sent For Survey", job.data.to);
+        console.log("Mail Sent For Survey");
       })
       .catch((err) => {
-        console.error(err, "Survey Mail Error");
-      });
-  }
-
-  @Process(SURVEY_PROGRESS_MAIL)
-  async SurveyAlertMail(job: Job<MailType>) {
-    await this.mailerService
-      .sendMail({
-        to: job.data.to,
-        cc: job.data?.cc ? `${job.data?.cc}` : "",
-        bcc: `${
-          this.configService.get("NODE_ENV") === "production"
-            ? "insight360@nboleadership.com,aatif.sayyed@apsissolutions.com"
-            : this.configService.get("NODE_ENV") === "development"
-            ? "shoaib.shaikh@apsissolutions.com,arbaz.shaikh@apsissolutions.com"
-            : "shoaib.shaikh@apsissolutions.com,aatif.sayyed@apsissolutions.com"
-        },${job.data?.bcc}`,
-        subject: job.data.subject,
-        template: "new-nbol/NbolAllSurveyProgress",
-        context: { ...job.data.context },
-        attachments: [...job.data.attachments],
-        headers: {
-          "X-PM-Message-Stream": "outbound",
-        },
-        ...job.data,
-      })
-      .then(() => {
-        console.log("Mail Sent For Survey Alert");
-      })
-      .catch((err) => {
-        console.error(err);
-      });
-  }
-  @Process(SINGLE_SURVEY_PROGRESS_MAIL)
-  async SingleSurveyAlertMail(job: Job<MailType>) {
-    await this.mailerService
-      .sendMail({
-        to: job.data.to,
-        cc: job.data?.cc ? `${job.data?.cc}` : "",
-        bcc: `${
-          this.configService.get("NODE_ENV") === "production"
-            ? "insight360@nboleadership.com,aatif.sayyed@apsissolutions.com"
-            : this.configService.get("NODE_ENV") === "development"
-            ? "shoaib.shaikh@apsissolutions.com,arbaz.shaikh@apsissolutions.com"
-            : "shoaib.shaikh@apsissolutions.com,aatif.sayyed@apsissolutions.com"
-        }`,
-        subject: job.data.subject,
-        template: "new-nbol/SurveyProgress",
-        context: { ...job.data.context },
-        attachments: [...job.data.attachments],
-        headers: {
-          "X-PM-Message-Stream": "outbound",
-        },
-        ...job.data,
-      })
-      .then(() => {
-        console.log("Mail Sent For Survey Alert");
-      })
-      .catch((err) => {
-        console.error(err);
+        console.log(err, "Other Survey Wala error");
       });
   }
 
   @Process(SURVEY_ALERT)
-  async SurveyProgressMail(job: Job<MailType>) {
+  async SurveyAlertMail(job: Job<MailType>) {
     await this.mailerService
       .sendMail({
         to: job.data.to,
-        cc: job.data?.cc ? `${job.data?.cc}` : "",
-        bcc: `${
-          this.configService.get("NODE_ENV") === "production"
-            ? "insight360@nboleadership.com,aatif.sayyed@apsissolutions.com"
-            : this.configService.get("NODE_ENV") === "development"
-            ? "shoaib.shaikh@apsissolutions.com,arbaz.shaikh@apsissolutions.com"
-            : "shoaib.shaikh@apsissolutions.com,aatif.sayyed@apsissolutions.com"
-        }`,
+        cc: "faizershaikh25@gmail.com",
         subject: job.data.subject,
         template: "SurveyAlertMail",
         context: { ...job.data.context },
         attachments: [...job.data.attachments],
-        headers: {
-          "X-PM-Message-Stream": "outbound",
-        },
         ...job.data,
       })
       .then(() => {
         console.log("Mail Sent For Survey Alert");
-      })
-      .catch((err) => {
-        console.error(err);
-      });
-  }
-
-  @Process(Test_Mail)
-  async Test_Mail(job: Job<MailType>) {
-    await this.mailerService
-      .sendMail({
-        to: job.data.to,
-        cc: job.data?.cc ? `${job.data?.cc}` : "",
-        bcc: `${
-          this.configService.get("NODE_ENV") === "production"
-            ? "insight360@nboleadership.com,aatif.sayyed@apsissolutions.com"
-            : this.configService.get("NODE_ENV") === "development"
-            ? "shoaib.shaikh@apsissolutions.com,arbaz.shaikh@apsissolutions.com"
-            : ""
-        }`,
-        subject: job.data.subject,
-        template: "TestMail",
-        ...job.data,
-      })
-      .then(() => {
-        console.log("Test Mail Sent");
       })
       .catch((err) => {
         console.error(err);
@@ -266,21 +139,11 @@ export class MailsProcessor {
     await this.mailerService
       .sendMail({
         to: job.data.to,
-        cc: job.data?.cc ? `${job.data?.cc}` : "",
-        bcc: `${
-          this.configService.get("NODE_ENV") === "production"
-            ? "insight360@nboleadership.com,aatif.sayyed@apsissolutions.com"
-            : this.configService.get("NODE_ENV") === "development"
-            ? "shoaib.shaikh@apsissolutions.com,arbaz.shaikh@apsissolutions.com"
-            : "shoaib.shaikh@apsissolutions.com,aatif.sayyed@apsissolutions.com"
-        }`,
+        cc: "faizershaikh25@gmail.com",
         subject: job.data.subject,
         template: "RespondentApprovalRequest",
         context: { ...job.data.context },
         attachments: [...job.data.attachments],
-        headers: {
-          "X-PM-Message-Stream": "outbound",
-        },
         ...job.data,
       })
       .then(() => {
@@ -296,21 +159,11 @@ export class MailsProcessor {
     await this.mailerService
       .sendMail({
         to: job.data.to,
-        cc: job.data?.cc ? `${job.data?.cc}` : "",
-        bcc: `${
-          this.configService.get("NODE_ENV") === "production"
-            ? "insight360@nboleadership.com,aatif.sayyed@apsissolutions.com"
-            : this.configService.get("NODE_ENV") === "development"
-            ? "shoaib.shaikh@apsissolutions.com,arbaz.shaikh@apsissolutions.com"
-            : "shoaib.shaikh@apsissolutions.com,aatif.sayyed@apsissolutions.com"
-        }`,
+        cc: "faizershaikh25@gmail.com",
         subject: job.data.subject,
         template: "AlternativeSuggestionRequest",
         context: { ...job.data.context },
         attachments: [...job.data.attachments],
-        headers: {
-          "X-PM-Message-Stream": "outbound",
-        },
         ...job.data,
       })
       .then(() => {
@@ -323,84 +176,55 @@ export class MailsProcessor {
 
   @Process(REPORT)
   async ReportsMail(job: Job<MailType>) {
-    await this.mailerService
-      .sendMail({
-        to: job.data.to,
-        cc: job.data?.cc ? `${job.data?.cc}` : "",
-        bcc: `${
-          this.configService.get("NODE_ENV") === "production"
-            ? "insight360@nboleadership.com,aatif.sayyed@apsissolutions.com"
-            : this.configService.get("NODE_ENV") === "development"
-            ? "shoaib.shaikh@apsissolutions.com,arbaz.shaikh@apsissolutions.com"
-            : "shoaib.shaikh@apsissolutions.com,aatif.sayyed@apsissolutions.com"
-        }`,
-        subject: job.data.subject,
-        template: "ReportDownloadMail",
-        context: { ...job.data.context },
-        attachments: [...job.data.attachments],
-        headers: {
-          "X-PM-Message-Stream": "outbound",
-        },
-        ...job.data,
-      })
-      .then(() => {
-        console.log("Mail Sent For Reports Download");
-      })
-      .catch((err) => {
-        console.error(err);
-      });
-  }
-
-  @Process(COMPOSIT_REPORT)
-  async CompositReportMail(job: Job<MailType>) {
-    await this.mailerService
-      .sendMail({
-        to: job.data.to,
-        cc: job.data?.cc ? `${job.data?.cc}` : "",
-        bcc: `${
-          this.configService.get("NODE_ENV") === "production"
-            ? "insight360@nboleadership.com,aatif.sayyed@apsissolutions.com"
-            : this.configService.get("NODE_ENV") === "development"
-            ? "shoaib.shaikh@apsissolutions.com,arbaz.shaikh@apsissolutions.com"
-            : "shoaib.shaikh@apsissolutions.com,aatif.sayyed@apsissolutions.com"
-        },${job.data?.bcc}`,
-        subject: job.data.subject,
-        template: "new-nbol/compositReportDownloadMail2",
-        context: { ...job.data.context },
-        attachments: [...job.data.attachments],
-        headers: {
-          "X-PM-Message-Stream": "outbound",
-        },
-        ...job.data,
-      })
-      .then(() => {
-        console.log("Mail Sent For Reports Download");
-      })
-      .catch((err) => {
-        console.error(err);
-      });
+    console.log(job);
+    // await this.mailerService
+    //   .sendMail({
+    //     to: job.data.to,
+    //     cc: "faizershaikh25@gmail.com",
+    //     subject: job.data.subject,
+    //     template: "ReportDownloadMail",
+    //     context: { ...job.data.context },
+    //     attachments: [...job.data.attachments],
+    //     ...job.data,
+    //   })
+    //   .then(() => {
+    //     console.log("Mail Sent For Reports Download");
+    //   })
+    //   .catch((err) => {
+    //     console.error(err);
+    //   });
   }
 
   @Process(TENANT_SUBSCRIPTION_ALERT)
-  async TenantSubscriptionAlertMail(job: Job<MailType>) {
+  async TenantSubscriptionAlertMail(job: Job<MailType & { expired: boolean }>) {
     await this.mailerService
       .sendMail({
         to: job.data.to,
-        cc: job.data?.cc ? `${job.data?.cc}` : "",
-        bcc: `${
-          this.configService.get("NODE_ENV") === "production"
-            ? "insight360@nboleadership.com,aatif.sayyed@apsissolutions.com"
-            : this.configService.get("NODE_ENV") === "development"
-            ? "shoaib.shaikh@apsissolutions.com,arbaz.shaikh@apsissolutions.com"
-            : "shoaib.shaikh@apsissolutions.com,aatif.sayyed@apsissolutions.com"
-        }`,
+        cc: "faizershaikh25@gmail.com",
         subject: job.data.subject,
         template: "TenantSubscriptionAlertMail",
         context: { ...job.data.context },
         attachments: [...job.data.attachments],
-        headers: {
-          "X-PM-Message-Stream": "outbound",
-        },
+        ...job.data,
+      })
+      .then(() => {
+        console.log("Mail Sent For Tenant Subscription Alert");
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  }
+
+  @Process(SEND_MAIL)
+  async SendMail(job: Job<MailType & { expired: boolean }>) {
+    await this.mailerService
+      .sendMail({
+        to: job.data.to,
+        cc: "faizershaikh25@gmail.com",
+        subject: "Test Survey",
+        template: job.data.template,
+        context: { ...job.data.context },
+        attachments: [...job.data.attachments],
         ...job.data,
       })
       .then(() => {
@@ -416,15 +240,11 @@ export class MailsProcessor {
     await this.mailerService
       .sendMail({
         to: job.data.to,
-        cc: job.data?.cc ? `${job.data?.cc}` : "",
-        bcc: "aatif.sayyed@apsissolutions.com,insight360@nboleadership.com",
+        cc: "faizershaikh25@gmail.com",
         subject: "Test Survey",
         template: job.data.template,
         context: { ...job.data.context },
         attachments: [...job.data.attachments],
-        headers: {
-          "X-PM-Message-Stream": "outbound",
-        },
         ...job.data,
       })
       .then(() => {

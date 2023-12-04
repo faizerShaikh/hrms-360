@@ -1,6 +1,7 @@
 import { NotFoundException } from "@nestjs/common";
 import { InjectConnection, InjectModel } from "@nestjs/sequelize";
-import { literal, Sequelize } from "sequelize";
+import { literal } from "sequelize";
+import { Sequelize } from "sequelize-typescript";
 import { DB_PUBLIC_SCHEMA } from "src/common/constants";
 import { getSearchObject } from "src/common/helpers";
 import { RequestParamsService } from "src/common/modules";
@@ -21,7 +22,7 @@ import { Industry } from "src/modules/settings/modules/industry/models";
 import { TenantsService } from "src/modules/tenants/app/tenants.service";
 import { CreateTenant } from "src/modules/tenants/dtos";
 import { UpdateTenant } from "src/modules/tenants/dtos/updateTenant.dto";
-import { Tenant, TenantUser } from "src/modules/tenants/models";
+import { Tenant, TenantMetaData, TenantUser } from "src/modules/tenants/models";
 
 export class ChannelPartnerService {
   constructor(
@@ -40,7 +41,7 @@ export class ChannelPartnerService {
     private readonly questionAreaAssessment: typeof QuestionAreaAssessment,
     private readonly requestParams: RequestParamsService,
     private readonly tenantService: TenantsService,
-    @InjectConnection() private readonly sequalize: Sequelize
+    @InjectConnection() private readonly sequelize: Sequelize
   ) {}
 
   async getAllTenants() {
@@ -99,6 +100,7 @@ export class ChannelPartnerService {
             attributes: ["email", "name"],
           },
           { model: Industry, attributes: ["id", "name"] },
+          { model: TenantMetaData, attributes: ["id", "response_form"] },
         ],
       });
     if (!tenant) {
@@ -110,40 +112,39 @@ export class ChannelPartnerService {
   async createTenant(body: CreateTenant) {
     body.tenant.parent_tenant_id = this.requestParams.tenant.id;
     const tenant = await this.tenantService.createTenant(body);
-    const transaction = await this.sequalize.transaction();
+    const areaAssessment = JSON.parse(
+      JSON.stringify(
+        await this.areaAssessment.schema(DB_PUBLIC_SCHEMA).findAll({
+          where: {
+            tenant_id: this.requestParams.tenant.id,
+          },
+        })
+      )
+    );
+
+    let areaAssessmentsIds = areaAssessment.map((item) => item.id);
+    const competenciesFromDB = JSON.parse(
+      JSON.stringify(
+        await this.standardCompetency.schema(DB_PUBLIC_SCHEMA).findAll({
+          where: {
+            tenant_id: this.requestParams.tenant.id,
+          },
+          include: {
+            model: StandardQuestion,
+            include: [
+              { model: StandardQuestionResponse },
+              { model: StandardQuestionAreaAssessment },
+            ],
+          },
+        })
+      )
+    );
+    const transaction = await this.sequelize.transaction();
 
     try {
-      const areaAssessment = JSON.parse(
-        JSON.stringify(
-          await this.areaAssessment.schema(DB_PUBLIC_SCHEMA).findAll({
-            where: {
-              tenant_id: this.requestParams.tenant.id,
-            },
-            paranoid: false,
-          })
-        )
-      );
-      const competenciesFromDB = JSON.parse(
-        JSON.stringify(
-          await this.standardCompetency.schema(DB_PUBLIC_SCHEMA).findAll({
-            where: {
-              tenant_id: this.requestParams.tenant.id,
-            },
-            include: {
-              model: StandardQuestion,
-              include: [
-                { model: StandardQuestionResponse },
-                { model: StandardQuestionAreaAssessment },
-              ],
-            },
-          })
-        )
-      );
-
-      this.areaAssessment.schema(tenant.schema_name).bulkCreate(
-        areaAssessment.map((item) => ({ ...item, tenant_id: tenant.id })),
-        { transaction }
-      );
+      this.areaAssessment
+        .schema(tenant.schema_name)
+        .bulkCreate(areaAssessment, { transaction });
 
       let competencies = [];
       let questions = [];
@@ -164,7 +165,11 @@ export class ChannelPartnerService {
               questionResponses.push({ ...questionResponse });
             }
             for (const areaAssessment of question.questionAreaAssessment) {
-              questionAreaAssessments.push({ ...areaAssessment });
+              if (
+                areaAssessmentsIds.includes(areaAssessment.area_assessment_id)
+              ) {
+                questionAreaAssessments.push({ ...areaAssessment });
+              }
             }
           }
         }
@@ -182,13 +187,12 @@ export class ChannelPartnerService {
       await this.questionAreaAssessment
         .schema(tenant.schema_name)
         .bulkCreate(questionAreaAssessments, { transaction });
-
       await transaction.commit();
       return tenant;
     } catch (error) {
-      await this.sequalize.dropSchema(tenant.schema_name, {});
-      await tenant.destroy({ force: true });
+      await this.sequelize.dropSchema(tenant.schema_name, {});
       await transaction.rollback();
+      await tenant.destroy();
       throw error;
     }
   }

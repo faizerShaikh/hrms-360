@@ -7,12 +7,11 @@ import {
   Index,
   IsEmail,
   IsUUID,
-  Model,
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
-import { Tenant } from "./tenant.model";
 import { BaseModel } from "src/common/helpers";
+import { Tenant } from "./tenant.model";
 
 @Table({
   tableName: "tenant_users",
@@ -53,10 +52,6 @@ export class TenantUser extends BaseModel {
   @Column({
     type: DataType.STRING,
     allowNull: false,
-    unique: {
-      msg: "Admin with this email already exists!",
-      name: "uniqe-email",
-    },
     validate: {
       notNull: {
         msg: "Email can not be empty",

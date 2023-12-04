@@ -1,6 +1,6 @@
 import {
+  AfterUpdate,
   BelongsTo,
-  BelongsToMany,
   Column,
   DataType,
   Default,
@@ -8,12 +8,10 @@ import {
   HasMany,
   Index,
   IsUUID,
-  Model,
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
-import { BaseModel, enumValidator } from "src/common/helpers";
-import { Question } from "src/modules/competencies/modules/questions/models";
+import { enumValidator, BaseModel } from "src/common/helpers";
 import { User } from "src/modules/users/models";
 import { CompetencyComment } from ".";
 import { SurveyStatus } from "../type";
@@ -21,7 +19,6 @@ import { SurveyDescription } from "./surveyDescription.model";
 import { SurveyExternalRespondant } from "./surveyExternalRespondant.model";
 import { SurveyRespondant } from "./surveyRespondants.model";
 import { SurveyResponse } from "./surveyResponse.model";
-import { CommentResponse } from "./commentResponse.model";
 
 @Table({
   tableName: "surveys",
@@ -91,9 +88,7 @@ export class Survey extends BaseModel<Survey> {
 
   @Column({
     type: DataType.STRING,
-    validate: {
-      ...enumValidator(Object.values(SurveyStatus), "Survey description"),
-    },
+    allowNull: true,
   })
   previous_status: string;
 
@@ -102,6 +97,12 @@ export class Survey extends BaseModel<Survey> {
     defaultValue: 0,
   })
   no_of_respondents: number;
+
+  @Column({
+    type: DataType.INTEGER,
+    defaultValue: 0,
+  })
+  completed_surveys: number;
 
   @BelongsTo(() => SurveyDescription)
   survey_description: SurveyDescription;
@@ -131,11 +132,6 @@ export class Survey extends BaseModel<Survey> {
   })
   survey_external_respondants: SurveyExternalRespondant[];
 
-  @BelongsToMany(() => Question, {
-    through: { model: () => SurveyResponse, unique: false },
-  })
-  questions: Question[];
-
   @HasMany(() => CompetencyComment, {
     onUpdate: "CASCADE",
     onDelete: "CASCADE",
@@ -143,10 +139,15 @@ export class Survey extends BaseModel<Survey> {
   })
   competencyComments: CompetencyComment[];
 
-  @HasMany(() => CommentResponse, {
-    onUpdate: "CASCADE",
-    onDelete: "CASCADE",
-    hooks: true,
-  })
-  commentResponses: CommentResponse[];
+  @AfterUpdate
+  static async checkPreviousStatus(instance: Survey) {
+    const previousValues = await instance.previous();
+
+    if (previousValues?.status) {
+      // instance.previous_status = previousValues?.status;
+      instance.update({
+        previous_status: previousValues?.status,
+      });
+    }
+  }
 }

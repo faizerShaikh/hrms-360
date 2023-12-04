@@ -15,7 +15,7 @@ import { ApsisUser } from "src/modules/apsis/module/apsisUser/model";
 @Injectable()
 export class AuthMiddleware implements NestMiddleware {
   constructor(
-    @InjectModel(TenantUser) private readonly user: typeof TenantUser,
+    @InjectModel(TenantUser) private readonly tenantUser: typeof TenantUser,
     @InjectModel(ApsisUser) private readonly apsisUser: typeof ApsisUser,
     private readonly jwtService: JwtService,
     private readonly config: ConfigService
@@ -41,7 +41,7 @@ export class AuthMiddleware implements NestMiddleware {
       });
       req.is_apsis_user = true;
     } else {
-      user = await this.user.schema(DB_PUBLIC_SCHEMA).findOne({
+      user = await this.tenantUser.schema(DB_PUBLIC_SCHEMA).findOne({
         where: {
           id: payload.id,
         },

@@ -22,8 +22,8 @@ const initialValues: SurveyDescriptionInterface = {
   questionnaire_id: "",
   status: "",
   end_date: "",
-  respondant_cut_off_date: "",
-  lm_approval_cut_off_date: "",
+  respondant_cut_off_date: "2024-02-02T00:01",
+  lm_approval_cut_off_date: "2024-02-05T00:01",
   employees: [],
   employeeIds: [],
 };
@@ -32,20 +32,20 @@ const validationSchema = [
   yup.object({
     title: yup.string().required("Title is required"),
     description: yup.string().required("Description is required"),
-    respondant_cut_off_date: yup.date(),
-    end_date: yup
-      .date()
-      .min(
-        yup.ref("lm_approval_cut_off_date"),
-        "End Date must be after LM Approval Cut Off Date"
-      )
-      .required("End Date is required"),
+    // respondant_cut_off_date: yup.date(),
+    // end_date: yup
+    //   .date()
+    //   .min(
+    //     yup.ref("lm_approval_cut_off_date"),
+    //     "End Date must be after LM Approval Cut Off Date"
+    //   )
+    //   .required("End Date is required"),
     lm_approval_cut_off_date: yup
       .date()
-      .min(
-        yup.ref("respondant_cut_off_date"),
-        "LM Approval Cut Off Date must be after Respondant Nominee Cut Off Date"
-      )
+      // .min(
+      //   yup.ref("respondant_cut_off_date"),
+      //   "LM Approval Cut Off Date must be after Respondant Nominee Cut Off Date"
+      // )
       // .when(
       //   "respondant_cut_off_date",
       //   (respondant_cut_off_date, schema) =>
@@ -108,12 +108,12 @@ const AddSurvey: NextPage = () => {
 
   return (
     <>
-      <PageHeader title="CREATE SURVEY" />
+      <PageHeader title='CREATE SURVEY' />
       <Grid
         container
-        direction="row"
-        justifyContent="flex-start"
-        alignItems="flex-start"
+        direction='row'
+        justifyContent='flex-start'
+        alignItems='flex-start'
       >
         <Formik
           initialValues={initialValues}

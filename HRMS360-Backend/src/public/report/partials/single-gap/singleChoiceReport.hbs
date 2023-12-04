@@ -34,24 +34,27 @@
       dataLabels: {
         enabled: true,
         style: {
-          colors: ["#242424"],
+          colors: ["#fff"],
           fontSize: "10px",
         },
       },
       colors: [
-        "#6CBE45",
-        "#FFA600",
-        "#A5D05D",
-        "#D5E27C",
-        "#F8BC6C",
-        "#DE425B",
-      ],
-       yaxis: {
+        "#77b5f2",
+        "#c398f5",
+        "#4ed4cd",
+        "#faca9b",
+        "#f598a7",
+        "#3290ed",
+        "#9d53f2",
+        "#26aba4",
+        "#f7a452",
+        "#f2536d",
+      ].reverse(),
+      yaxis: {
         axisBorder: {
           show: true,
         },
         min: 0,
-        max: 6,
         tickAmount: 5,
         floating: true,
         labels: {
@@ -66,7 +69,7 @@
           },
         },
       },
-     xaxis: {
+      xaxis: {
         tooltip: {
           enabled: true,
         },
@@ -88,12 +91,12 @@
         show: true,
         position: "top",
         horizontalAlign: "right",
-        formatter:(seriesName,options)=>{
-          if(['Yes','No'].includes(seriesName)){
-            return seriesName
+        formatter: (seriesName, options) => {
+          if (["Yes", "No"].includes(seriesName)) {
+            return seriesName;
           }
-          return `R${options.seriesIndex+1}`
-        }
+          return `R${options.seriesIndex + 1}`;
+        },
       },
       fill: {
         opacity: 1,
@@ -107,27 +110,30 @@
     chart.render();
   };
 </script>
-  <div class="dont-break w-[210mm] min-h-[297mm] h-full mx-auto aller p-5">
-      <div class="border p-5 relative h-full">
-        <div class="absolute top-0 right-0">
-          <img
-            src="/report/single-gap/images/reportRightCurv.png"
-            width="59px"
-            alt="right-curv"
-            height="59px"
-          />
-        </div>
-      <div class="">
-        <h3 class="text-[#242424] century-gothic text-base border-b">
-          Response Type : Single Choice
-        </h3>
-        {{#each singleChoice as |question|}} {{#isSameCompetency @index
-        question.competency.title ../singleChoice}}
-        <h2 class="text-[#1C9CF6] text-sm font-semibold mt-10 aller">
+<div
+  class="dont-break w-[793.7007874px] min-h-[1122px] h-full mx-auto aller p-5"
+>
+  <div class="relative h-full">
+    <div class="absolute top-0 right-0 hidden">
+      <img
+        src="/report/single-gap/images/reportRightCurv.png"
+        width="59px"
+        alt="right-curv"
+        height="59px"
+      />
+    </div>
+    <div class="">
+      <h3 class="text-[#242424] century-gothic text-base border-b">
+        Response Type : Single Choice
+      </h3>
+      {{#each singleChoice as |question|}}
+      <div class="break-inside-avoid-page">
+        {{#isSameCompetency @index question.competency.title ../singleChoice}}
+        <h2 class="text-[#1C9CF6] text-sm font-semibold mt-2 pt-7 aller">
           {{question.competency.title}}
         </h2>
         {{/isSameCompetency}}
-        <div class="mt-5 break-inside-avoid-page">
+        <div class="mb-4 break-inside-avoid-page pt-8">
           <p class="fc-dark question text-xs border-b pb-2 aller">
             Q{{concat @index 1}} {{question.text}}
           </p>
@@ -165,19 +171,19 @@
           </div>
           {{#isEqual question.response_type 'single_choice'}}
           <div
-            class="flex justify-start flex-wrap items-start bg-primary-light p-2"
+            class="flex justify-start flex-wrap items-start bg-[#e7f5ff] p-2"
           >
             {{#each question.responses as | response |}}
-            <div class="fc-dark text-[10px] w-1/3 px-3 my-1 aller">
-              <span class="text-primary aller">R{{concat @index 1}}</span> -
+            <div class="text-neutral-900 text-[10px] w-1/3 px-3 my-1 aller">
+              <span class="text-[#006dca] aller">R{{concat @index 1}}</span> -
               {{response.label}}
             </div>
             {{/each}}
           </div>
           {{/isEqual}}
         </div>
-        {{/each}}
       </div>
+      {{/each}}
     </div>
   </div>
-
+</div>

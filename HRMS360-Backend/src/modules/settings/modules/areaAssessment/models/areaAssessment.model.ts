@@ -22,7 +22,6 @@ import { QuestionAreaAssessment } from "src/modules/competencies/modules/questio
     },
     order: [["createdAt", "DESC"]],
   },
-  indexes: [{ fields: ["name", "tenant_id"], unique: true }],
 })
 export class AreaAssessment extends BaseModel {
   @Index

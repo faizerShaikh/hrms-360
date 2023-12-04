@@ -7,11 +7,10 @@ import {
   HasMany,
   Index,
   IsUUID,
-  Model,
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
-import { BaseModel, enumValidator } from "src/common/helpers";
+import { enumValidator, BaseModel } from "src/common/helpers";
 import { SurveyResponse } from "src/modules/surveys/models/surveyResponse.model";
 import { QuestionResponseOptions } from "../types";
 import { Question } from "./question.model";
@@ -83,12 +82,5 @@ export class QuestionResponse extends BaseModel {
     onDelete: "CASCADE",
     hooks: true,
   })
-  survey_responses: SurveyResponse[];
-
-  @HasMany(() => SurveyResponse, {
-    onUpdate: "CASCADE",
-    onDelete: "CASCADE",
-    hooks: true,
-  })
-  expected_survery_responses: SurveyResponse[];
+  surver_responses: SurveyResponse[];
 }

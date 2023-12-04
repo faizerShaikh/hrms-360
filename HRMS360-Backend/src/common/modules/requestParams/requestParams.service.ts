@@ -4,7 +4,6 @@ import { Tenant, TenantUser } from "src/modules/tenants/models";
 import { ApsisUser } from "src/modules/apsis/module/apsisUser/model";
 import { User } from "src/modules/users/models";
 import { RequestInterface } from "../../interfaces/request.interface";
-import { Transaction } from "sequelize";
 @Injectable({ scope: Scope.REQUEST })
 export class RequestParamsService {
   tenant: Tenant;
@@ -16,16 +15,14 @@ export class RequestParamsService {
     limit?: number;
     offset?: number;
   };
-  transaction?: Transaction;
 
   constructor(@Inject(REQUEST) private readonly request: RequestInterface) {
     this.user = this.request.user;
     this.tenant = this.request.tenant;
     this.schema_name = this.request.tenant && this.request.tenant.schema_name;
-    this.is_apsis_user = this.request.is_apsis_user;
+    this.is_apsis_user = this.request.user instanceof ApsisUser;
     this.query = this.request.query.search;
     this.pagination = this.getPagination(this.request.query);
-    this.transaction = this.request.transaction;
   }
 
   getPagination = (query: any) => {
@@ -43,4 +40,16 @@ export class RequestParamsService {
 
     return pagination;
   };
+
+  getUser() {
+    return this.request.user;
+  }
+
+  getTenant() {
+    return this.request.tenant;
+  }
+
+  isApsisUser() {
+    return this.request.user instanceof ApsisUser;
+  }
 }

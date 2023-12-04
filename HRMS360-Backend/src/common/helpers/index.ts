@@ -8,3 +8,4 @@ export * from "./getPdf.helper";
 export * from "./getSearchObject.helper";
 export * from "./handelbars.helper";
 export * from "./BaseModel";
+export * from "./validateEmail.helper";

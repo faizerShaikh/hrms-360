@@ -27,6 +27,10 @@ export class CreateUserDto {
 
   @IsBoolean()
   @IsNotEmpty()
+  is_lm_approval_required: boolean;
+
+  @IsBoolean()
+  @IsNotEmpty()
   is_active: boolean;
 
   @IsString()

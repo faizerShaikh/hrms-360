@@ -5,4 +5,3 @@ export * from "./surveyRespondants.model";
 export * from "./surveyResponse.model";
 export * from "./surveySuggestionsLogs.model";
 export * from "./competencyComment.model";
-export * from "./draftSurvey.model"

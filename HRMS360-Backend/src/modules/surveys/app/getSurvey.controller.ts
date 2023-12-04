@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Param, Post, Query } from "@nestjs/common";
+import { Controller, Get, Param } from "@nestjs/common";
+import { Public } from "src/common/decorators";
 import { GetSurveyService } from "./getSurvey.service";
 
 @Controller("survey")
@@ -35,30 +36,6 @@ export class GetSurveyController {
     return this.surveyService.getAllAlternativeSuggestions();
   }
 
-  // get all comments and suggestion of a respondent
-  @Post("/detail-old")
-  getFullDetailOfSurvey(@Body() body: any) {
-    return this.surveyService.getFullDetailOfSurvey(body);
-  }
-
-  @Post("/detail")
-  getFullDetailOfSurvey1(@Body() body: any) {
-    return this.surveyService.getFullDetailOfSurvey1(body);
-  }
-
-  @Get("/respondents-by-raters/:survey_id/:id")
-  getRespondentsGroupByRaters(
-    @Param("survey_id") survey_id: string,
-    @Param("id") id: string
-  ) {
-    return this.surveyService.getRespondentsGroupByRaters(survey_id, id);
-  }
-
-  @Get("/question-detail/:id")
-  getQuestionDetail(@Query() body: any, @Param("id") id: string) {
-    return this.surveyService.getQuestionDetail(body, id);
-  }
-
   @Get("get-responses-excel/:survey_id")
   getResponsesExcel(@Param("survey_id") survey_id: string) {
     return this.surveyService.getResponsesExcel(survey_id);
@@ -82,43 +59,34 @@ export class GetSurveyController {
     return this.surveyService.getAllRespondentsOfSurveyRecipient(id);
   }
 
-  // get all users who are in this survey
-  @Get("/all-respondents-of-survey/:id")
-  getAllRespondentsOfSurvey(
-    @Param("id") id: string,
-    @Query("is_external") is_external: string
-  ) {
-    return this.surveyService.getAllRespondentsOfSurvey(id, is_external);
-  }
-
   // get all comments and suggestion of a respondent
   @Get("/comments/:id")
   getAllSurveyRespondentComments(@Param("id") id: string) {
     return this.surveyService.getAllSurveyRespondentComments(id);
   }
 
+  @Public()
+  @Get("/detail/:id")
+  getFullDetailOfSurveyForSingleRatee(@Param("id") id: string) {
+    return this.surveyService.getFullDetailOfSurveyForSingleRatee(id);
+  }
+
   // get all comments and suggestion of a respondent
-  @Get("decode-token/:token")
-  getDecodedToken(@Param("token") token: string) {
-    return this.surveyService.getDecodedToken(token);
+  @Public()
+  @Get("/multiple-detail/:id")
+  getFullDetailOfSurvey(@Param("id") id: string) {
+    return this.surveyService.getFullDetailOfSurvey(id);
   }
 
   // get all comments and suggestion of a respondent
   @Get("/token/:id")
-  getSurveyToken2(@Param("id") id: string) {
-    return this.surveyService.getSurveyToken2(id);
-  }
-  @Post("/token")
-  getSurveyToken(@Body() body: any) {
-    return this.surveyService.getSurveyToken(body);
+  getSurveyToken(@Param("id") id: string) {
+    return this.surveyService.getSurveyToken(id);
   }
 
   // get one survey
   @Get(":id")
-  getOneSurvey(
-    @Param("id") id: string,
-    @Query("surveyDescription") surveyDescription: string
-  ) {
-    return this.surveyService.getOneSurvey(id, surveyDescription);
+  getOneSurvey(@Param("id") id: string) {
+    return this.surveyService.getOneSurvey(id);
   }
 }

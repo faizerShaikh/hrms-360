@@ -5,7 +5,6 @@ import {
   IsArray,
   IsBoolean,
   IsNotEmpty,
-  IsNumber,
   IsObject,
   IsOptional,
   IsString,
@@ -13,10 +12,6 @@ import {
 } from "class-validator";
 
 export class SurveyResponseDTO {
-  @IsString()
-  @IsOptional()
-  id: string;
-
   @IsString()
   @IsNotEmpty()
   category_id: string;
@@ -53,43 +48,20 @@ export class SurveyResponseDTO {
   @IsString()
   @IsNotEmpty()
   question_type: string;
-
-  @IsString()
-  @IsOptional()
-  expected_response_id: string;
-
-  @IsNumber()
-  @IsOptional()
-  gap: number;
 }
 
 export class SurveyRespondentDTO {
   @IsString()
-  @IsObject()
+  @IsOptional()
   respondent_id: string;
 
   @IsString()
   @IsOptional()
-  token?: string;
-
-  // @IsBoolean()
-  // @IsOptional()
-  // is_competency_comment?: string;
-  @IsBoolean()
-  @IsOptional()
-  is_comment_response?: string;
-
-  @IsString()
-  @IsObject()
   survey_external_respondant_id: string;
 
   @IsString()
   @IsNotEmpty()
   survey_id: string;
-
-  @IsString()
-  @IsOptional()
-  question_id: string;
 
   @IsArray()
   @ArrayNotEmpty()
@@ -97,34 +69,20 @@ export class SurveyRespondentDTO {
   @ArrayMinSize(1)
   @Type(() => SurveyResponseDTO)
   responses: SurveyResponseDTO[];
-
-  // @IsArray()
-  // @IsOptional()
-  // @ValidateNested({ each: true })
-  // @ArrayMinSize(1)
-  // @Type(() => CompetencyCommentsDTP)
-  // competencyComments: CompetencyCommentsDTP[];
-
-  @IsArray()
-  @IsOptional()
-  @ValidateNested({ each: true })
-  @ArrayMinSize(1)
-  @Type(() => CommentResponseDTO)
-  commentResponses: CommentResponseDTO[];
 }
 
-export class CommentResponseDTO {
+export class CompetencyCommentsDTO {
   @IsString()
   @IsNotEmpty()
   survey_id: string;
 
   @IsString()
-  @IsNotEmpty()
-  response_text: string;
+  @IsOptional()
+  comments: string;
 
   @IsString()
   @IsNotEmpty()
-  question_type: string;
+  competency_id: string;
 
   @IsString()
   @IsOptional()
@@ -140,10 +98,6 @@ export class SubmitSurveyDTO {
   @IsNotEmpty()
   status: string;
 
-  @IsBoolean()
-  @IsOptional()
-  fillForm: boolean;
-
   @IsString()
   @IsNotEmpty()
   token: string;
@@ -155,41 +109,21 @@ export class SubmitSurveyDTO {
   @Type(() => SurveyRespondentDTO)
   surveyResponses: SurveyRespondentDTO[];
 
-  // @IsArray()
-  // @ArrayNotEmpty()
-  // @ValidateNested({ each: true })
-  // @ArrayMinSize(1)
-  // @Type(() => CompetencyCommentsDTP)
-  // competencyComments: CompetencyCommentsDTP[];
-
   @IsArray()
   @ArrayNotEmpty()
   @ValidateNested({ each: true })
   @ArrayMinSize(1)
-  @Type(() => CommentResponseDTO)
-  commentResponses: CommentResponseDTO[];
-}
-export class SubmitSurveySingleRateeDTO {
-  @IsString()
-  @IsNotEmpty()
-  respondant_id: string;
-
-  @IsBoolean()
-  @IsNotEmpty()
-  is_external: boolean;
+  @Type(() => CompetencyCommentsDTO)
+  competencyComments: CompetencyCommentsDTO[];
 }
 export class SubmitSingleSurveyDTO {
   @IsString()
-  @IsOptional()
+  @IsNotEmpty()
   status: string;
 
   @IsString()
-  @IsOptional()
-  respondant_id: string;
-
-  @IsBoolean()
-  @IsOptional()
-  is_external: boolean;
+  @IsNotEmpty()
+  token: string;
 
   @IsArray()
   @ArrayNotEmpty()
@@ -198,15 +132,10 @@ export class SubmitSingleSurveyDTO {
   @Type(() => SurveySingleResponseDTO)
   surveyResponses: SurveySingleResponseDTO[];
 
-  // @IsObject()
-  // competencyComments: { [key: string]: string };
-
-  @IsArray()
-  @ArrayNotEmpty()
+  @IsObject()
   // @ValidateNested({ each: true })
-  @ArrayMinSize(1)
-  @Type(() => CommentResponseDTO)
-  commentResponses: CommentResponseDTO[];
+  // @IsNotEmpty()
+  competencyComments: { [key: string]: string };
 }
 
 export class SurveySingleResponseDTO {
@@ -242,16 +171,4 @@ export class SurveySingleResponseDTO {
   @IsString()
   @IsNotEmpty()
   question_type: string;
-
-  @IsString()
-  @IsOptional()
-  survey_id: string;
-
-  @IsString()
-  @IsOptional()
-  expected_response_id: string;
-
-  @IsNumber()
-  @IsOptional()
-  gap: number;
 }

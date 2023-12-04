@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { DB_PUBLIC_SCHEMA } from "src/common/constants";
+import { getSearchObject } from "src/common/helpers";
 import { RequestParamsService } from "src/common/modules";
 import { GenericsService } from "src/modules/generics/app/generics.service";
 import { Industry } from "../models";
@@ -10,9 +11,26 @@ export class IndustryService extends GenericsService {
     super(Industry.schema(DB_PUBLIC_SCHEMA), {
       requestParams,
       searchFields: ["name"],
-      defaultWhere: {
-        tenant_id: requestParams.is_apsis_user ? null : requestParams.tenant.id,
+    });
+  }
+
+  getAll() {
+    return Industry.schema(DB_PUBLIC_SCHEMA).findAndCountAll({
+      where: {
+        tenant_id: this.requestParams.getTenant().id,
+        ...getSearchObject(this.requestParams.query, ["name"]),
       },
+      ...this.requestParams.pagination,
+    });
+  }
+
+  getAllIndustryForApsisAdmin() {
+    return Industry.schema(DB_PUBLIC_SCHEMA).findAndCountAll({
+      where: {
+        tenant_id: null,
+        ...getSearchObject(this.requestParams.query, ["name"]),
+      },
+      ...this.requestParams.pagination,
     });
   }
 }

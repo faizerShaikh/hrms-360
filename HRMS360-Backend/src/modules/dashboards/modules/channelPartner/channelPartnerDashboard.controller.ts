@@ -1,4 +1,6 @@
 import { Controller, Get, Query } from "@nestjs/common";
+import { Param } from "@nestjs/common/decorators";
+
 import { ChannelPartnerDashboardService } from "./channelPartnerDashboard.service";
 
 @Controller("dashboard/channel-partner")
@@ -47,8 +49,13 @@ export class ChannelPartnerDashboardController {
     return this.dashboardService.getQuestions();
   }
 
-  @Get('tenants')
-  getAllTenants(){
-    return this.dashboardService.allTenants()
+  @Get("tenants")
+  getAllTenants() {
+    return this.dashboardService.allTenants();
+  }
+
+  @Get("survey/:schema_name")
+  getAllSurveysForTenant(@Param("schema_name") schema_name: string) {
+    return this.dashboardService.getAllSurveysForTenant(schema_name);
   }
 }

@@ -11,7 +11,8 @@ interface AddSurveyTitle {
 }
 
 export const AddSurveyTitle = ({}: AddSurveyTitle) => {
-  const { submitForm } = useFormikContext<SurveyDescriptionInterface>();
+  const { submitForm, values } = useFormikContext<SurveyDescriptionInterface>();
+  console.log(values);
 
   return (
     <FormContainer className='mt-14'>
@@ -40,7 +41,7 @@ export const AddSurveyTitle = ({}: AddSurveyTitle) => {
         </Grid>
 
         <Grid container gap={3.2} className='mt-4'>
-          <Grid item xs={5.77}>
+          {/* <Grid item xs={5.77}>
             <Input
               label='Respondent Nomination Cut-Off Date'
               type='datetime-local'
@@ -55,7 +56,7 @@ export const AddSurveyTitle = ({}: AddSurveyTitle) => {
               type='datetime-local'
               name='lm_approval_cut_off_date'
             />
-          </Grid>
+          </Grid> */}
           <Grid item xs={12}>
             <Input
               label='Survey End Date'

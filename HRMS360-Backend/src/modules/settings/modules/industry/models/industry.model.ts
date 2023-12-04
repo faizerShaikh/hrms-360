@@ -5,7 +5,6 @@ import {
   HasMany,
   Index,
   IsUUID,
-  Model,
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
@@ -15,10 +14,10 @@ import { Tenant } from "src/modules/tenants/models";
 @Table({
   tableName: "industry",
   modelName: "Industry",
+  paranoid: true,
   defaultScope: {
     order: [["createdAt", "DESC"]],
   },
-  indexes: [{ fields: ["name", "tenant_id"], unique: true }],
 })
 export class Industry extends BaseModel<Industry> {
   @Index
@@ -48,7 +47,8 @@ export class Industry extends BaseModel<Industry> {
   tenant_id: string;
 
   @HasMany(() => Tenant, {
-    onDelete: "SET NULL",
+    onUpdate: "CASCADE",
+    onDelete: "CASCADE",
     hooks: true,
   })
   tenants: Tenant[];

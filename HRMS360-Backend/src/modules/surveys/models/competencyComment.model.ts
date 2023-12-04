@@ -7,12 +7,11 @@ import {
   IsUUID,
   PrimaryKey,
   Table,
-  Model,
   BelongsTo,
 } from "sequelize-typescript";
+import { BaseModel } from "src/common/helpers";
 import { Competency } from "src/modules/competencies/models";
 import { Survey, SurveyExternalRespondant, SurveyRespondant } from ".";
-import { BaseModel } from "src/common/helpers";
 
 @Table({
   tableName: "competency_comments",
@@ -41,7 +40,7 @@ export class CompetencyComment extends BaseModel<CompetencyComment> {
 
   @Column({
     type: DataType.STRING,
-    allowNull: true,
+    allowNull: false,
   })
   comments: string;
 
@@ -49,13 +48,13 @@ export class CompetencyComment extends BaseModel<CompetencyComment> {
   @Column({
     type: DataType.STRING,
   })
-  survey_respondent_id?: string;
+  survey_respondent_id: string;
 
   @ForeignKey(() => SurveyExternalRespondant)
   @Column({
     type: DataType.STRING,
   })
-  survey_external_respondent_id?: string;
+  survey_external_respondent_id: string;
 
   @BelongsTo(() => Competency)
   competency: Competency;

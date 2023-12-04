@@ -16,10 +16,9 @@ import { Department } from "src/modules/settings/modules/department/models";
 import { Designation } from "src/modules/settings/modules/designation/models";
 import { Rater } from "src/modules/settings/modules/rater/models";
 import { TenantsService } from "src/modules/tenants/app/tenants.service";
-import { Tenant, TenantUser } from "src/modules/tenants/models";
+import { Tenant, TenantMetaData, TenantUser } from "src/modules/tenants/models";
 import { ChannelPartnerController } from "./channelPartner.controller";
 import { ChannelPartnerService } from "./channelPartner.service";
-import { SurveyModule } from "src/modules/surveys/app/survey.module";
 
 @Module({
   imports: [
@@ -37,8 +36,8 @@ import { SurveyModule } from "src/modules/surveys/app/survey.module";
       TenantUser,
       Rater,
       StandardCompetency,
+      TenantMetaData,
     ]),
-    SurveyModule,
   ],
   controllers: [ChannelPartnerController],
   providers: [ChannelPartnerService, TenantsService],

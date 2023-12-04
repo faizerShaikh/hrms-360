@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { InjectConnection, InjectModel } from "@nestjs/sequelize";
 import { Sequelize } from "sequelize-typescript";
 import { DB_PUBLIC_SCHEMA } from "src/common/constants";
@@ -43,27 +43,29 @@ export class AreaAssessmentService extends GenericsService {
       attributes: ["schema_name", "id"],
     });
 
-    const areaAssessment = await this.areaAssessment
-      .schema(DB_PUBLIC_SCHEMA)
-      .create(
-        {
-          ...body,
-          tenant_id: this.requestParams.tenant.id,
-        },
-        { transaction: this.requestParams.transaction }
-      );
-    for (const tenant of tenants) {
-      await this.areaAssessment
-        .schema(tenant.schema_name)
+    const transaction = await this.sequelize.transaction();
+    try {
+      const areaAssessment = await this.areaAssessment
+        .schema(DB_PUBLIC_SCHEMA)
         .create(
-          { ...body, id: areaAssessment.id },
-          { transaction: this.requestParams.transaction }
+          {
+            ...body,
+            tenant_id: this.requestParams.tenant.id,
+          },
+          { transaction }
         );
+      for (const tenant of tenants) {
+        await this.areaAssessment
+          .schema(tenant.schema_name)
+          .create({ ...body, id: areaAssessment.id }, { transaction });
+      }
+      await transaction.commit();
+      return areaAssessment;
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
     }
-
-    return areaAssessment;
   }
-
   async findAllStandardAreaAssessment() {
     const areaAssessments = await this.areaAssessment
       .schema(DB_PUBLIC_SCHEMA)
@@ -92,26 +94,30 @@ export class AreaAssessmentService extends GenericsService {
       },
       attributes: ["schema_name", "id"],
     });
-    await this.areaAssessment.schema(DB_PUBLIC_SCHEMA).update(
-      {
-        ...body,
-      },
-      {
-        where: {
-          id,
+    const transaction = await this.sequelize.transaction();
+    try {
+      await this.areaAssessment.schema(DB_PUBLIC_SCHEMA).update(
+        {
+          ...body,
         },
-        transaction: this.requestParams.transaction,
+        {
+          where: {
+            id,
+          },
+          transaction,
+        }
+      );
+      for (const tenant of tenants) {
+        await this.areaAssessment
+          .schema(tenant.schema_name)
+          .update({ ...body }, { where: { id }, transaction });
       }
-    );
-    for (const tenant of tenants) {
-      await this.areaAssessment
-        .schema(tenant.schema_name)
-        .update(
-          { ...body },
-          { where: { id }, transaction: this.requestParams.transaction }
-        );
+      await transaction.commit();
+      return "Area assessment updated successfully";
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
     }
-    return "Area assessment updated successfully";
   }
 
   async deleteStandardAreaAssessment(id: string) {
@@ -122,16 +128,22 @@ export class AreaAssessmentService extends GenericsService {
       attributes: ["schema_name", "id"],
     });
 
-    await this.areaAssessment
-      .schema(DB_PUBLIC_SCHEMA)
-      .destroy({ where: { id }, transaction: this.requestParams.transaction });
+    const transaction = await this.sequelize.transaction();
+    try {
+      await this.areaAssessment
+        .schema(DB_PUBLIC_SCHEMA)
+        .destroy({ where: { id }, transaction });
 
-    for (const tenant of tenants) {
-      await this.areaAssessment.schema(tenant.schema_name).destroy({
-        where: { id },
-        transaction: this.requestParams.transaction,
-      });
+      for (const tenant of tenants) {
+        await this.areaAssessment
+          .schema(tenant.schema_name)
+          .update({ is_deleted: true }, { where: { id }, transaction });
+      }
+      await transaction.commit();
+      return "Area assessment deleted successfully";
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
     }
-    return "Area assessment deleted successfully";
   }
 }

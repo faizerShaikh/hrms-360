@@ -1,73 +1,77 @@
-  <div class="dont-break w-[210mm] min-h-[297mm] h-full mx-auto aller p-5">
-      <div class="border p-5 relative h-full min-h-[297mm]">
-        <div class="absolute top-0 right-0">
-          <img
-            src="/report/single-gap/images/reportRightCurv.png"
-            width="59px"
-            alt="right-curv"
-            height="59px"
-          />
+<div
+  class="dont-break w-[793.7007874px] min-h-[1122px] h-full mx-auto aller p-5 comments-page"
+>
+  <div class="relative h-full">
+    <div class="absolute top-0 right-0 hidden">
+      <img
+        src="/report/single-gap/images/reportRightCurv.png"
+        width="59px"
+        alt="right-curv"
+        height="59px"
+      />
+    </div>
+    <div class="">
+      <h3 class="text-[#242424] century-gothic text-base border-b mb-10">
+        Response Type : Comments
+      </h3>
+      {{#each comments as |competency|}}
+      <div class="break-inside-avoid-page">
+      <h2 class="text-[#1C9CF6] text-sm font-semibold aller">
+        {{competency.title}}
+      </h2>
+      <p class="fc-dark text-sm border-b pb-2 aller mb-5 mt-3">
+        Comments for this competency
+      </p>
+      <div>
+        {{#each competency.comments as |comment|}} {{#isSameRater @index comment
+        competency.comments}}
+        <div
+          class="flex justify-start items-center pt-3 my-2 break-inside-avoid-page"
+        >
+          <div class="p-1 rounded-full bg-secondary mr-2"></div>
+          <p class="text-primary aller text-sm">{{getRaterName comment}}</p>
         </div>
-      <div class="">
-        <h3 class="text-[#242424] century-gothic text-base border-b mb-10">
-          Response Type : Comments
-        </h3>
-        {{#each comments as |competency|}}
-          <h2 class="text-[#1C9CF6] text-sm font-semibold mt-10 aller">
-            {{competency.title}}
-          </h2>
-          <p class="fc-dark text-sm border-b pb-2 aller mb-5 mt-3">
-            Comments for this competency
-          </p>
-          <div>
-            {{#each competency.comments as |comment|}}
-              {{#isSameRater @index comment competency.comments}}
-                <div class="flex justify-start items-center my-2">
-                  <div class="p-1 rounded-full bg-secondary mr-2"></div>
-                  <p class="text-primary aller text-sm">
-
-                    {{getRaterName comment}}
-                  </p>
-                </div>
-              {{/isSameRater}}
-              <p
-                class="border-l-2 border-dashed aller text-sm text-fc-main pl-3 ml-[7px] flex justify-start items-start pt-1"
-              >
-                {{comment.comments}}
-              </p>
-            {{/each}}
-            <div class="mt-5">
-              {{#each competency.questions as |question|}}
-                <div>
-                  <p class="fc-dark text-sm border-b pb-2 aller mb-5 mt-3">
-                    Q{{concat @index 1}}.
-                    {{question.text}}
-                  </p>
-                  {{#each question.surveyResponses as |response|}}
-                    {{#isSameRepondent
-                      @index
-                      response
-                      question.surveyResponses
-                    }}
-                      <div class="flex justify-start items-center my-2">
-                        <div class="p-1 rounded-full bg-secondary mr-2"></div>
-                        <p class="text-primary aller text-sm">
-
-                          {{response.rater.category_name}}
-                        </p>
-                      </div>
-                    {{/isSameRepondent}}
-                    <p
-                      class="border-l-2 border-dashed aller text-sm text-fc-main pl-3 ml-[7px] flex justify-start items-start pt-1"
-                    >
-                      {{response.response_text}}
-                    </p>
-                  {{/each}}
-                </div>
-              {{/each}}
-            </div>
-          </div>
+        {{/isSameRater}}
+        <div
+          class="aller text-sm text-fc-main pl-3 ml-[7px] flex justify-start items-center py-2 break-inside-avoid-page"
+        >
+          <div class="p-[3px] rounded-full bg-fc-main mr-2"></div>
+          {{comment.comments}}
+        </div>
         {{/each}}
+        <div class="mt-5">
+          {{#each competency.questions as |question|}}
+          <div class="break-inside-avoid-page">
+            <p
+              class="fc-dark text-sm border-b pb-2 aller mb-5 mt-3 break-inside-avoid-page"
+            >
+              Q{{concat @index 1}}. {{question.text}}
+            </p>
+            {{#each question.surveyResponses as |response|}} {{#isSameRepondent
+            @index response question.surveyResponses }}
+            <div
+              class="flex justify-start items-center pt-3 my-2 break-inside-avoid-page"
+            >
+              <div class="p-1 rounded-full bg-secondary mr-2"></div>
+              <p class="text-primary aller text-sm">
+                {{response.rater.category_name}}
+              </p>
+            </div>
+            {{/isSameRepondent}}
+            <div
+              class="aller text-sm text-fc-main pl-3 ml-[7px] flex justify-start items-center py-2 break-inside-avoid-page"
+            >
+              <div class="p-[3px] rounded-full bg-fc-main mr-2"></div>
+              {{response.response_text}}
+            </div>
+
+            {{/each}}
+          </div>
+          {{/each}}
+        </div>
       </div>
+      </div>
+      {{/each}}
     </div>
   </div>
+</div>

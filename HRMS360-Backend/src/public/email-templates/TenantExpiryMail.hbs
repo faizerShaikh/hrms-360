@@ -1,0 +1,153 @@
+<html>
+
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      td { padding: 20px 40px; } .btn-primary { width: 177px; height: 36px;
+      border-radius: 5px; padding: 5px 10px; background-color: #6cbe45; color:
+      #fff; font-weight: 600; font-size: 12px; border: none; cursor: pointer;}
+      .mx-auto { margin-left: auto; margin-right: auto; } .clear-fix { overflow:
+      auto; } .clearfix::after { content: ""; clear: both; display: table; }
+      .inline-block { display: inline-block; margin-left: 15px; margin-right:
+      15px; } .main-conatiner { margin-left: auto; margin-right: auto; width:
+      470px; max-width: 470px; min-width: 470px; padding: 1.25rem;
+      border-collapse: collapse; border: 1px solid #80df53; text-align: center;
+      } .main-logo { height: 90px; width: 280px; } .header-box { padding-bottom:
+      0.25rem; border-bottom: 0.6px solid #f45a03; width: 100%; } .box-logo {
+      width: 39px; height: 31px; } .footer-info { margin-top: 10px; border-top:
+      0.194032px solid rgba(0, 0, 0, 0.704); width: 75%; text-align: center;
+      margin-left: auto; margin-right: auto; } .social-logo-box { text-align:
+      center; width: 75%; margin-top: 0.5rem; display: flex; justify-content:
+      space-around; align-items: center; } .link { color: #4BBD15;
+      text-decoration: none; word-break: break-all; } .header-box>* { font-size:
+      15px; font-weight: 700; margin-top: 5px; }
+    </style>
+    <title>Email</title>
+  </head>
+
+  <body
+    style="padding:10px;letter-spacing: 0.04em;font-family:Arial,sans-serif"
+  >
+    <table class="main-conatiner">
+      <tbody>
+         <tr>
+          <td align="center"> 
+            <div style="height: 90px;width:280px;margin:auto;">
+            <img
+              src="{{logo}}"
+              class="main-logo mx-auto"
+              height="90px"
+              width="280px"
+              alt="company logo"
+              style="height: 90px;width:280px;background-position: center;object-fit: cover;"
+            />
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            {{!-- <img
+              src="{{hero_logo}}"
+              class="mx-auto"
+              style="width:369px;height:369px"
+              height="369px"
+              width="369px"
+              alt="hero image"
+            /> --}}
+          </td>
+        </tr>
+        <tr>
+          <td style="padding-bottom:0px">
+            <div class="header-box clear-fix">
+              <h2 style="color:#FB8C06;float:left;">Intimation of Account Expiry</h2>
+              {{!-- <img
+                src="{{box_logo}}"
+                style="float:right"
+                class="box-logo"
+                alt="design icon"
+                height="31px"
+                width="39px"
+              /> --}}
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td style="font-size:14px;text-align: start;">
+            <p style="font-weight:600;">
+              Hi
+              {{username}}</p>
+
+            <p>This is to inform you that your HRMS 360 employee 360 assessment
+              tool subscription has expired today - 
+              {{end_date}}.</p>
+            <p>To renew your membership with us, please get in touch with you
+              HRMS 360 representative</p>
+            <p>Thank you.</p>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <a href={{link}} style="margin-bottom:1rem;">
+              <button class="btn-primary">Click here to start now</button>
+            </a>
+            <div class="footer-info">
+              <p style="font-size:12px;margin-top:0.5rem;">&copy; Lorem ipsum
+                dolor sit amet, consectetur elit.</p>
+              <div class="social-logo-box mx-auto">
+                <span href="#" class="inline-block">
+                  {{!-- <img
+                    style="height:15px;width:8px;"
+                    src="{{facebook_logo}}"
+                    alt="Social Logo"
+                    height="15px"
+                    width="8px"
+                  /> --}}
+                </span>
+                <span href="#" class="inline-block">
+                  {{!-- <img
+                    style="height:12px;width:15px;"
+                    height="12px"
+                    width="15px"
+                    src="{{twitter_logo}}"
+                    alt="Social Logo"
+                  /> --}}
+                </span>
+                <span href="#" class="inline-block">
+                  {{!-- <img
+                    style="height:15px;width:15px;"
+                    height="15px"
+                    width="15px"
+                    src="{{instagram_logo}}"
+                    alt="Social Logo"
+                  /> --}}
+                </span>
+                <span href="#" class="inline-block">
+                  {{!-- <img
+                    style="height:14px; width:15px"
+                    height="14px"
+                    width="15px"
+                    src="{{linkedin_logo}}"
+                    alt="Social Logo"
+                  /> --}}
+                </span>
+                <span href="#" class="inline-block">
+                  {{!-- <img
+                    style="height:12px; width:16px"
+                    height="12px"
+                    width="16px"
+                    src="{{youtube_logo}}"
+                    alt="Social Logo"
+                  /> --}}
+                </span>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+  </body>
+
+</html>

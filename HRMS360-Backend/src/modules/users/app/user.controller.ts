@@ -8,6 +8,7 @@ import {
   UploadedFile,
   UseInterceptors,
 } from "@nestjs/common";
+import { join } from "path";
 import { Op } from "sequelize";
 import { GetUser } from "src/common/decorators";
 import { MulterIntercepter } from "src/common/interceptors";

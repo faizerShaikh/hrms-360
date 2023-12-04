@@ -1,15 +1,12 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
-import { InjectConnection, InjectModel } from "@nestjs/sequelize";
+import { InjectModel } from "@nestjs/sequelize";
 import { existsSync, writeFileSync } from "fs";
-import { literal, Sequelize } from "sequelize";
+import { literal } from "sequelize";
 import { getShortFrom, printPDF } from "src/common/helpers";
 import { MailsService } from "src/common/modules/mails";
-import {
-  defaultAttachments,
-  defaultContext,
-} from "src/common/modules/mails/constants";
+
 import { Competency } from "../competencies/models";
 import {
   Question,
@@ -31,9 +28,7 @@ import { SurveyStatus } from "../surveys/type";
 import { User } from "../users/models";
 import * as moment from "moment";
 import { RequestParamsService } from "src/common/modules";
-import { Tenant, TenantUser } from "../tenants/models";
-import { DB_PUBLIC_SCHEMA } from "src/common/constants";
-const ExcelJS = require("exceljs");
+import puppeteer from "puppeteer";
 
 @Injectable()
 export class ReportsService {
@@ -46,9 +41,6 @@ export class ReportsService {
     @InjectModel(Survey) private readonly survey: typeof Survey,
     @InjectModel(Questionnaire)
     private readonly questionnaire: typeof Questionnaire,
-    @InjectModel(Tenant)
-    private readonly tenant: typeof Tenant,
-    @InjectConnection() private readonly sequelize: Sequelize,
     private readonly jwtService: JwtService,
     private readonly config: ConfigService,
     private readonly mailsService: MailsService,
@@ -86,7 +78,7 @@ export class ReportsService {
     //   `set search_path to ${this.requestParams.tenant.schema_name}`
     // );
     const surveyDescription = await this.surveyDescription
-      .schema(this.requestParams.tenant.schema_name)
+      .schema(this.requestParams.schema_name)
       .findOne({
         include: [
           {
@@ -98,7 +90,7 @@ export class ReportsService {
       });
 
     const introDetail = await this.user
-      .schema(this.requestParams.tenant.schema_name)
+      .schema(this.requestParams.schema_name)
       .findOne({
         attributes: ["id", "name", "email", "contact", "createdAt"],
         include: [
@@ -160,7 +152,7 @@ export class ReportsService {
     //   `set search_path to ${this.requestParams.tenant.schema_name}`
     // );
     const data = await this.competency
-      .schema(this.requestParams.tenant.schema_name)
+      .schema(this.requestParams.schema_name)
       .findAll({
         where: { is_copy: true },
         attributes: [
@@ -194,7 +186,6 @@ export class ReportsService {
             include: [
               {
                 model: SurveyResponse,
-                as: "surveyResponses",
                 where: {
                   survey_id,
                 },
@@ -257,12 +248,12 @@ export class ReportsService {
     //   `set search_path to ${this.requestParams.tenant.schema_name}`
     // );
     const raters = await this.rater
-      .schema(this.requestParams.tenant.schema_name)
+      .schema(this.requestParams.schema_name)
       .findAll({
         attributes: ["category_name", "id", "is_external", "short_name"],
       });
     const data = await this.competency
-      .schema(this.requestParams.tenant.schema_name)
+      .schema(this.requestParams.schema_name)
       .findAll({
         where: { is_copy: true },
         attributes: [
@@ -295,7 +286,6 @@ export class ReportsService {
             include: [
               {
                 model: SurveyResponse,
-                as: "surveyResponses",
                 where: {
                   survey_id,
                 },
@@ -386,7 +376,7 @@ export class ReportsService {
     //   `set search_path to ${this.requestParams.tenant.schema_name}`
     // );
     const data = await this.questionnaire
-      .schema(this.requestParams.tenant.schema_name)
+      .schema(this.requestParams.schema_name)
       .findOne({
         where: {
           id,
@@ -492,7 +482,7 @@ export class ReportsService {
           Other: null,
         };
 
-        for (const surResp of resp.survey_responses) {
+        for (const surResp of resp.surver_responses) {
           let shortName =
             surResp.rater.short_name ||
             getShortFrom(surResp.rater.category_name);
@@ -571,7 +561,7 @@ export class ReportsService {
     // );
 
     const data = await this.questionnaire
-      .schema(this.requestParams.tenant.schema_name)
+      .schema(this.requestParams.schema_name)
       .findOne({
         where: {
           id,
@@ -663,7 +653,7 @@ export class ReportsService {
         let dataCountObj = {
           Other: null,
         };
-        for (const surResp of resp.survey_responses) {
+        for (const surResp of resp.surver_responses) {
           if (surResp.rater) {
             if (surResp.rater.is_external) {
               dataCountObj["Other"] = dataCountObj["Other"]
@@ -725,7 +715,7 @@ export class ReportsService {
     //   `set search_path to ${this.requestParams.tenant.schema_name}`
     // );
     const data = await this.questionnaire
-      .schema(this.requestParams.tenant.schema_name)
+      .schema(this.requestParams.schema_name)
       .findOne({
         where: {
           id,
@@ -828,7 +818,7 @@ export class ReportsService {
         let dataCountObj = {
           Other: null,
         };
-        for (const surResp of resp.survey_responses) {
+        for (const surResp of resp.surver_responses) {
           if (surResp.rater) {
             if (surResp.rater.is_external) {
               dataCountObj["Other"] = dataCountObj["Other"]
@@ -891,7 +881,7 @@ export class ReportsService {
     // );
 
     const competencies = await this.competency
-      .schema(this.requestParams.tenant.schema_name)
+      .schema(this.requestParams.schema_name)
       .findAll({
         where: { is_copy: true },
         attributes: ["title", "id"],
@@ -900,7 +890,7 @@ export class ReportsService {
             { model: CompetencyComment, as: "comments" },
             { model: SurveyRespondant, as: "survey_respondent" },
             { model: Rater, as: "rater" },
-            "order",
+            "category_name",
             "DESC",
           ],
           [
@@ -910,14 +900,14 @@ export class ReportsService {
               as: "survey_external_respondent",
             },
             { model: Rater, as: "rater" },
-            "order",
+            "category_name",
             "DESC",
           ],
           [
             { model: Question, as: "questions" },
             { model: SurveyResponse, as: "surveyResponses" },
             { model: Rater, as: "rater" },
-            "order",
+            "category_name",
             "DESC",
           ],
         ],
@@ -938,20 +928,14 @@ export class ReportsService {
                 attributes: ["id"],
                 model: SurveyRespondant,
                 include: [
-                  {
-                    model: Rater,
-                    attributes: [["category_name", "catName"], "order"],
-                  },
+                  { model: Rater, attributes: [["category_name", "catName"]] },
                 ],
               },
               {
                 model: SurveyExternalRespondant,
                 attributes: ["id"],
                 include: [
-                  {
-                    model: Rater,
-                    attributes: [["category_name", "catName"], "order"],
-                  },
+                  { model: Rater, attributes: [["category_name", "catName"]] },
                 ],
               },
             ],
@@ -966,7 +950,6 @@ export class ReportsService {
             },
             include: [
               {
-                as: "surveyResponses",
                 model: SurveyResponse,
                 required: false,
                 attributes: ["id", "response_text"],
@@ -1063,7 +1046,7 @@ export class ReportsService {
   async getReportData(id: any) {
     let data = {};
     const surveyDescription = await this.surveyDescription
-      .schema(this.requestParams.tenant.schema_name)
+      .schema(this.requestParams.schema_name)
       .findOne({
         include: [
           {
@@ -1075,7 +1058,7 @@ export class ReportsService {
       });
 
     const introDetail = await this.user
-      .schema(this.requestParams.tenant.schema_name)
+      .schema(this.requestParams.schema_name)
       .findOne({
         attributes: ["id", "name", "email", "contact", "createdAt"],
         include: [
@@ -1101,7 +1084,7 @@ export class ReportsService {
                   },
                   {
                     model: Rater,
-                    attributes: [["category_name", "name"], "order"],
+                    attributes: [["category_name", "name"]],
                   },
                 ],
               },
@@ -1110,7 +1093,7 @@ export class ReportsService {
                 include: [
                   {
                     model: Rater,
-                    attributes: [["category_name", "name"], "order"],
+                    attributes: [["category_name", "name"]],
                   },
                 ],
               },
@@ -1129,6 +1112,7 @@ export class ReportsService {
 
     data["compRatingData"] = await this.compRatingDescending(
       surveyDescription.questionnaire_id,
+
       id
     );
     data["avgPerRoalGroupData"] = await this.avgPerRoalGroup(
@@ -1155,142 +1139,26 @@ export class ReportsService {
     return data;
   }
 
-  async genrateReport(survey: SurveyDescription, token: any) {
-    // const surveys = await this.survey.schema(token.schema_name).findAll({
-    //   where: {
-    //     survey_id: survey.id,
-    //   },
-    //   include: [
-    //     {
-    //       model: User,
-    //       attributes: ["name", "email", "id"],
-    //     },
-    //     {
-    //       model: SurveyDescription,
-    //       attributes: ["id", "title"],
-    //     },
-    //   ],
-    // });
-
-    // for (const survey of surveys) {
-    //   let userToken = await this.jwtService.signAsync({
-    //     id: survey.employee_id,
-    //   });
-    //   let surveyToken = await this.jwtService.signAsync({
-    //     survey_id: survey.id,
-    //     schema_name: token.schema_name,
-    //     token: userToken,
-    //   });
-
-    //   let Mail = {
-    //     to: survey.employee.email,
-    //     subject: `Survey Completion Report | ${survey.survey_description.title}`,
-    //     context: {
-    //       link: `${this.config.get(
-    //         "BE_URL"
-    //       )}/api/v1/reports/dual-gap/report/${surveyToken}`,
-    //       username: survey.employee.name,
-    //       logo: "cid:company-logo",
-    //       ...defaultContext,
-    //     },
-    //     attachments: [
-    //       {
-    //         filename: "nbol-email-logo",
-    //         path: "src/public/media/images/nbol-email-logo.png",
-    //         cid: "company-logo",
-    //       },
-    //       ...defaultAttachments,
-    //     ],
-    //   };
-    //   this.mailsService.ReportsMail(Mail);
-    // }
-
-    const tenant = await this.tenant.schema(DB_PUBLIC_SCHEMA).findOne({
+  async genrateReport(survey_id: string, token: any) {
+    const surveys = await this.survey.schema(token.schema_name).findAll({
       where: {
-        schema_name: token.schema_name,
+        survey_id,
       },
       include: [
         {
-          as: "admin",
-          model: TenantUser,
-          required: false,
-          on: literal('"Tenant"."admin_id" = "admin"."id"'),
-          attributes: ["email", "name"],
+          model: User.schema(token.schema_name),
+          attributes: ["name", "email", "id"],
+        },
+        {
+          model: SurveyDescription.schema(token.schema_name),
+          attributes: ["id", "title"],
         },
       ],
     });
 
-    // const workbook = new ExcelJS.Workbook();
-
-    // const sheet = workbook.addWorksheet("Report", {
-    //   views: [{ state: "frozen", ySplit: 1 }],
-    //   pageSetup: {
-    //     horizontalCentered: true,
-    //     verticalCentered: true,
-    //   },
-    // });
-    // let rowData = [];
-    // let rowValue = [
-    //   "Client Name",
-    //   "Survey Name",
-    //   "Survey Status",
-    //   "Ratee Name",
-    //   "Rater Name",
-    //   "No. of Reminders sent",
-    //   "Rater Category",
-    //   "Survey Completed",
-    //   "Survey Completion Date",
-    // ];
-    // rowData.push(rowValue);
-    // for (const surveys of survey.surveys) {
-    //   if (surveys.survey_respondants.length > 0) {
-    //     for (const respodants of surveys.survey_respondants) {
-    //       rowData.push([
-    //         tenant?.name,
-    //         survey?.title,
-    //         survey?.status,
-    //         surveys?.employee?.name,
-    //         respodants?.respondant?.name,
-    //         0,
-    //         respodants?.rater?.category_name,
-    //         survey.status === "Completed" ? "Y" : "N",
-    //         survey.status === "Completed" ? survey.updatedAt : "-",
-    //       ]);
-    //     }
-    //   }
-    //   if (surveys.survey_external_respondants.length > 0) {
-    //     for (const respodants of surveys.survey_external_respondants) {
-    //       rowData.push([
-    //         tenant.name,
-    //         survey?.title,
-    //         survey.status,
-    //         surveys?.employee?.name,
-    //         respodants?.respondant_name,
-    //         0,
-    //         respodants?.rater?.category_name,
-    //         survey.status === "Completed" ? "Y" : "N",
-    //         survey.status === "Completed" ? survey.updatedAt : "-",
-    //       ]);
-    //     }
-    //   }
-    // }
-
-    const channel_partner = await this.tenant.schema(DB_PUBLIC_SCHEMA).findOne({
-      where: {
-        id: tenant.parent_tenant_id,
-      },
-      include: [
-        {
-          as: "users",
-          model: TenantUser,
-          required: false,
-          attributes: ["email", "name"],
-        },
-      ],
-    });
-    if (tenant.admin && tenant.admin.email) {
+    for (const survey of surveys) {
       let userToken = await this.jwtService.signAsync({
-        id: tenant.admin_id,
+        id: survey.employee_id,
       });
       let surveyToken = await this.jwtService.signAsync({
         survey_id: survey.id,
@@ -1299,83 +1167,85 @@ export class ReportsService {
       });
 
       let Mail = {
-        to: tenant.admin.email,
-        subject: `Survey Completion Report | ${survey.title}`,
+        to: survey.employee.email,
+        subject: `Survey Completion Report | ${survey.survey_description.title}`,
         context: {
-          survey_link: `${this.config.get("FE_URL")}/survey/${survey.id}`,
-          composite_link: `${this.config.get(
-            "BE_URL"
-          )}/api/v1/reports/dual-gap/composit-report/${surveyToken}`,
-          username: tenant.admin.name,
-          surveyName: survey.title,
-          data: survey.raters,
+          link: `${this.config.get("FE_URL")}/survey/report/${surveyToken}`,
+          username: survey.employee.name,
           logo: "cid:company-logo",
-          ...defaultContext,
         },
         attachments: [
           {
-            filename: "nbol-email-logo",
-            path: "src/public/media/images/nbol-email-logo.png",
+            filename: "company-logo",
+            path: "src/public/media/images/company-logo.png",
             cid: "company-logo",
           },
-          ...defaultAttachments,
         ],
       };
-      this.mailsService.CompositReportMail(Mail);
+      this.mailsService.ReportsMail(Mail);
     }
-    let userToken = await this.jwtService.signAsync({
-      id: channel_partner.users[0].id,
-    });
-    let surveyToken = await this.jwtService.signAsync({
-      survey_id: survey.id,
-      schema_name: token.schema_name,
-      token: userToken,
-    });
-
-    let Mail = {
-      to: channel_partner.users[0].email,
-      subject: `Survey Completion Report | ${survey.title}`,
-      context: {
-        survey_link: `${this.config.get(
-          "FE_URL"
-        )}/admin/client-configration/surveys/${token.schema_name}/${survey.id}`,
-        composite_link: `${this.config.get(
-          "BE_URL"
-        )}/api/v1/reports/dual-gap/composit-report/${surveyToken}`,
-        username: channel_partner.users[0].name,
-        surveyName: survey.title,
-        data: survey.raters,
-        logo: "cid:company-logo",
-        tenant_name: tenant.name,
-        ...defaultContext,
-      },
-      attachments: [
-        {
-          filename: "nbol-email-logo",
-          path: "src/public/media/images/nbol-email-logo.png",
-          cid: "company-logo",
-        },
-        ...defaultAttachments,
-      ],
-    };
-    this.mailsService.CompositReportMail(Mail);
   }
 
   async getReport(survey_id: string) {
     if (existsSync(`src/public/media/reports/report-${survey_id}.pdf`)) {
       return `/media/reports/report-${survey_id}.pdf`;
     } else {
+      const browser = await puppeteer.launch({
+        args: ["--font-render-hinting=none", "--force-color-profile=srgb"],
+      });
+      const page = await browser.newPage();
+      await page.setUserAgent(
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36"
+      );
       const token = await this.jwtService.sign({
-        id: this.requestParams.user.id,
+        id: this.requestParams.getUser().id,
       });
-      const pdf = await printPDF({
-        survey_id,
-        token,
-        schema_name: this.requestParams.tenant.schema_name,
+      await page.setExtraHTTPHeaders({
+        "x-tenant-name": this.requestParams.schema_name,
+        "authorization": `Bearer ${token}`,
       });
+      await page.goto(
+        `http://localhost:${process.env.PORT}/api/v1/reports/single-response-report-data/${survey_id}`,
+        {
+          waitUntil: "networkidle0",
+          timeout: 600000,
+        }
+      );
+
+      await page.evaluateHandle("document.fonts.ready");
+      const pdf = await page.pdf({
+        printBackground: true,
+        format: "A4",
+        margin: {
+          top: 25,
+          left: 15,
+          right: 15,
+          bottom: 25,
+        },
+        displayHeaderFooter: true,
+        headerTemplate: ` <div
+            id='header-template'
+            class='border-b'
+            style='font-size:9px !important; color:#4D4D4D; width:100%;margin: 0px 15px 0px 15px;display:flex;border-bottom:1px solid #E0E0E0; text-transform:uppercase;'
+          >
+            <div style='text-align: left; width: 50%;padding-bottom:5px;' class='title'></div>
+            <div style='text-align: right; width: 50%;padding-bottom:5px;'>Private & Confidential</div>
+          </div>`,
+        footerTemplate: ` <div
+        id='footer-template'
+        class='border-b'
+        style='font-size:9px !important; color:#4D4D4D; width:100%;margin:0px 15px 0px 15px;display:flex;border-top:1px solid #E0E0E0; text-transform:uppercase;'
+      >
+        <div style='text-align: left; width: 50%;padding-top:5px;'>${this.requestParams.tenant.name}</div>
+        <div style='text-align: right; width: 50%;padding-top:5px;' class="pageNumber"></div>
+      </div>`,
+      });
+
+      await browser.close();
+
       if (pdf) {
         writeFileSync(`src/public/media/reports/report-${survey_id}.pdf`, pdf);
-        await this.survey.schema(this.requestParams.tenant.schema_name).update(
+        await Survey.schema(this.requestParams.schema_name).update(
           {
             report_path: `/media/reports/report-${survey_id}.pdf`,
           },
@@ -1384,6 +1254,7 @@ export class ReportsService {
         return `/media/reports/report-${survey_id}.pdf`;
       }
     }
+    return;
   }
 
   async getQuestionWiseReport(id: string, survey_id?: string) {
@@ -1391,7 +1262,7 @@ export class ReportsService {
     //   `set search_path to ${this.requestParams.tenant.schema_name}`
     // );
     const data = await this.questionnaire
-      .schema(this.requestParams.tenant.schema_name)
+      .schema(this.requestParams.schema_name)
       .findOne({
         where: {
           id,
@@ -1529,7 +1400,7 @@ export class ReportsService {
     for (const resp of question.responses) {
       let dataCountObj = {};
 
-      for (const surResp of resp.survey_responses) {
+      for (const surResp of resp.surver_responses) {
         let shortName =
           surResp.rater.short_name || getShortFrom(surResp.rater.category_name);
 
@@ -1599,7 +1470,7 @@ export class ReportsService {
     let chartData = {};
     for (const resp of question.responses) {
       let dataCountObj = {};
-      for (const surResp of resp.survey_responses) {
+      for (const surResp of resp.surver_responses) {
         if (surResp.rater) {
           if (surResp.rater.is_external) {
             dataCountObj["Other"] = dataCountObj["Other"]
@@ -1660,7 +1531,7 @@ export class ReportsService {
     // );
 
     const data = await this.competency
-      .schema(this.requestParams.tenant.schema_name)
+      .schema(this.requestParams.schema_name)
       .findAll({
         where: { is_copy: true },
         attributes: ["title", "id", "benchmark"],
@@ -1685,7 +1556,6 @@ export class ReportsService {
             include: [
               {
                 model: SurveyResponse,
-                as: "surveyResponses",
                 where: {
                   survey_id,
                 },

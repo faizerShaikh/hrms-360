@@ -8,17 +8,16 @@ import {
   HasMany,
   Index,
   IsUUID,
-  Model,
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
-import { BaseModel, enumValidator } from "src/common/helpers";
+import { enumValidator, BaseModel } from "src/common/helpers";
 import { Competency } from "src/modules/competencies/models";
 import { Questionnaire } from "src/modules/questionnaires/models/questionnaire.model";
 import { QuestionnaireQuestion } from "src/modules/questionnaires/models/questionnaireQuestions.model";
 import { AreaAssessment } from "src/modules/settings/modules/areaAssessment/models";
 import { Rater } from "src/modules/settings/modules/rater/models";
-import { Survey, SurveyResponse } from "src/modules/surveys/models";
+import { SurveyResponse } from "src/modules/surveys/models";
 import { QuestionResponseOptions } from "../types";
 import { QuestionAreaAssessment } from "./questionAreasAssessment.model";
 import { QuestionResponse } from "./questionResponse.model";
@@ -57,11 +56,6 @@ export class Question extends BaseModel {
 
   @Column({
     type: DataType.STRING,
-  })
-  regional_text: string;
-
-  @Column({
-    type: DataType.STRING,
     allowNull: false,
     validate: {
       ...enumValidator(Object.values(QuestionResponseOptions), "Response Type"),
@@ -96,12 +90,6 @@ export class Question extends BaseModel {
   @Column({ type: DataType.INTEGER, defaultValue: 0 })
   max_score: number;
 
-  @Column({ type: DataType.INTEGER, defaultValue: 0 })
-  order: number;
-
-  @Column({ type: DataType.FLOAT, defaultValue: 0 })
-  avg_gap: number;
-
   @BelongsTo(() => Competency)
   competency: Competency;
 
@@ -118,13 +106,6 @@ export class Question extends BaseModel {
     hooks: true,
   })
   surveyResponses: SurveyResponse[];
-
-  @HasMany(() => SurveyResponse, {
-    onUpdate: "CASCADE",
-    onDelete: "CASCADE",
-    hooks: true,
-  })
-  expectedSurveyResponses: SurveyResponse[];
 
   @HasMany(() => QuestionnaireQuestion, {
     onUpdate: "CASCADE",
@@ -152,12 +133,4 @@ export class Question extends BaseModel {
     },
   })
   raters: Rater[];
-
-  @BelongsToMany(() => Survey, {
-    through: {
-      model: () => SurveyResponse,
-      unique: false,
-    },
-  })
-  surveys: Survey[];
 }

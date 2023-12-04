@@ -44,6 +44,7 @@ export class GenericController {
   @HttpCode(HttpStatus.OK)
   getOneObj(@Param("id") id: string) {
     this.validateMethod(methodOptions.getOne);
+
     return this.service?.findOne(id);
   }
 

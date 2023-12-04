@@ -42,11 +42,6 @@ export class StandardQuestionController {
     return this.standardQuestionService.importQuestionsNew(file, id);
   }
 
-  // @Put("manage-order")
-  // manageOrder(@Body() body: any) {
-  //   return this.standardQuestionService.manageOrder(body);
-  // }
-
   @Put(":id")
   updateQuestion(@Body() body: UpdateQuestionDTO, @Param("id") id: string) {
     return this.standardQuestionService.updateQuestion(body, id);

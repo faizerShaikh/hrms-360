@@ -1,5 +1,4 @@
 import { Controller, Get, Param, Query } from "@nestjs/common";
-
 import { TenantDhashboardService } from "./tenantDhashboard.service";
 
 @Controller("dashboard/tenant")

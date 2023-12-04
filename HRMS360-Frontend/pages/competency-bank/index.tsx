@@ -45,7 +45,7 @@ const CompetencyBank: BaseProps<TenentInterface> = ({ data }) => {
     <>
       <PageHeader title='All Competencies' />
       <Box className='flex items-center justify-start '>
-        <ActionCard
+        {/* <ActionCard
           className='mr-6 w-80'
           variant='primary'
           href='/competency-bank/standard'
@@ -56,7 +56,7 @@ const CompetencyBank: BaseProps<TenentInterface> = ({ data }) => {
           >
             Standard Competencies
           </Typography>
-        </ActionCard>
+        </ActionCard> */}
         {data && (
           <ActionCard
             className='mr-6 w-80'

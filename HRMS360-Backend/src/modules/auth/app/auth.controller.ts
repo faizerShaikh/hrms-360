@@ -1,11 +1,14 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from "@nestjs/common";
+import { Public } from "src/common/decorators";
+
 import { ApsisUserDto } from "src/modules/apsis/module/apsisUser/dtos/apsisUser.dto";
-import { AuthService } from "./auth.service";
 import {
   ForgotPassword,
   ForgotPasswordGetOTP,
 } from "src/modules/apsis/module/apsisUser/dtos/forgotPassword.dto";
+import { AuthService } from "./auth.service";
 
+@Public()
 @Controller("auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -14,18 +17,6 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   userLogin(@Body() body: ApsisUserDto) {
     return this.authService.userLogin(body);
-  }
-
-  @Post("public-user/register")
-  @HttpCode(HttpStatus.CREATED)
-  apsisUserRegister(@Body() body: Partial<ApsisUserDto>) {
-    return this.authService.apsisUserRegister(body);
-  }
-
-  @Post("public-user/login")
-  @HttpCode(HttpStatus.OK)
-  apsisUserLogin(@Body() body: ApsisUserDto) {
-    return this.authService.apsisUserLogin(body);
   }
 
   @Post("forgot-password")
@@ -38,5 +29,17 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   getOTP(@Body() body: ForgotPasswordGetOTP) {
     return this.authService.getOTP(body);
+  }
+
+  @Post("public-user/register")
+  @HttpCode(HttpStatus.CREATED)
+  apsisUserRegister(@Body() body: Partial<ApsisUserDto>) {
+    return this.authService.apsisUserRegister(body);
+  }
+
+  @Post("public-user/login")
+  @HttpCode(HttpStatus.OK)
+  apsisUserLogin(@Body() body: ApsisUserDto) {
+    return this.authService.apsisUserLogin(body);
   }
 }

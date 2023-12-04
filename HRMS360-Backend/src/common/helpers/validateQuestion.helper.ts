@@ -4,15 +4,15 @@ import { responseTypes } from "../constants";
 export const validateQuestion = (question: any): any => {
   let obj = {};
   if (!question["Question"]) {
-    throw new BadRequestException("Please add name in all Questions");
+    throw new BadRequestException(
+      "Question text missing, please provide text for all questions"
+    );
   }
   obj["text"] = question["Question"];
 
-  obj["regional_text"] = question["Regional Question"];
-
   if (!question["Type"] || !responseTypes[question["Type"]]) {
     throw new BadRequestException(
-      "Please select correct type in all Questions"
+      "Please select relevant response type for all questions"
     );
   }
   obj["response_type"] = responseTypes[question["Type"]];
@@ -22,7 +22,7 @@ export const validateQuestion = (question: any): any => {
     !question["Area of Assessment"].split(",").length
   ) {
     throw new BadRequestException(
-      "Please add at least on Area of Assessment in all Questions"
+      "Please add at least one Area of Assessment in all questions"
     );
   }
 
@@ -56,7 +56,9 @@ export const validateQuestion = (question: any): any => {
 
     for (const [index, score] of options.entries()) {
       if (includedResponses.includes(question[score])) {
-        throw new BadRequestException("Response Label must be uniqe");
+        throw new BadRequestException(
+          "Response Label must be unique for all responses"
+        );
       }
 
       includedResponses.push(question[score]);

@@ -9,9 +9,9 @@ import {
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
+import { BaseModel } from "src/common/helpers";
 import { Question } from "src/modules/competencies/modules/questions/models";
 import { Questionnaire } from "./questionnaire.model";
-import { BaseModel } from "src/common/helpers";
 
 @Table({
   tableName: "questionnaire_questions",
@@ -38,9 +38,6 @@ export class QuestionnaireQuestion extends BaseModel<QuestionnaireQuestion> {
   @Column
   @ForeignKey(() => Question)
   question_id: string;
-
-  @Column({ type: DataType.INTEGER, defaultValue: 0 })
-  order: number;
 
   @Column({ type: DataType.BOOLEAN, defaultValue: false })
   is_copy: boolean;

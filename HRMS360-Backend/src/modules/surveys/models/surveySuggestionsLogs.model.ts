@@ -6,14 +6,13 @@ import {
   ForeignKey,
   Index,
   IsUUID,
-  Model,
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
+import { BaseModel } from "src/common/helpers";
 import { User } from "src/modules/users/models";
 import { SurveyExternalRespondant } from ".";
 import { SurveyRespondant } from "./surveyRespondants.model";
-import { BaseModel } from "src/common/helpers";
 
 @Table({
   tableName: "survey_approval_rejection_logs",

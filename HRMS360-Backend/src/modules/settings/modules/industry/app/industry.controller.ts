@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Post, Put } from "@nestjs/common";
-import { getSearchObject } from "src/common/helpers";
+
 import { RequestParamsService } from "src/common/modules";
 import { GenericController } from "src/modules/generics/app/generics.controller";
 import { CreateIndustryDTO, UpdateIndustryDTO } from "../dtos";
@@ -19,24 +19,25 @@ export class IndustryController extends GenericController {
 
   @Get()
   getAllObj() {
-    return this.industryService.findAll({
-      where: !this.requestParams.is_apsis_user && {
-        tenant_id: this?.requestParams?.tenant?.id,
-      },
-    });
+    return this.industryService.getAll();
   }
 
   @Post()
   createObj(@Body() body: CreateIndustryDTO) {
-    body["tenant_id"] = !this.requestParams.is_apsis_user
+    body["tenant_id"] = !this.requestParams.isApsisUser()
       ? this.requestParams.tenant.id
       : null;
     return this.industryService.create(body);
   }
 
+  @Get("apsis-admin")
+  getAllIndustryForApsisAdmin() {
+    return this.industryService.getAllIndustryForApsisAdmin();
+  }
+
   @Put(":id")
   updateObj(@Body() body: UpdateIndustryDTO, id: string) {
-    body["tenant_id"] = !this.requestParams.is_apsis_user
+    body["tenant_id"] = !this.requestParams.isApsisUser()
       ? this.requestParams.tenant.id
       : null;
     return this.industryService.update(body, id);

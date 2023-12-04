@@ -9,15 +9,10 @@ import {
   UploadedFile,
   UseInterceptors,
 } from "@nestjs/common";
-import {
-  MulterIntercepter,
-  TransactionInterceptor,
-} from "src/common/interceptors";
+import { MulterIntercepter } from "src/common/interceptors";
 import { MulterEnum } from "src/common/interfaces/multer.interfaces";
 import { CreateQuestionDTO, UpdateQuestionDTO } from "../dtos";
 import { QuestionService } from "./question.service";
-
-@UseInterceptors(TransactionInterceptor)
 @Controller("competency/question")
 export class QuestionController {
   constructor(private readonly questionService: QuestionService) {}

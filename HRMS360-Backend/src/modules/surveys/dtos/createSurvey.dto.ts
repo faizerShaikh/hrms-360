@@ -12,6 +12,7 @@ export class CreateSurveyDTO {
   title: string;
 
   @IsString()
+  @IsNotEmpty()
   description: string;
 
   @IsString()
@@ -19,12 +20,12 @@ export class CreateSurveyDTO {
   end_date: string;
 
   @IsString()
-  @IsOptional()
-  reminder_frequency: string;
+  @IsNotEmpty()
+  respondant_cut_off_date: string;
 
   @IsString()
   @IsNotEmpty()
-  client_contact: string;
+  lm_approval_cut_off_date: string;
 
   @IsString()
   @IsNotEmpty()
@@ -35,4 +36,18 @@ export class CreateSurveyDTO {
   @IsArray()
   @IsString({ each: true })
   employees: string[];
+}
+
+export class SurveyFilterDTO {
+  @IsArray()
+  // @IsNotEmpty()
+  departments: string[];
+
+  @IsArray()
+  // @IsNotEmpty()
+  designations: string[];
+
+  @IsString()
+  @IsOptional()
+  text: string;
 }

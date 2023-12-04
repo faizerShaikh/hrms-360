@@ -3,10 +3,43 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Email</title>
     <style>
       td {
-        padding: 20px 30px;
+        padding: 20px 40px;
+      }
+
+      .btn-primary {
+        width: 177px;
+        height: 36px;
+        border-radius: 5px;
+        padding: 5px 10px;
+        background-color: #6cbe45;
+        color: #fff;
+        font-weight: 600;
+        font-size: 12px;
+        border: none;
+        cursor: pointer;
+      }
+
+      .mx-auto {
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .clear-fix {
+        overflow: auto;
+      }
+
+      .clearfix::after {
+        content: "";
+        clear: both;
+        display: table;
+      }
+
+      .inline-block {
+        display: inline-block;
+        margin-left: 15px;
+        margin-right: 15px;
       }
 
       .main-conatiner {
@@ -16,150 +49,244 @@
         max-width: 470px;
         padding: 1.25rem;
         border-collapse: collapse;
-
+        border: 1px solid #80df53;
         text-align: center;
       }
 
-      .para-text {
-        font-style: normal;
-        font-weight: 400;
-        font-size: 12px;
-        line-height: 130%;
-        color: #404040;
-        text-align: justify;
+      .main-logo {
+        height: 90px;
+        width: 280px;
       }
 
-      .banner {
-        font-style: normal;
-        font-weight: 400;
-        font-size: 10px;
-        line-height: 13px;
-        color: #616161;
-        background: #f5f8f9;
-        border-left: 2px solid #1c9cf6;
-        padding: 4px 10px;
+      .header-box {
+        padding-bottom: 0.25rem;
+        margin-bottom: 0.75rem;
+        border-bottom: 0.6px solid #f45a03;
+        width: 100%;
       }
 
-      .table-data {
-        font-family: "Tahoma";
-        font-style: normal;
-        font-weight: 400;
-        font-size: 10px;
-        line-height: 132.5%;
-        color: #262626;
+      .box-logo {
+        width: 39px;
+        height: 31px;
       }
 
-      .table-row {
-        padding: 10px 10px;
+      .footer-info {
+        margin-top: 10px;
+        border-top: 0.194032px solid rgba(0, 0, 0, 0.704);
+        width: 75%;
+        text-align: center;
+        margin-left: auto;
+        margin-right: auto;
       }
 
-      .table-row-top {
-        padding: 10px 5px;
+      .social-logo-box {
+        text-align: center;
+        vertical-align: center;
+        width: 75%;
+        margin-top: 0.5rem;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+      }
+
+      .header-box > * {
+        font-size: 15px;
+        font-weight: 700;
+        margin-top: 5px;
       }
     </style>
+    <title>Email</title>
   </head>
 
   <body
     style="
       padding: 10px;
       letter-spacing: 0.04em;
-      font-family: Tahoma, Arial, sans-serif;
+      font-family: Arial, sans-serif;
     "
   >
-    <div class="main-conatiner" width="470px">
-      <table style="margin: auto; text-align: center">
-        <tbody>
-          <tr style="padding-bottom: 60px">
-            <td>
-              <img
-                src="../../public/media/images/nbol-email-logo.png"
-                alt="company logo"
-                height="50px"
-                width="180px"
-                style="height: 60px; width: 180px"
-              />
-            </td>
-          </tr>
-          <tr>
-            <td class="para-text">
-              <p style="border-left: 2px solid #ffcd00; padding-left: 10px">
-                Dear {{firstName}} {{lastName}},
-              </p>
-              <p style="padding-left: 10px">
-                Survey [SURVEY NAME] has been successfully completed. Please
-                find attached reports in the zip folder. Folder contains the
-                following reports
-              </p>
-              <p style="padding-left: 10px">
-                1.Individual Ratee-wise Survey report <br />
-                2.Consolidated Report
-              </p>
-            </td>
-          </tr>
-          <tr style="padding-top: 44px">
-            <td style="text-align: start">
-              <p
-                style="
-                  font-style: normal;
-                  font-weight: 400;
-                  font-size: 12px;
-                  line-height: 14px;
-                  color: #0069ff;
-                  padding-bottom: 5px;
-                  border-bottom: 1px solid #3786ee;
-                  font-family: 'Trebuchet MS';
-                "
+    <table class="main-conatiner" width="470px">
+      <tbody>
+        <tr>
+          <td>
+            <img
+              src="{{logo}}"
+              class="main-logo mx-auto"
+              height="90px"
+              width="280px"
+              alt="company logo"
+            />
+          </td>
+        </tr>
+        {{#if is_tenant}}
+        <tr>
+          <td>
+            <img
+              src="{{hero_logo}}"
+              class="mx-auto"
+              style="width: 280px; height: 280px"
+              height="280px"
+              width="280px"
+              alt="hero image"
+            />
+          </td>
+        </tr>
+        <tr>
+          <td style="font-size: 14px; text-align: start">
+            <p>
+              <span style="color: #f7941d; font-weight: 700">|</span>
+              Your account for
+              <span style="color: #45c00a">HRMS 360 Assessment tool</span>
+              is ready for use. We're excited to have you get started!
+            </p>
+            <p>
+              By using the given login information, you can now activate your
+              account.
+            </p>
+          </td>
+        </tr>
+        {{else}}
+        <tr>
+          <td>
+            <img
+              src="{{hero_logo}}"
+              class="mx-auto"
+              style="width: 355; height: 237px"
+              height="355px"
+              width="237px"
+              alt="team image"
+            />
+          </td>
+        </tr>
+        <tr>
+          <td style="font-size: 14px; text-align: start">
+            <p>
+              <span style="color: #f7941d; font-weight: 700">|</span>
+              New
+              <span style="color: #57bf25; font-weight: 700">
+                360 Feedback Survey</span
               >
-                SURVEY PARTICIPATION SNAPSHOT
-              </p>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+              has been launched by HR and you have been selected as a feedback
+              recipient.
+            </p>
 
-      <table width="410px" style="width: 410px; max-width: 410px; margin: auto">
-        <tbody>
-          <tr style="text-align: start">
-            <td class="table-data table-row" style="background: #f5f9ff">
-              Participant Type
-            </td>
-            <td class="table-data table-row" style="background: #f5f9ff">
-              Invitation Sent
-            </td>
-            <td class="table-data table-row" style="background: #f5f9ff">
-              Feedback Recieved
-            </td>
-            <td class="table-data table-row" style="background: #f5f9ff">
-              Participation
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <table
-        width="410px"
-        style="width: 410px; max-width: 410px; margin: auto; padding-top: 20px"
-      >
-        <tbody>
-          <tr>
-            <td>
-              <p
-                style="
-                  padding-top: 10px;
-                  border-top: 1px solid #f2bf1a;
-                  font-style: normal;
-                  font-weight: 500;
-                  font-size: 12px;
-                  line-height: 10px;
-                  font-family: 'Trebuchet MS';
-                  text-align: center;
-                "
-              >
-                &copy; NBO Leadership
+            <p>
+              Please nominate responsdents of your choice for the survey. Note
+              that nominated respondents shall be approved by your Line Manager.
+            </p>
+
+            <p>
+              Kindly login into the application and choose the survey
+              respondents of your preference. Use the sign-in credentials
+              provided below -
+            </p>
+          </td>
+        </tr>
+        {{/if}} {{#if is_already_created}}
+        <tr></tr>
+        {{else}}
+        <tr>
+          <td style="padding-bottom: 0px">
+            <div class="header-box clear-fix">
+              <h2 style="color: #fb8c06; float: left">Sign In Details</h2>
+              <img
+                src="{{box_logo}}"
+                style="float: right"
+                class="box-logo"
+                alt="design icon"
+                height="31px"
+                width="39px"
+              />
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td style="text-align: start; padding-top: 10px">
+            <p
+              style="
+                font-weight: 300;
+                font-size: 14px;
+                color: #242424;
+                margin: 0px 0px 1rem 0px;
+              "
+            >
+              <span style="color: #000; font-weight: 600">Username:</span>
+              &nbsp; {{email}}
+            </p>
+            <p
+              style="
+                font-weight: 300;
+                font-size: 14px;
+                color: #242424;
+                margin: 0px;
+              "
+            >
+              <span style="color: #000; font-weight: 600">Password:</span>
+              &nbsp; {{password}}
+            </p>
+          </td>
+        </tr>
+        {{/if}}
+        <tr>
+          <td>
+            <a href="{{system_link}}" style="margin-bottom: 1rem">
+              <button class="btn-primary">Click here to start now</button>
+            </a>
+            <div class="footer-info">
+              <p style="font-size: 12px; margin-top: 0.5rem">
+                &copy; Lorem ipsum dolor sit amet, consectetur elit.
               </p>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+              <div class="social-logo-box mx-auto">
+                <span href="#" class="inline-block">
+                  <img
+                    style="height: 15px; width: 8px"
+                    src="{{facebook_logo}}"
+                    alt="Social Logo"
+                    height="15px"
+                    width="8px"
+                  />
+                </span>
+                <span href="#" class="inline-block">
+                  <img
+                    style="height: 12px; width: 15px"
+                    height="12px"
+                    width="15px"
+                    src="{{twitter_logo}}"
+                    alt="Social Logo"
+                  />
+                </span>
+                <span href="#" class="inline-block">
+                  <img
+                    style="height: 15px; width: 15px"
+                    height="15px"
+                    width="15px"
+                    src="{{instagram_logo}}"
+                    alt="Social Logo"
+                  />
+                </span>
+                <span href="#" class="inline-block">
+                  <img
+                    style="height: 14px; width: 15px"
+                    height="14px"
+                    width="15px"
+                    src="{{linkedin_logo}}"
+                    alt="Social Logo"
+                  />
+                </span>
+                <span href="#" class="inline-block">
+                  <img
+                    style="height: 12px; width: 16px"
+                    height="12px"
+                    width="16px"
+                    src="{{youtube_logo}}"
+                    alt="Social Logo"
+                  />
+                </span>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </body>
 </html>

@@ -334,7 +334,7 @@ export const QuestionDialog = ({
                         </FieldArray>
                       </List>
                     </Grid>
-                    {values.response_type?.value === "likert_scale" &&
+                    {/* {values.response_type?.value === "likert_scale" &&
                       !isChannelPartner && (
                         <Grid item xs={4} justifyContent={"start"}>
                           <FormControlLabel
@@ -361,7 +361,7 @@ export const QuestionDialog = ({
                             }}
                           />
                         </Grid>
-                      )}
+                      )} */}
                   </Grid>
                 )}
 

@@ -1,20 +1,30 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Param,
   Post,
   Put,
 } from "@nestjs/common";
-import { AddRespondents, CreateSurveyDTO, UpdateSurveyDTO } from "../dtos";
+import { Public } from "src/common/decorators";
+import {
+  AddRespondents,
+  CreateSurveyDTO,
+  SurveyFilterDTO,
+  UpdateSurveyDTO,
+} from "../dtos";
 import {
   AlternativeExternalRespondentDTO,
   AlternativeRespondentDTO,
   SendSuggestionDTO,
 } from "../dtos/alternativeRespondent.dto";
 import { ApproveRespondentDTO } from "../dtos/approveRespondent.dto";
-import { SubmitSurveyDTO } from "../dtos/submitSurvey.dto";
+import {
+  SubmitSingleSurveyDTO,
+  SubmitSurveyDTO,
+} from "../dtos/submitSurvey.dto";
 import { SurveyService } from "./survey.service";
 
 @Controller("survey")
@@ -35,7 +45,15 @@ export class SurveyController {
     return this.surveyService.addResponedents(body);
   }
 
+  @Public()
+  @Post("/submit-survey-single-ratee")
+  @HttpCode(HttpStatus.CREATED)
+  submitSurveyForSingleRatee(@Body() body: SubmitSingleSurveyDTO) {
+    return this.surveyService.submitSurveyForSingleRatee(body);
+  }
+
   // submit survey
+  @Public()
   @Post("/submit-survey")
   @HttpCode(HttpStatus.CREATED)
   submitSurvey(@Body() body: SubmitSurveyDTO) {
@@ -49,6 +67,12 @@ export class SurveyController {
     @Param("survey_id") survey_id: string
   ) {
     return this.surveyService.sendSuggestion(body, survey_id);
+  }
+
+  // Genrate reports for users where atleast 2 respondents have submited there surevy
+  @Get("genrate-report/:survey_id")
+  genrateReports(@Param("survey_id") survey_id: string) {
+    return this.surveyService.genrateReports(survey_id);
   }
 
   // approve respondents from LM or EMP
@@ -81,16 +105,21 @@ export class SurveyController {
     return this.surveyService.alternativeExternalRespondent(body, id);
   }
 
-  // Teminate survey
-  @Post("/terminate/:id")
+  @Put("/date/:id")
   @HttpCode(HttpStatus.ACCEPTED)
-  terminateSurvey(@Param("id") id: string) {
-    return this.surveyService.terminateSurvey(id);
+  updateDatesOfSurvey(@Param("id") id: string, @Body() body: UpdateSurveyDTO) {
+    return this.surveyService.updateDatesOfSurvey(id, body);
   }
 
   @Put("/:id")
   @HttpCode(HttpStatus.ACCEPTED)
   updateSurvey(@Param("id") id: string, @Body() body: UpdateSurveyDTO) {
     return this.surveyService.updateSurvey(id, body);
+  }
+
+  @Post("filter")
+  @HttpCode(HttpStatus.ACCEPTED)
+  applyFilter(@Body() body: SurveyFilterDTO) {
+    return this.surveyService.getUsersByFilter(body);
   }
 }

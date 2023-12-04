@@ -7,7 +7,6 @@ export const commonAttrubutesToExclude = {
   exclude: ["updatedAt"],
 };
 
-export const commonModels = ["AreaAssessment"];
 export const publicModels = [
   "Industry",
   "Tenant",
@@ -17,10 +16,11 @@ export const publicModels = [
   "TenantMetaData",
   "StandardCompetency",
   "StandardQuestion",
-  "AreaAssessment",
   "StandardQuestionAreaAssessment",
   "StandardQuestionResponse",
 ];
+
+export const commonModels = ["AreaAssessment"];
 
 export const userExcelColumnsMap = {
   1: "name",

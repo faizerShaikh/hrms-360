@@ -1,61 +1,122 @@
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    {{! <link
-      href="https://fonts.googleapis.com/css2?family=Urbanist:wght@100;200;300;400;500;600;700;800;900&display=swap"
-      rel="stylesheet"
-    /> }}
-    {{! <link
-      href="https://fonts.googleapis.com/css2?family=Urbanist:wght@100;200;300;400;500;600;700;800;900&display=swap"
-      rel="stylesheet"
-    /> }}
     <script src="https://cdn.tailwindcss.com"></script>
-    <script
-      src="
-https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.min.js
-"
-    ></script>
-    <link
-      href="
-https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.min.css
-"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="/report/styles/styles.css" />
-    <link
-      rel="stylesheet"
-      href="/report/styles/print-styles.css/"
-      media="print"
-    />
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+     <link rel="stylesheet" href="/report/styles/styles.css" />
     <script>
-      tailwind.config =
-      {{{tailwindConfig}}};
-    </script>
+      tailwind.config = {
+        mode: "jit",
+        content: [
+          "./src/**/*.{js,ts,jsx,tsx}",
+          "./pages/**/*.{js,ts,jsx,tsx}",
+          "./components/**/*.{js,ts,jsx,tsx}",
+          // Add extra paths here
+        ],
+        theme: {
+          extend: {
+            colors: {
+              "one": "#ff0000",
+              "dark": "#4D4D4D",
+              "light": "#616161",
+              "main": "#828282",
+              "primary": "#6CBE45",
+              "primary-light": "#EEFBDB",
+              "secondary": "#F7941D",
+              "secondary-light": "#FEF2D1",
+              "tertiary": "#78909C",
+              "tertiary-light": "#F2F5F7",
+              "fc-dark": "#4D4D4D",
+              "fc-light": "#616161",
+              "fc-main": "#828282",
+              "initiated": "#1ABBB9",
+              "inProgress": "#FFB508",
+              "success": "#18AB56",
+              "cancelled": "#EB5757",
+              "grid": "#333333",
+              "chip": "#F7FDEE",
+            },
 
-    <style media="print">
-      body{ font-size:50pt !important; }
-    </style>
+            fontSize: {
+              "semi-base": "15px", //"0.938rem",
+            },
+          },
+          fontFamily: {},
+        },
+        variants: {
+          extend: {},
+        },
+        plugins: [],
+      };
+    </script>
     <style>
-      body{ font-size: 14px !important; } table tr td, table tr th {
-      page-break-inside: avoid; margin: 4px 0 4px 0; } @media print { @page{
-      margin:43px 25px } } table.question-table, th { border: 1px solid white;
-      border-collapse: collapse; } .dont-break { page-break-before: always; }
-      .break-after{ page-break-after:auto; } .break-before{
-      page-break-before:always; } .chip-0 { color: #FF0000; padding: 5px;
-      border-radius: 5px; text-align: center; } .chip-1 { color: #FF0000;
-      padding: 5px; border-radius: 5px; text-align: center; } .chip-2 { color:
-      #FCAE1E padding: 5px; border-radius: 5px; text-align: center; } .chip-3 {
-      color: #525252; padding: 5px; border-radius: 5px; text-align: center; }
-      .chip-4 { color: #25BF9E; padding: 5px; border-radius: 5px; text-align:
-      center; } .chip-5 { color: #0069FF; padding: 5px; border-radius: 5px;
-      text-align: center; }
+      table tr td, table tr th {
+          page-break-inside: avoid;
+          margin: 4px 0 4px 0;
+      }
+    
+      @media print {
+        @page{
+          margin:30px;
+        }
+      }
+      table.question-table, th {
+        border: 1px solid white;
+        border-collapse: collapse;
+      }
+      .dont-break {
+        page-break-before: always;
+      }
+      .break-after{
+        page-break-after:auto;
+      }
+      .break-before{
+        page-break-before:always;
+      }
+      .chip-1 {
+        background: rgba(254, 90, 90, 0.07);
+        color: rgba(245, 47, 87, 1);
+        padding: 5px;
+        border-radius: 5px;
+        text-align: center;
+      }
+      .chip-2 {
+        background: rgba(245, 245, 245, 1);
+        color: rgba(64, 64, 64, 1);
+        padding: 5px;
+        border-radius: 5px;
+        text-align: center;
+      }
+      .chip-3 {
+        background: rgba(254, 189, 42, 0.12);
+        color: rgba(254, 169, 42, 1);
+        padding: 5px;
+        border-radius: 5px;
+        text-align: center;
+      }
+      .chip-4 {
+        background: rgba(235, 253, 255, 1);
+        color: rgba(31, 161, 135, 1);
+        padding: 5px;
+        border-radius: 5px;
+        text-align: center;
+      }
+      .chip-5 {
+        background: #F5F9FF;
+        color: #0069FF;
+        padding: 5px;
+        border-radius: 5px;
+        text-align: center;
+      }
     </style>
+    <title>{{reportIntro.introDetail.name}}</title>
   </head>
   <body>
-    <div class="report-container">
-      {{{body}}}
-    </div>
+  
+ {{{body}}}
+   
   </body>
 </html>

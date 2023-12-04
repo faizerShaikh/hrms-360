@@ -5,11 +5,10 @@ import {
   HasMany,
   Index,
   IsUUID,
-  Model,
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
-import { BaseModel, enumValidator } from "src/common/helpers";
+import { enumValidator, BaseModel } from "src/common/helpers";
 import { CompetencyTypeOptions } from "src/modules/competencies/types";
 import { StandardQuestion } from "../modules/standardQuestions/models";
 
@@ -85,9 +84,6 @@ export class StandardCompetency extends BaseModel {
     },
   })
   no_of_questions: number;
-
-  @Column({ type: DataType.INTEGER, defaultValue: 0 })
-  order: number;
 
   @Column(DataType.STRING)
   tenant_id: string;

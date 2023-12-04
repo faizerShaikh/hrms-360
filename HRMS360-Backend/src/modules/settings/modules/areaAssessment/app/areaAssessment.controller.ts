@@ -7,6 +7,7 @@ import {
   Post,
   Put,
 } from "@nestjs/common";
+
 import { GenericController } from "src/modules/generics/app/generics.controller";
 import { CreateAreaAssessmentDTO, UpdateAreaAssessmentDTO } from "../dtos";
 import { AreaAssessmentService } from "./areaAssessment.service";

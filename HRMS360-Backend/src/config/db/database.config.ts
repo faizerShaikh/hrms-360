@@ -11,16 +11,16 @@ export const databaseConfig: IDatabaseConfig = {
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
     dialect: process.env.DB_DIALECT,
-    logging: +process.env.DB_LOGGING === 1 ? console.log : false,
+    logging: +process.env.DB_LOGGING === 1,
   },
-  uat: {
+  test: {
     username: process.env.DB_USER,
     password: process.env.DB_PASS,
     database: process.env.DB_NAME_TEST,
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
     dialect: process.env.DB_DIALECT,
-    logging: +process.env.DB_LOGGING === 1 ? console.log : false,
+    logging: +process.env.DB_LOGGING === 1,
   },
   production: {
     username: process.env.DB_USER,
@@ -28,6 +28,6 @@ export const databaseConfig: IDatabaseConfig = {
     database: process.env.DB_NAME_PRODUCTION,
     host: process.env.DB_HOST,
     dialect: process.env.DB_DIALECT,
-    logging: +process.env.DB_LOGGING === 1 ? console.log : false,
+    logging: +process.env.DB_LOGGING === 1,
   },
 };

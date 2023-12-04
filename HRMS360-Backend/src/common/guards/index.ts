@@ -1,1 +1,1 @@
-export * from "./channelPartner.guard";
+export * from "./auth.guard";

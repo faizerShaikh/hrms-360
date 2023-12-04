@@ -36,7 +36,6 @@ async function bootstrap() {
 
   // set Globle Pipes
   app.useGlobalPipes(new ValidationPipe());
-
   await app.listen(process.env.PORT);
 }
 bootstrap();

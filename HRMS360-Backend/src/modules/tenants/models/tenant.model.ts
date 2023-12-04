@@ -8,14 +8,14 @@ import {
   HasOne,
   Index,
   IsUUID,
-  Model,
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
-import { BaseModel, enumValidator } from "src/common/helpers";
+import { enumValidator, BaseModel } from "src/common/helpers";
 import { Industry } from "src/modules/settings/modules/industry/models";
 import { AdminTypeOptions } from "../types";
 import { TenantHistory } from "./tenantHistory.model";
+import { TenantMetaData } from "./tenantMetaData.model";
 import { TenantUser } from "./tenantUser.model";
 
 @Table({
@@ -66,7 +66,15 @@ export class Tenant extends BaseModel<Tenant> {
 
   @Column({
     type: DataType.STRING,
-    allowNull: true,
+    allowNull: false,
+    validate: {
+      notNull: {
+        msg: "Location can not be empty",
+      },
+      notEmpty: {
+        msg: "Location can not be empty",
+      },
+    },
   })
   location: string;
 
@@ -97,19 +105,30 @@ export class Tenant extends BaseModel<Tenant> {
   no_of_employee_created: number;
 
   @Column({
-    type: DataType.STRING,
-  })
-  company_registration_number: string;
-
-  @Column({
     type: DataType.DATEONLY,
-    allowNull: true,
+    allowNull: false,
+    validate: {
+      notNull: {
+        msg: "Start date can not be empty",
+      },
+      notEmpty: {
+        msg: "Start date can not be empty",
+      },
+    },
   })
   start_date: string;
 
   @Column({
     type: DataType.DATEONLY,
-    allowNull: true,
+    allowNull: false,
+    validate: {
+      notNull: {
+        msg: "End date can not be empty",
+      },
+      notEmpty: {
+        msg: "End date can not be empty",
+      },
+    },
   })
   end_date: string;
 
@@ -118,8 +137,15 @@ export class Tenant extends BaseModel<Tenant> {
 
   @Column({
     type: DataType.FLOAT,
-    allowNull: true,
-    defaultValue: 0,
+    allowNull: false,
+    validate: {
+      notNull: {
+        msg: "Tenure can not be empty",
+      },
+      notEmpty: {
+        msg: "Tenure can not be empty",
+      },
+    },
   })
   tenure: number;
 
@@ -189,4 +215,11 @@ export class Tenant extends BaseModel<Tenant> {
 
   @HasMany(() => TenantHistory)
   tenantHistory: TenantHistory[];
+
+  @HasOne(() => TenantMetaData, {
+    onUpdate: "CASCADE",
+    onDelete: "CASCADE",
+    hooks: true,
+  })
+  tenantMetaData: TenantMetaData;
 }

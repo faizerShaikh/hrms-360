@@ -9,7 +9,6 @@ import {
 } from "../models";
 import { QuestionnaireController } from "./questionnaire.controller";
 import { QuestionnaireService } from "./questionnaire.service";
-import { Competency } from "src/modules/competencies/models";
 
 @Module({
   imports: [
@@ -19,7 +18,6 @@ import { Competency } from "src/modules/competencies/models";
       QuestionnaireCompetency,
       QuestionnaireQuestion,
       SurveyDescription,
-      Competency,
     ]),
   ],
   controllers: [QuestionnaireController],

@@ -17,9 +17,6 @@ export class CreateQuestionDTO {
   text: string;
 
   @IsString()
-  regional_text: string;
-
-  @IsString()
   @IsNotEmpty()
   @IsEnum(QuestionResponseOptions)
   response_type: string;

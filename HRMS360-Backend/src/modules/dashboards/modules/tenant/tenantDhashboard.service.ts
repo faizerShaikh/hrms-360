@@ -29,7 +29,7 @@ export class TenantDhashboardService {
     const totalGet = this.surveyDescription
       .schema(this.requestParams.schema_name)
       .count();
-    const lastYearCountGet = this.surveyDescription
+    const lastYearCountGet = await this.surveyDescription
       .schema(this.requestParams.schema_name)
       .count({
         where: {
@@ -65,7 +65,7 @@ export class TenantDhashboardService {
 
   async getAllEmployeeCount() {
     const totalGet = this.user.schema(this.requestParams.schema_name).count();
-    const thisWeekCountGet = this.user
+    const thisWeekCountGet = await this.user
       .schema(this.requestParams.schema_name)
       .count({
         where: {
@@ -94,7 +94,7 @@ export class TenantDhashboardService {
           type: CompetencyTypeOptions.custom,
         },
       });
-    const thisWeekCountGet = this.competency
+    const thisWeekCountGet = await this.competency
       .schema(this.requestParams.schema_name)
       .count({
         where: {
@@ -120,7 +120,7 @@ export class TenantDhashboardService {
     const totalGet = this.questionnaire
       .schema(this.requestParams.schema_name)
       .count({});
-    const thisWeekCountGet = this.questionnaire
+    const thisWeekCountGet = await this.questionnaire
       .schema(this.requestParams.schema_name)
       .count({
         where: {
@@ -303,7 +303,7 @@ export class TenantDhashboardService {
     const endDate = moment(new Date())
       .subtract(interval[range].sub_value, interval[range].by)
       .format("YYYY/MM/DD");
-    const surveyStatusGet = this.surveyDescription
+    const surveyStatusGet = await this.surveyDescription
       .schema(this.requestParams.schema_name)
       .unscoped()
       .count({
@@ -319,7 +319,7 @@ export class TenantDhashboardService {
         },
       });
 
-    const thisWeekCountGet = this.surveyDescription
+    const thisWeekCountGet = await this.surveyDescription
       .schema(this.requestParams.schema_name)
       .count({
         where: {

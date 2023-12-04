@@ -9,6 +9,7 @@ import { RequestInterface } from "../interfaces/request.interface";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import { TenantUser } from "src/modules/tenants/models";
+import { DB_PUBLIC_SCHEMA } from "../constants";
 
 @Injectable()
 export class ChannelPartnerAuth implements NestMiddleware {
@@ -28,7 +29,7 @@ export class ChannelPartnerAuth implements NestMiddleware {
 
     let payload: any = this.jwtService.verify(token, this.config.get("JWTKEY"));
 
-    let user = await this.tenantUser.findOne({
+    let user = await this.tenantUser.schema(DB_PUBLIC_SCHEMA).findOne({
       where: {
         id: payload.id,
       },

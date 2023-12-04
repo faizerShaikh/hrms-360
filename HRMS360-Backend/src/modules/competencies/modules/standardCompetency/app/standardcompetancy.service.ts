@@ -7,8 +7,9 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { InjectModel } from "@nestjs/sequelize";
+import { InjectConnection, InjectModel } from "@nestjs/sequelize";
 import { Op } from "sequelize";
+import { Sequelize } from "sequelize-typescript";
 import {
   commonAttrubutesToExclude,
   DB_PUBLIC_SCHEMA,
@@ -41,108 +42,122 @@ export class StandardCompetancyService {
     private readonly standardCompetency: typeof StandardCompetency,
     @InjectModel(Tenant) private readonly tenant: typeof Tenant,
     private readonly requestParams: RequestParamsService,
-    @InjectModel(TenantHistory) private tenantHistory: typeof TenantHistory
+    @InjectModel(TenantHistory) private tenantHistory: typeof TenantHistory,
+    @InjectConnection() private readonly sequelize: Sequelize
   ) {}
 
   async createCompetency(body: createCompetencyDTO) {
-    const isCompetencyExist = await this.standardCompetency
-      .schema(DB_PUBLIC_SCHEMA)
-      .findOne<StandardCompetency>({
-        where: {
-          title: body.title,
-          tenant_id: this.requestParams.tenant.id,
-        },
-      });
+    const transaction = await this.sequelize.transaction();
+    try {
+      const isCompetencyExist = await this.standardCompetency
+        .schema(DB_PUBLIC_SCHEMA)
+        .findOne<StandardCompetency>({
+          where: {
+            title: body.title,
+          },
+        });
 
-    if (isCompetencyExist)
-      throw new BadRequestException(
-        "Competency with this title already exists"
-      );
-    const tenants = await this.tenant.schema(DB_PUBLIC_SCHEMA).findAll<Tenant>({
-      where: {
-        parent_tenant_id: this.requestParams.tenant.id,
-      },
-      attributes: ["schema_name", "id"],
-    });
-    const competencyCount = await this.standardCompetency.count();
-    const competency: StandardCompetency = await this.standardCompetency
-      .schema(DB_PUBLIC_SCHEMA)
-      .create(
+      if (isCompetencyExist)
+        throw new BadRequestException(
+          "Competency with this title already exists"
+        );
+      const tenants = await this.tenant
+        .schema(DB_PUBLIC_SCHEMA)
+        .unscoped()
+        .findAll<Tenant>({
+          where: {
+            parent_tenant_id: this.requestParams.tenant.id,
+          },
+          paranoid: false,
+          attributes: ["schema_name", "id"],
+        });
+
+      const competency: StandardCompetency = await this.standardCompetency
+        .schema(DB_PUBLIC_SCHEMA)
+        .create(
+          {
+            ...body,
+            type: CompetencyTypeOptions.standard,
+            tenant_id: this.requestParams.tenant.id,
+          },
+          { transaction }
+        );
+
+      for (const tenant of tenants) {
+        await this.competency.schema(tenant.schema_name).create<Competency>(
+          {
+            ...body,
+            type: CompetencyTypeOptions.standard,
+            id: competency.id,
+          },
+          { transaction }
+        );
+      }
+
+      await this.tenantHistory.schema(DB_PUBLIC_SCHEMA).create(
         {
-          ...body,
-          type: CompetencyTypeOptions.standard,
-          order: competencyCount + 1,
+          type: TenantHistoryTypes.competency,
+          reference_id: competency.id,
           tenant_id: this.requestParams.tenant.id,
+          group: TenantHistoryGroup.competency,
         },
-        { transaction: this.requestParams.transaction }
+        { transaction }
       );
 
-    for (const tenant of tenants) {
-      await this.competency.schema(tenant.schema_name).create<Competency>(
-        {
-          ...body,
-          type: CompetencyTypeOptions.standard,
-          order: competencyCount + 1,
-          id: competency.id,
-        },
-        { transaction: this.requestParams.transaction }
-      );
+      await transaction.commit();
+      return competency;
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
     }
-
-    await this.tenantHistory.schema(DB_PUBLIC_SCHEMA).create(
-      {
-        type: TenantHistoryTypes.competency,
-        reference_id: competency.id,
-        tenant_id: this.requestParams.tenant.id,
-        group: TenantHistoryGroup.competency,
-      },
-      { transaction: this.requestParams.transaction }
-    );
-
-    return competency;
   }
 
   async updateCompetency(body: UpdateCompetencyDTO, id: string) {
-    const isCompetencyExist = await this.standardCompetency
-      .schema(DB_PUBLIC_SCHEMA)
-      .findOne<StandardCompetency>({
-        where: {
-          title: body.title,
-          tenant_id: this.requestParams.tenant.id,
-          id: {
-            [Op.ne]: id,
+    const transaction = await this.sequelize.transaction();
+    try {
+      const isCompetencyExist = await this.standardCompetency
+        .schema(DB_PUBLIC_SCHEMA)
+        .findOne<StandardCompetency>({
+          where: {
+            title: body.title,
+            id: {
+              [Op.ne]: id,
+            },
           },
-        },
-      });
+        });
 
-    if (isCompetencyExist)
-      throw new BadRequestException(
-        "Competency with this title already exists"
-      );
+      if (isCompetencyExist)
+        throw new BadRequestException(
+          "Competency with this title already exists"
+        );
 
-    const competency = await this.findOneCompetency(id, false);
-    await competency.update(
-      { ...body },
-      { transaction: this.requestParams.transaction }
-    );
+      const competency = await this.findOneCompetency(id, false);
+      await competency.update({ ...body }, { transaction });
 
-    const tenants = await this.tenant.schema(DB_PUBLIC_SCHEMA).findAll<Tenant>({
-      where: {
-        parent_tenant_id: this.requestParams.tenant.id,
-      },
-      attributes: ["schema_name", "id"],
-    });
+      const tenants = await this.tenant
+        .schema(DB_PUBLIC_SCHEMA)
+        .findAll<Tenant>({
+          where: {
+            parent_tenant_id: this.requestParams.tenant.id,
+          },
+          paranoid: false,
+          attributes: ["schema_name", "id"],
+        });
 
-    for (const tenant of tenants) {
-      await this.competency.schema(tenant.schema_name).update<Competency>(
-        {
-          ...body,
-        },
-        { where: { id }, transaction: this.requestParams.transaction }
-      );
+      for (const tenant of tenants) {
+        await this.competency.schema(tenant.schema_name).update<Competency>(
+          {
+            ...body,
+          },
+          { where: { id }, transaction }
+        );
+      }
+      await transaction.commit();
+      return competency;
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
     }
-
-    return competency;
   }
 
   async getAllCompetencyByType(type: string) {
@@ -163,11 +178,10 @@ export class StandardCompetancyService {
   async getAllCompetency() {
     return this.standardCompetency
       .schema(DB_PUBLIC_SCHEMA)
-      .unscoped()
       .findAndCountAll<StandardCompetency>({
-        order: [["order", "ASC"]],
         where: {
           tenant_id: this.requestParams.tenant.id,
+
           ...getSearchObject(this.requestParams.query, [
             "title",
             "description",
@@ -190,7 +204,7 @@ export class StandardCompetancyService {
               model: StandardQuestion,
               as: "questions",
             },
-            "order",
+            "text",
             "ASC",
           ],
           [
@@ -219,8 +233,6 @@ export class StandardCompetancyService {
                   },
                   {
                     model: AreaAssessment,
-                    through: { attributes: [] },
-                    required: false,
                     attributes: commonAttrubutesToExclude,
                   },
                 ],
@@ -237,126 +249,36 @@ export class StandardCompetancyService {
   }
 
   async deleteCompetency(id: string) {
-    const competency = await this.findOneCompetency(id, false);
-    await competency.destroy({ transaction: this.requestParams.transaction });
-    await this.standardCompetency.schema(DB_PUBLIC_SCHEMA).decrement(
-      { order: 1 },
-      {
-        where: {
-          order: {
-            [Op.gt]: competency.order,
-          },
-        },
-      }
-    );
-    const tenants = await this.tenant.schema(DB_PUBLIC_SCHEMA).findAll<Tenant>({
-      where: {
-        parent_tenant_id: this.requestParams.tenant.id,
-      },
-      attributes: ["schema_name", "id"],
-    });
+    const transaction = await this.sequelize.transaction();
+    try {
+      const competency = await this.findOneCompetency(id, false);
+      await competency.destroy({ transaction });
 
-    for (const tenant of tenants) {
-      await this.competency.schema(tenant.schema_name).destroy({
-        where: { id },
-        transaction: this.requestParams.transaction,
-      });
-      await this.competency.schema(tenant.schema_name).decrement(
-        { order: 1 },
-        {
+      const tenants = await this.tenant
+        .schema(DB_PUBLIC_SCHEMA)
+        .findAll<Tenant>({
           where: {
-            order: {
-              [Op.gt]: competency.order,
-            },
+            parent_tenant_id: this.requestParams.tenant.id,
           },
-        }
-      );
+          paranoid: false,
+          attributes: ["schema_name", "id"],
+        });
+
+      for (const tenant of tenants) {
+        await this.competency
+          .schema(tenant.schema_name)
+          .destroy({ where: { id }, transaction });
+      }
+
+      await this.tenantHistory
+        .schema(DB_PUBLIC_SCHEMA)
+        .destroy({ where: { reference_id: id }, transaction });
+
+      await transaction.commit();
+      return competency;
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
     }
-
-    await this.tenantHistory.schema(DB_PUBLIC_SCHEMA).destroy({
-      where: { reference_id: id },
-      transaction: this.requestParams.transaction,
-    });
-
-    return competency;
   }
-
-  // async manageOrder<T extends {} = any>(dto: any): Promise<T | any> {
-  //   const question = await this.standardCompetency
-  //     .schema(DB_PUBLIC_SCHEMA)
-  //     .findOne({
-  //       where: {
-  //         id: dto?.id,
-  //       },
-  //     });
-  //   const tenants = await this.tenant.schema(DB_PUBLIC_SCHEMA).findAll<Tenant>({
-  //     where: {
-  //       parent_tenant_id: this.requestParams.tenant.id,
-  //       is_channel_partner: false,
-  //     },
-  //   });
-
-  //   for (const tenant of tenants) {
-  //     const tenantquestion = await this.competency
-  //       .schema(tenant.schema_name)
-  //       .findOne({
-  //         where: {
-  //           is_copy: false,
-  //           id: dto?.id,
-  //         },
-  //       });
-  //     if (dto?.orderType === "promote") {
-  //       await this.competency.schema(tenant.schema_name).update(
-  //         { order: question?.order },
-  //         {
-  //           where: {
-  //             order: question?.order - 1,
-  //             is_copy: false,
-  //           },
-  //         }
-  //       );
-
-  //       await tenantquestion.update({ order: question?.order - 1 });
-  //     }
-
-  //     if (dto?.orderType === "demote") {
-  //       console.log(question, "<=====questionrrrrrr", question?.order - 1);
-
-  //       await this.competency.schema(tenant.schema_name).update(
-  //         { order: question?.order },
-  //         {
-  //           where: {
-  //             order: question?.order + 1,
-  //             is_copy: false,
-  //           },
-  //         }
-  //       );
-
-  //       await tenantquestion.update({ order: question?.order + 1 });
-  //     }
-  //   }
-  //   if (dto?.orderType === "promote") {
-  //     await this.standardCompetency
-  //       .schema(DB_PUBLIC_SCHEMA)
-  //       .update(
-  //         { order: question?.order },
-  //         { where: { order: question?.order - 1 } }
-  //       );
-
-  //     return await question.update({ order: question?.order - 1 });
-  //   }
-
-  //   if (dto?.orderType === "demote") {
-  //     console.log(question, "<=====questionrrrrrr DEMOTE", question?.order + 1);
-
-  //     await this.standardCompetency
-  //       .schema(DB_PUBLIC_SCHEMA)
-  //       .update(
-  //         { order: question?.order },
-  //         { where: { order: question?.order + 1 } }
-  //       );
-
-  //     return await question.update({ order: question?.order + 1 });
-  //   }
-  // }
 }

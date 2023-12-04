@@ -3,17 +3,20 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { InjectModel } from "@nestjs/sequelize";
+import { InjectConnection, InjectModel } from "@nestjs/sequelize";
 import { unlink } from "fs";
+import { join } from "path";
 import { Op } from "sequelize";
+import { Sequelize } from "sequelize-typescript";
 import { DB_PUBLIC_SCHEMA, userExcelColumnsMap } from "src/common/constants";
 import { RequestParamsService } from "src/common/modules";
 import { GenericsService } from "src/modules/generics/app/generics.service";
 import { Department } from "src/modules/settings/modules/department/models";
 import { Designation } from "src/modules/settings/modules/designation/models";
-import { TenantUser } from "src/modules/tenants/models";
+import { Tenant, TenantMetaData, TenantUser } from "src/modules/tenants/models";
 import { CreateUserDto } from "../dtos";
 import { User } from "../models";
+import { validateEmail } from "src/common/helpers";
 const ExcelJS = require("exceljs");
 
 @Injectable()
@@ -23,13 +26,15 @@ export class UserService extends GenericsService {
     @InjectModel(Department) private readonly department: typeof Department,
     @InjectModel(Designation) private readonly designation: typeof Designation,
     @InjectModel(TenantUser) private readonly tenantUser: typeof TenantUser,
-    private readonly requestParams: RequestParamsService
+    private readonly requestParams: RequestParamsService,
+    @InjectConnection() private readonly sequelize: Sequelize,
+    @InjectModel(TenantMetaData)
+    private readonly tenantMetaData: typeof TenantMetaData
   ) {
     super(User.schema(requestParams.schema_name), {
       include: [
         {
           model: Department,
-
           attributes: ["name", "id"],
         },
         {
@@ -64,25 +69,52 @@ export class UserService extends GenericsService {
 
   async create(dto: CreateUserDto): Promise<any> {
     if (
-      this.requestParams.tenant.no_of_employee_created ===
+      this.requestParams.tenant.no_of_employee_created + 1 ===
       this.requestParams.tenant.no_of_employee
     ) {
-      throw new BadRequestException("Number of employees limit exceeded");
+      throw new BadRequestException(
+        `Number of employees limit exceeded, limit for your tenant is (${this.requestParams.tenant.no_of_employee}). Please contact admin for further clarification`
+      );
     }
 
-    const ifUser = await this.tenantUser.schema(DB_PUBLIC_SCHEMA).findOne({
-      where: { email: dto.email },
-    });
+    const isTenantuser = await this.tenantUser
+      .schema(DB_PUBLIC_SCHEMA)
+      .findOne({
+        where: { email: dto.email },
+        include: [{ model: Tenant }],
+      });
 
-    if (ifUser)
-      throw new BadRequestException("User with this email already exists");
+    if (isTenantuser) {
+      if (isTenantuser.my_tenant.is_channel_partner) {
+        throw new BadRequestException("User with this email already exists!");
+      }
+      const isUserInTenant = await User.schema(
+        isTenantuser.my_tenant.schema_name
+      ).findOne({
+        where: { email: dto.email },
+      });
+      if (isUserInTenant)
+        throw new BadRequestException("User with this email already exists!");
+    }
 
-    const user = await this.user.schema(this.requestParams.schema_name).create({
+    const user = await this.user.schema(this.reqParam.schema_name).create({
       ...dto,
       tenant_id: this.requestParams.tenant.id,
     });
 
     await this.requestParams.tenant.increment("no_of_employee_created");
+
+    await this.tenantMetaData
+      .schema(DB_PUBLIC_SCHEMA)
+      .increment("total_users_onboarded", {
+        where: {
+          tenant_id: [
+            this.requestParams.tenant.id,
+            this.requestParams.tenant.parent_tenant_id,
+          ],
+        },
+      });
+
     return user;
   }
 
@@ -92,13 +124,15 @@ export class UserService extends GenericsService {
         "Please provide param name in department or designation"
       );
 
-    let query = {};
+    let query: any = {};
     if (text) {
       let condition = {
+        ...query,
         [Op.iLike]: "%" + text + "%",
       };
 
       query = {
+        ...query,
         [Op.or]: {
           '$"users"."name"$': condition,
           "name": condition,
@@ -106,7 +140,7 @@ export class UserService extends GenericsService {
       };
     }
 
-    return this[param].schema(this.requestParams.schema_name).findAll({
+    return this[param].schema(this.reqParam.schema_name).findAll({
       where: {
         ...query,
       },
@@ -142,6 +176,30 @@ export class UserService extends GenericsService {
     });
   }
 
+  async update<T extends {} = any>(dto: any, id?: string): Promise<T> {
+    const isTenantuser = await this.tenantUser
+      .schema(DB_PUBLIC_SCHEMA)
+      .findOne({
+        where: { email: dto.email },
+        include: [{ model: Tenant }],
+      });
+
+    if (isTenantuser) {
+      if (isTenantuser.my_tenant.is_channel_partner) {
+        throw new BadRequestException("User with this email already exists!");
+      }
+      const isUserInTenant = await User.schema(
+        isTenantuser.my_tenant.schema_name
+      ).findOne({
+        where: { email: dto.email },
+      });
+      if (isUserInTenant && isUserInTenant.id !== id)
+        throw new BadRequestException("User with this email already exists!");
+    }
+
+    return await super.update(dto, id);
+  }
+
   async getMe(id: string) {
     const user = await this.getOneObj(
       {
@@ -154,12 +212,12 @@ export class UserService extends GenericsService {
 
   async getExcel() {
     const depart = await this.department
-      .schema(this.requestParams.schema_name)
+      .schema(this.reqParam.schema_name)
       .findAll<Department>({
         attributes: ["name"],
       });
     const desig = await this.designation
-      .schema(this.requestParams.schema_name)
+      .schema(this.reqParam.schema_name)
       .findAll<Designation>({
         attributes: ["name"],
       });
@@ -171,6 +229,9 @@ export class UserService extends GenericsService {
     });
     const depsSheet = workbook.addWorksheet("Departments");
     const desigSheet = workbook.addWorksheet("Designation");
+
+    desigSheet.state = "veryHidden";
+    depsSheet.state = "veryHidden";
 
     depsSheet.columns = [
       {
@@ -257,21 +318,17 @@ export class UserService extends GenericsService {
 
     if (rowsCount > remainingSlots) {
       throw new BadRequestException(
-        `Number of Employee limit exceeded, Only ${remainingSlots} users can be added`
+        `Number of Employee limit exceeded, Only ${remainingSlots} more users can be added`
       );
     }
 
-    if (rowsCount < 2) {
-      throw new BadRequestException(`Excel is empty`);
-    }
-
     const depart = await this.department
-      .schema(this.requestParams.schema_name)
+      .schema(this.reqParam.schema_name)
       .findAll<Department>({
         attributes: ["id", "name"],
       });
     const desig = await this.designation
-      .schema(this.requestParams.schema_name)
+      .schema(this.reqParam.schema_name)
       .findAll<Designation>({
         attributes: ["id", "name"],
       });
@@ -312,43 +369,55 @@ export class UserService extends GenericsService {
       });
 
       if (Object.keys(obj).length) {
-        let build: any = this.user
-          .schema(this.requestParams.schema_name)
-          .build(obj);
+        if (!validateEmail(obj.email)) {
+          throw new BadRequestException(
+            `Please add a valid email. (${obj.email})`
+          );
+        }
+
+        const isTenantuser = await this.tenantUser
+          .schema(DB_PUBLIC_SCHEMA)
+          .findOne({
+            where: { email: obj.email },
+            include: [{ model: Tenant }],
+          });
+
+        if (isTenantuser) {
+          if (isTenantuser.my_tenant.is_channel_partner) {
+            throw new BadRequestException(
+              "User with this email already exists!"
+            );
+          }
+          const isUserInTenant = await User.schema(
+            isTenantuser.my_tenant.schema_name
+          ).findOne({
+            where: { email: obj.email },
+          });
+          if (isUserInTenant)
+            throw new BadRequestException(
+              "User with this email already exists!"
+            );
+        }
+        let build: any = this.user.schema(this.reqParam.schema_name).build(obj);
         data.push({
           ...build.dataValues,
           department_name: obj.department_name,
           designation_name: obj.designation_name,
         });
-        // data.push({
-        //   id: build.id,
-        //   is_active: build.is_active,
-        //   is_tenant_admin: build.is_tenant_admin,
-        //   name: build.name,
-        //   email: build.email,
-        //   designation_id: build.designation_id,
-        //   department_id: build.department_id,
-        //   contact: build.contact,
-        //   region: build.region,
-        //   department_name: obj.department_name,
-        //   designation_name: obj.designation_name,
-        // });
       }
     }
 
-    const userEmail = await this.tenantUser.schema(DB_PUBLIC_SCHEMA).findAll({
-      where: { email: data.map((e: any) => e.email) },
+    let emailsArr = [];
+    data.forEach((obj) => {
+      if (emailsArr.some((e) => e === obj.email)) {
+        throw new BadRequestException(
+          `Duplicate email identified (${obj.email}), please check excel again`
+        );
+      }
+      emailsArr.push(obj.email);
     });
 
-    if (userEmail.length > 0) {
-      throw new BadRequestException(
-        `user with following emails already exists - (${userEmail
-          .map((item) => item.email)
-          .join()})`
-      );
-    }
-
-    unlink(file.path, () => {
+    unlink(join(__dirname, "../../../../", file.path), () => {
       console.log("File Deleted");
     });
 
@@ -367,6 +436,18 @@ export class UserService extends GenericsService {
           `Same user cannot be the line manager (${name})`
         );
       }
+
+      const ifUserInOtherTenants = await this.tenantUser
+        .schema(DB_PUBLIC_SCHEMA)
+        .findOne({
+          where: { email },
+        });
+      const ifUser = await this.user.schema(this.reqParam.schema_name).findOne({
+        where: { email },
+      });
+
+      if (ifUser && ifUserInOtherTenants)
+        throw new BadRequestException("User with this email already exists");
 
       userArr.push({
         ...item,
@@ -388,7 +469,7 @@ export class UserService extends GenericsService {
 
       if (lineManagerOfLineManger === user) {
         throw new BadRequestException(
-          `Circular Dependancy detected for following users (user=${user} and line manager=${currentUserLineManager})`
+          `Circular Dependancy detected for following users (user=${user} and line manager=${currentUserLineManager}), please rectify the same in the excel file`
         );
       }
     }
@@ -400,12 +481,12 @@ export class UserService extends GenericsService {
 
     if (userArr.length > remainingSlots) {
       throw new BadRequestException(
-        `Number of Employee limit exceeded, Only ${remainingSlots} users can be added`
+        `Number of Employee limit exceeded, Only ${remainingSlots} more users can be added`
       );
     }
 
     const user = await this.user
-      .schema(this.requestParams.schema_name)
+      .schema(this.reqParam.schema_name)
       .bulkCreate(userArr);
 
     await this.requestParams.tenant.update({
@@ -413,5 +494,23 @@ export class UserService extends GenericsService {
         this.requestParams.tenant.no_of_employee_created + userArr.length,
     });
     return user;
+  }
+
+  async delete(id?: string): Promise<boolean> {
+    const user = await this.user.schema(this.reqParam.schema_name).findOne({
+      where: { id },
+    });
+
+    if (!user) throw new NotFoundException("User not found");
+    await this.sequelize.query(
+      `DELETE FROM only ${DB_PUBLIC_SCHEMA}.tenant_users WHERE email = '${user.email}';`
+    );
+    await this.requestParams.tenant.update({
+      no_of_employee_created:
+        this.requestParams.tenant.no_of_employee_created - 1,
+    });
+
+    await user.destroy();
+    return;
   }
 }

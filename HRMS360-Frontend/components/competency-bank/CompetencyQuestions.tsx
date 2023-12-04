@@ -45,7 +45,7 @@ export const CompetencyQuestions = ({
         />
         {(router.pathname.includes("my") || !is_client) && (
           <div>
-            <ImportQuestionBox />
+            {/* <ImportQuestionBox /> */}
             <QuestionDialog isChannelPartner={!is_client} />
           </div>
         )}

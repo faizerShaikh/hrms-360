@@ -7,11 +7,10 @@ import {
   ForeignKey,
   Index,
   IsUUID,
-  Model,
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
-import { BaseModel, enumValidator } from "src/common/helpers";
+import { enumValidator, BaseModel } from "src/common/helpers";
 import { TenantHistoryGroup, TenantHistoryTypes } from "../types";
 import { Tenant } from "./tenant.model";
 

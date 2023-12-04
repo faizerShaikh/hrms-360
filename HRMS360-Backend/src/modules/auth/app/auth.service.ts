@@ -7,12 +7,12 @@ import { bcrypt } from "src/common/helpers";
 import { Tenant, TenantUser } from "src/modules/tenants/models";
 import { ApsisUserDto } from "src/modules/apsis/module/apsisUser/dtos/apsisUser.dto";
 import { ApsisUser } from "src/modules/apsis/module/apsisUser/model";
-import { User } from "src/modules/users/models";
 import {
   ForgotPassword,
   ForgotPasswordGetOTP,
 } from "src/modules/apsis/module/apsisUser/dtos/forgotPassword.dto";
 import { MailsService } from "src/common/modules/mails";
+import { User } from "src/modules/users/models";
 
 @Injectable()
 export class AuthService {
@@ -23,8 +23,8 @@ export class AuthService {
     private readonly tenantUser: typeof TenantUser,
     @InjectModel(User)
     private readonly user: typeof User,
-    private readonly mailsService: MailsService,
-    private readonly jwtService: JwtService
+    private readonly jwtService: JwtService,
+    private readonly mailsService: MailsService
   ) {}
 
   async apsisUserRegister(body: Partial<ApsisUserDto>) {
@@ -47,11 +47,17 @@ export class AuthService {
         },
       });
 
-    if (!user) throw new UnauthorizedException("Invalid credintials!");
+    if (!user)
+      throw new UnauthorizedException(
+        "Invalid credintials, please check email/password!"
+      );
 
     const isMatched = await bcrypt.compare(user.password, body.password);
 
-    if (!isMatched) throw new UnauthorizedException("Invalid credintials!");
+    if (!isMatched)
+      throw new UnauthorizedException(
+        "Invalid credintials, please check email/password!"
+      );
 
     let token = await this.jwtService.signAsync({
       id: user.id,
@@ -62,7 +68,7 @@ export class AuthService {
   }
 
   async userLogin(body: ApsisUserDto) {
-    const user = await this.tenantUser
+    let tenantUser = await this.tenantUser
       .schema(DB_PUBLIC_SCHEMA)
       .findOne<TenantUser>({
         where: {
@@ -75,31 +81,54 @@ export class AuthService {
           },
         ],
       });
+    if (!tenantUser || !tenantUser.password)
+      throw new UnauthorizedException(
+        "Invalid credintials, please check email/password!"
+      );
 
-    if (!user || !user.password)
-      throw new UnauthorizedException("Invalid credintials!");
+    if (!tenantUser.my_tenant.is_active)
+      throw new UnauthorizedException(
+        "Tenant is not active, please activate or get in touch with admin!"
+      );
 
-    if (!user.my_tenant.is_active)
-      throw new UnauthorizedException("Tenant is Inactive!");
+    const isMatched = await bcrypt.compare(tenantUser.password, body.password);
 
-    const isMatched = await bcrypt.compare(user.password, body.password);
-
-    if (!isMatched) throw new UnauthorizedException("Invalid credintials!");
+    if (!isMatched)
+      throw new UnauthorizedException(
+        "Invalid credintials, please check email/password!"
+      );
 
     let token = await this.jwtService.signAsync({
-      id: user.id,
+      id: tenantUser.id,
     });
 
-    user.password = undefined;
+    tenantUser.password = undefined;
+
+    if (!tenantUser.my_tenant.is_channel_partner) {
+      const user = await this.user
+        .schema(tenantUser.my_tenant.schema_name)
+        .findOne({
+          where: {
+            email: tenantUser.email,
+          },
+        });
+
+      return {
+        token,
+        user,
+        tenant: tenantUser.my_tenant,
+      };
+    }
     return {
       token,
-      user,
-      tenant: user.my_tenant,
+      user: tenantUser,
+      tenant: tenantUser.my_tenant,
     };
   }
 
   async getOTP(body: ForgotPasswordGetOTP) {
     const otp = Math.floor(100000 + Math.random() * 900000);
+
     const user = await this.tenantUser
       .schema(DB_PUBLIC_SCHEMA)
       .findOne<TenantUser>({
@@ -108,7 +137,7 @@ export class AuthService {
         },
         include: [
           {
-            model: Tenant.schema(DB_PUBLIC_SCHEMA),
+            model: Tenant,
             on: literal('"TenantUser"."tenant_id" = "my_tenant"."id"'),
           },
         ],
@@ -127,7 +156,7 @@ export class AuthService {
     let Mail = {
       to: user.email,
       template: "ForgotPassword",
-      subject: `Reset Your Password for Insight 360 - Feedback for Leaders Application`,
+      subject: `Reset Your Password for 360 degree feedback assesment tool`,
       context: {
         otp,
         logo: "cid:company-logo",
@@ -135,7 +164,7 @@ export class AuthService {
       attachments: [
         {
           filename: "company-logo",
-          path: "src/public/media/images/nbol-email-logo.png",
+          path: "src/public/media/images/company-logo.png",
           cid: "company-logo",
         },
       ],
@@ -155,7 +184,7 @@ export class AuthService {
         },
         include: [
           {
-            model: Tenant.schema(DB_PUBLIC_SCHEMA),
+            model: Tenant,
             on: literal('"TenantUser"."tenant_id" = "my_tenant"."id"'),
           },
         ],
@@ -192,5 +221,31 @@ export class AuthService {
     }
 
     return "Password updated successfully";
+  }
+
+  async getUser(payload: any) {
+    let user;
+    if (payload?.is_apsis_user) {
+      user = await this.apsisUser.schema(DB_PUBLIC_SCHEMA).findOne({
+        where: {
+          id: payload.id,
+        },
+        attributes: {
+          exclude: ["password"],
+        },
+      });
+      // this.req.is_apsis_user = true;
+    } else {
+      user = await this.tenantUser.schema(DB_PUBLIC_SCHEMA).findOne({
+        where: {
+          id: payload.id,
+        },
+        attributes: {
+          exclude: ["password"],
+        },
+      });
+    }
+
+    return user;
   }
 }

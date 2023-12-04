@@ -23,7 +23,7 @@ import {
 } from "../competencies/modules/questions/models";
 import { QuestionResponseOptions } from "../competencies/modules/questions/types";
 import { getShortFrom } from "src/common/helpers";
-import { singleGapTheamConfig } from "src/common/constants/theam";
+import { InjectModel } from "@nestjs/sequelize";
 import { Tenant } from "../tenants/models";
 import { DB_PUBLIC_SCHEMA } from "src/common/constants";
 import { RequestParamsService } from "src/common/modules";
@@ -32,12 +32,18 @@ import { RequestParamsService } from "src/common/modules";
 export class NewReportService {
   constructor(
     private readonly jwtService: JwtService,
-    private readonly requestParam: RequestParamsService
+    @InjectModel(Tenant) private readonly tenant: typeof Tenant,
+    private readonly requestParams: RequestParamsService
   ) {}
 
   async getSingleResponseReport(token: string) {
     const data = (await this.jwtService.decode(token)) as any;
-
+    const tenant = await this.tenant.schema(DB_PUBLIC_SCHEMA).findOne({
+      where: { schema_name: data.schema_name },
+    });
+    if (!tenant) {
+      throw new NotFoundException("Tenant not found!");
+    }
     if (existsSync(`src/public/media/reports/report-${data.survey_id}.pdf`)) {
       return `src/public/media/reports/report-${data.survey_id}.pdf`;
     } else {
@@ -51,7 +57,7 @@ export class NewReportService {
 
       await page.setExtraHTTPHeaders({
         "x-tenant-name": data.schema_name,
-        authorization: `Bearer ${data.token}`,
+        "authorization": `Bearer ${data.token}`,
       });
       await page.goto(
         `http://localhost:${process.env.PORT}/api/v1/reports/single-response-report-data/${data.survey_id}`,
@@ -61,16 +67,34 @@ export class NewReportService {
         }
       );
 
-      let height = await page.evaluate(
-        () => document.documentElement.offsetHeight
-      );
-
       await page.evaluateHandle("document.fonts.ready");
+
       const pdf = await page.pdf({
         printBackground: true,
         format: "A4",
-        // preferCSSPageSize: true,
-        // height: height + 5 + "px",
+        margin: {
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+        },
+        displayHeaderFooter: true,
+        headerTemplate: ` <div
+            id='header-template'
+            class='border-b'
+            style='font-size:7px !important; color:#4D4D4D; width:100%;margin: -10px 15px 0px 15px;display:flex;border-bottom:0.5px solid #E0E0E0; text-transform:uppercase;'
+          >
+            <div style='text-align: left; width: 50%;padding-bottom:5px;' class='title'></div>
+            <div style='text-align: right; width: 50%;padding-bottom:5px;'>Private & Confidential</div>
+          </div>`,
+        footerTemplate: ` <div
+        id='footer-template'
+        class='border-b'
+        style='font-size:7px !important; color:#4D4D4D; width:100%;margin:0px 15px -10px 15px;display:flex;border-top:0.5px solid #E0E0E0; text-transform:uppercase;'
+      >
+        <div style='text-align: left; width: 50%;padding-top:5px;'>${tenant.name}</div>
+        <div style='text-align: right; width: 50%;padding-top:5px;' class="pageNumber"></div>
+      </div>`,
       });
 
       await browser.close();
@@ -99,15 +123,15 @@ export class NewReportService {
     const questionnaire_id = JSON.parse(
       reportIntro.surveyDescription
     ).questionnaire_id;
+    const surveyDescription = JSON.parse(reportIntro.surveyDescription);
     const { newCompetencyLevelData, avgPerRoalGroupData } =
       await this.getCompetencyLevelReport(id, questionnaire_id);
 
     const { singleChoice, multipleChoice, likertScale, raters } =
       await this.getQuestionLevelReport(id, questionnaire_id);
-
     const commentsData = JSON.parse(
       JSON.stringify(
-        await Competency.schema(this.requestParam.schema_name).findAll({
+        await Competency.schema(this.requestParams.schema_name).findAll({
           where: { is_copy: true },
           attributes: ["title", "id"],
           order: [
@@ -118,7 +142,7 @@ export class NewReportService {
                 as: "survey_respondent",
               },
               { model: Rater, as: "rater" },
-              "order",
+              "category_name",
               "DESC",
             ],
             [
@@ -128,7 +152,7 @@ export class NewReportService {
                 as: "survey_external_respondent",
               },
               { model: Rater, as: "rater" },
-              "order",
+              "category_name",
               "DESC",
             ],
             [
@@ -138,7 +162,7 @@ export class NewReportService {
                 as: "surveyResponses",
               },
               { model: Rater, as: "rater" },
-              "order",
+              "category_name",
               "DESC",
             ],
           ],
@@ -161,7 +185,7 @@ export class NewReportService {
                   include: [
                     {
                       model: Rater,
-                      attributes: [["order", "catName"]],
+                      attributes: [["category_name", "catName"]],
                     },
                   ],
                 },
@@ -171,7 +195,7 @@ export class NewReportService {
                   include: [
                     {
                       model: Rater,
-                      attributes: [["order", "catName"]],
+                      attributes: [["category_name", "catName"]],
                     },
                   ],
                 },
@@ -188,7 +212,6 @@ export class NewReportService {
               include: [
                 {
                   model: SurveyResponse,
-                  as: "surveyResponses",
                   required: false,
                   attributes: ["id", "response_text"],
                   where: {
@@ -198,7 +221,7 @@ export class NewReportService {
                   include: [
                     {
                       model: Rater,
-                      attributes: ["order", "short_name"],
+                      attributes: ["category_name", "short_name"],
                     },
                   ],
                 },
@@ -211,12 +234,14 @@ export class NewReportService {
 
     return {
       reportIntro,
+      headersDetails: {
+        title: surveyDescription.title,
+      },
       competencyDeviderData: { title: "competency level rating & summary" },
       questionDeviderData: { title: "rating at question level" },
       competencyLevelData: JSON.stringify(newCompetencyLevelData.competencies),
       avgPerRoalGroupData: JSON.stringify(avgPerRoalGroupData),
       benchmarkData: newCompetencyLevelData,
-      tailwindConfig: JSON.stringify(singleGapTheamConfig),
       questionsData: {
         singleChoice,
         multipleChoice,
@@ -233,34 +258,21 @@ export class NewReportService {
   }
 
   async getIntorPageDetails(id: string): Promise<any> {
-    const tenant = await Tenant.schema(DB_PUBLIC_SCHEMA).findOne({
-      where: {
-        schema_name: this.requestParam.tenant.schema_name,
-      },
-    });
-
-    if (!tenant) throw new NotFoundException("Tenant not found");
-
     const surveyDescription = await SurveyDescription.schema(
-      this.requestParam.schema_name
+      this.requestParams.schema_name
     ).findOne({
       include: [
         {
           model: Survey,
           where: { id },
           required: true,
-          include: [
-            {
-              model: User,
-            },
-          ],
         },
       ],
     });
 
     const introDetail = JSON.parse(
       JSON.stringify(
-        await User.schema(this.requestParam.schema_name).findOne({
+        await User.schema(this.requestParams.schema_name).findOne({
           attributes: ["id", "name", "email", "contact", "createdAt"],
           include: [
             {
@@ -313,7 +325,6 @@ export class NewReportService {
 
     return {
       introDetail: {
-        logo_path: `${process.env.BE_URL}/media/images/nbol-email-logo.png`,
         ...introDetail,
         surveyRespondants: introDetail.surveys[0]
           ? introDetail.surveys[0].survey_respondants
@@ -328,57 +339,56 @@ export class NewReportService {
   }
 
   async getCompetencyLevelReport(id: string, questionnaire_id: string) {
-    const data = await Competency.schema(this.requestParam.schema_name).findAll(
-      {
-        where: { is_copy: true },
-        attributes: ["title", "id", "benchmark"],
-        include: [
-          {
-            model: Questionnaire,
-            attributes: [],
-            where: {
-              id: questionnaire_id,
-              is_copy: true,
-            },
+    const data = await Competency.schema(
+      this.requestParams.schema_name
+    ).findAll({
+      where: { is_copy: true },
+      attributes: ["title", "id", "benchmark"],
+      include: [
+        {
+          model: Questionnaire,
+          attributes: [],
+          where: {
+            id: questionnaire_id,
+            is_copy: true,
           },
-          {
-            model: Question,
-            attributes: ["text", "id"],
-            required: false,
-            where: {
-              max_score: 5,
-              is_copy: true,
-              response_type: QuestionResponseOptions.likert_scale,
-            },
-            include: [
-              {
-                model: SurveyResponse,
-                as: "surveyResponses",
-                where: {
-                  survey_id: id,
-                },
-                include: [
-                  {
-                    model: Rater,
-                    attributes: [
-                      "category_name",
-                      "is_external",
-                      "short_name",
-                      "name",
-                    ],
-                  },
-                  {
-                    model: QuestionResponse,
-                    as: "response",
-                    where: { is_copy: true },
-                  },
-                ],
+        },
+        {
+          model: Question,
+          attributes: ["text", "id"],
+          required: false,
+          where: {
+            max_score: 5,
+            is_copy: true,
+            response_type: QuestionResponseOptions.likert_scale,
+          },
+          include: [
+            {
+              model: SurveyResponse,
+              where: {
+                survey_id: id,
               },
-            ],
-          },
-        ],
-      }
-    );
+              include: [
+                {
+                  model: Rater,
+                  attributes: [
+                    "category_name",
+                    "is_external",
+                    "short_name",
+                    "name",
+                  ],
+                },
+                {
+                  model: QuestionResponse,
+                  as: "response",
+                  where: { is_copy: true },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
 
     let avgPerRoalGroupData = [];
     let competencyLevelData = {};
@@ -486,7 +496,7 @@ export class NewReportService {
   async getQuestionLevelReport(id: string, questionnaire_id: string) {
     const questionsData = JSON.parse(
       JSON.stringify(
-        await Questionnaire.schema(this.requestParam.schema_name).findOne({
+        await Questionnaire.schema(this.requestParams.schema_name).findOne({
           where: {
             id: questionnaire_id,
             is_copy: true,
@@ -662,7 +672,7 @@ export class NewReportService {
       if (value >= comp.benchmark) {
         if (self >= comp.benchmark) {
           genrals[0].data.push({
-            y: self,
+            y: self === 0 ? 0.0001 : self,
             x: comp.name,
             goals: [
               {
@@ -675,7 +685,7 @@ export class NewReportService {
             ],
           });
           genrals[1].data.push({
-            y: value,
+            y: value === 0 ? 0.0001 : value,
             x: comp.name,
             goals: [
               {
@@ -689,7 +699,7 @@ export class NewReportService {
           });
         } else {
           hiddens[0].data.push({
-            y: self,
+            y: self === 0 ? 0.0001 : self,
             x: comp.name,
             goals: [
               {
@@ -702,7 +712,7 @@ export class NewReportService {
             ],
           });
           hiddens[1].data.push({
-            y: value,
+            y: value === 0 ? 0.0001 : value,
             x: comp.name,
             goals: [
               {
@@ -718,7 +728,7 @@ export class NewReportService {
       } else if (value < comp.benchmark) {
         if (self >= comp.benchmark) {
           blindspots[0].data.push({
-            y: self,
+            y: self === 0 ? 0.0001 : self,
             x: comp.name,
             goals: [
               {
@@ -731,7 +741,7 @@ export class NewReportService {
             ],
           });
           blindspots[1].data.push({
-            y: value,
+            y: value === 0 ? 0.0001 : value,
             x: comp.name,
             goals: [
               {
@@ -745,7 +755,7 @@ export class NewReportService {
           });
         } else {
           developments[0].data.push({
-            y: self,
+            y: self === 0 ? 0.0001 : self,
             x: comp.name,
             goals: [
               {
@@ -758,7 +768,7 @@ export class NewReportService {
             ],
           });
           developments[1].data.push({
-            y: value,
+            y: value === 0 ? 0.0001 : value,
             x: comp.name,
             goals: [
               {
@@ -795,7 +805,7 @@ export class NewReportService {
     for (const resp of question.responses) {
       let dataCountObj = {};
 
-      for (const surResp of resp.survey_responses) {
+      for (const surResp of resp.surver_responses) {
         let shortName =
           surResp.rater.short_name || getShortFrom(surResp.rater.category_name);
 
@@ -874,7 +884,7 @@ export class NewReportService {
     let names = [];
     for (const resp of question.responses) {
       let dataCountObj = {};
-      for (const surResp of resp.survey_responses) {
+      for (const surResp of resp.surver_responses) {
         if (surResp.rater) {
           if (surResp.rater.is_external) {
             dataCountObj["Other"] = dataCountObj["Other"]

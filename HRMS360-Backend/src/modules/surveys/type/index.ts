@@ -1,11 +1,12 @@
 export enum SurveyDescriptionStatus {
   Initiated = "Initiated",
   In_Progress = "In Progress",
+  PendingApproval = "Pending Approval",
   Ongoing = "Ongoing",
-  OnHold = "On Hold",
   Completed = "Completed",
-  Terminated = "Terminated",
   Closed = "Closed",
+  Terminated = "Terminated",
+  Onhold = "On Hold",
 }
 export enum SurveyStatus {
   Initiated = "Initiated",
@@ -14,6 +15,7 @@ export enum SurveyStatus {
   Suggested_by_EMP = "Suggested By Employee",
   Ongoing = "Ongoing",
   Completed = "Completed",
+  Closed = "Closed",
   Terminated = "Terminated",
   Onhold = "On Hold",
 }
@@ -30,8 +32,7 @@ export enum SuggestedByOptions {
   EMPLOYEE = "EMPLOYEE",
 }
 
-export enum Status {
-  no_conflicts = "No Conflicts",
-  improper_incomplete_data = "Improper / Incomplete Data",
-  // incomplete_info = "Incomplete Info",
+export enum ResponseFormOptions {
+  Single_Ratee = "Single Ratee",
+  Multiple_Ratee = "Multiple Ratee",
 }

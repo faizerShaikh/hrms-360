@@ -1,4 +1,3 @@
-import { Model } from "sequelize-typescript";
 import {
   Column,
   DataType,

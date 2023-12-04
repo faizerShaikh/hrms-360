@@ -5,9 +5,9 @@ export class AlternativeRespondentDTO {
   @IsNotEmpty()
   alternative_suggestion_id: string;
 
-  // @IsString()
-  // @IsOptional()
-  // comments: string;
+  @IsString()
+  @IsOptional()
+  comments: string;
 
   @IsString()
   @IsNotEmpty()
@@ -23,9 +23,9 @@ export class AlternativeExternalRespondentDTO {
   @IsNotEmpty()
   alternative_email: string;
 
-  // @IsString()
-  // @IsNotEmpty()
-  // comments: string;
+  @IsString()
+  @IsNotEmpty()
+  comments: string;
 
   @IsString()
   @IsNotEmpty()

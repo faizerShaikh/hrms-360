@@ -57,18 +57,18 @@ export const hrmsTenantMenu: menuType[] = [
         title: "My Survey",
         path: "/survey",
       },
-      {
-        title: "Approval Requests",
-        path: "/survey/approval-requests",
-      },
+      // {
+      //   title: "Approval Requests",
+      //   path: "/survey/approval-requests",
+      // },
       {
         title: "Pending Nominations",
         path: "/survey/my/nominate-respondents",
       },
-      {
-        title: "Alternative Suggestion",
-        path: "/survey/my/alternative-suggestion",
-      },
+      // {
+      //   title: "Alternative Suggestion",
+      //   path: "/survey/my/alternative-suggestion",
+      // },
     ],
   },
   {
@@ -76,10 +76,10 @@ export const hrmsTenantMenu: menuType[] = [
     title: "Settings",
     path: "/settings",
     children: [
-      {
-        title: "Standard Responses",
-        path: "/settings/standard-responses",
-      },
+      // {
+      //   title: "Standard Responses",
+      //   path: "/settings/standard-responses",
+      // },
 
       {
         title: "Raters",
@@ -111,10 +111,10 @@ export const nbolHrmsTenantMenu: menuType[] = [
     title: "Settings",
     path: "/settings",
     children: [
-      {
-        title: "Standard Responses",
-        path: "/settings/standard-responses",
-      },
+      // {
+      //   title: "Standard Responses",
+      //   path: "/settings/standard-responses",
+      // },
       {
         title: "Raters",
         path: "/settings/raters",
@@ -170,21 +170,21 @@ export const employeeMenu: menuType[] = [
     title: "My Survey",
     path: "/survey/my",
   },
-  {
-    icon: "TaskComplete",
-    title: "Approval Requests",
-    path: "/survey/approval-requests",
-  },
+  // {
+  //   icon: "TaskComplete",
+  //   title: "Approval Requests",
+  //   path: "/survey/approval-requests",
+  // },
   {
     icon: "Events",
     title: "Pending Nominations",
     path: "/survey/my/nominate-respondents",
   },
-  {
-    icon: "ShareKnowledge",
-    title: "Alternative Suggestion",
-    path: "/survey/my/alternative-suggestion",
-  },
+  // {
+  //   icon: "ShareKnowledge",
+  //   title: "Alternative Suggestion",
+  //   path: "/survey/my/alternative-suggestion",
+  // },
 ];
 
 export const apsisAdminMenu: menuType[] = [

@@ -8,23 +8,15 @@ import { DashboardModule } from "./modules/dashboards/app/dashboard.module";
 import { CompetencyModule } from "./modules/competencies/app/competency.module";
 import { AuthModule } from "./modules/auth/app/auth.module";
 import { MiddlewareConsumer, Module } from "@nestjs/common";
-import { APP_INTERCEPTOR } from "@nestjs/core";
+import { APP_GUARD, APP_INTERCEPTOR } from "@nestjs/core";
 import { ResponseInterceptor } from "./common/interceptors";
-import {
-  DBService,
-  RequestParamsModule,
-  publicTables,
-  schemaTables,
-} from "./common/modules";
+import { RequestParamsModule } from "./common/modules/requestParams";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { TenantMiddleware } from "./common/middlewares/tenant.middleware";
 import { SequelizeModule } from "@nestjs/sequelize";
 import { Tenant, TenantUser } from "./modules/tenants/models";
-import { AuthMiddleware } from "./common/middlewares";
 import { ApsisUser } from "./modules/apsis/module/apsisUser/model";
 import { User } from "./modules/users/models";
-import { jwtFactory } from "./modules/auth/jwt";
-import { JwtModule } from "@nestjs/jwt";
 import { ServeStaticModule } from "@nestjs/serve-static";
 import { join } from "path";
 import { SettingsModule } from "./modules/settings/app/settings.module";
@@ -32,9 +24,11 @@ import { ChannelPartnerModule } from "./modules/tenants/modules/channelPartner/a
 import { MailsModule } from "./common/modules/mails";
 import { CronjobModule } from "./common/modules/cronjob/cronjob.module";
 import { EmployeeDirectoryModule } from "./modules/employee-directory/employeeDirectory.module";
-import { BullModule } from "@nestjs/bull";
 import { ApsisReportsModule } from "./modules/apsis/module/reports/reports.module";
+import { BullModule } from "@nestjs/bull";
 import { databaseConfig } from "./config";
+import { GlobalJwtModule, publicTables, schemaTables } from "./common/modules";
+import { JwtAuthGuard } from "./common/guards";
 
 @Module({
   imports: [
@@ -43,6 +37,7 @@ import { databaseConfig } from "./config";
       useFactory: async (configService: ConfigService) => ({
         redis: {
           host: configService.get("REDIS_HOST"),
+          lazyConnect: false,
           port: +configService.get("REDIS_PORT"),
         },
       }),
@@ -56,25 +51,25 @@ import { databaseConfig } from "./config";
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, "..", "src/public"),
     }),
-    SequelizeModule.forFeature([Tenant, ApsisUser, User, TenantUser]),
     ConfigModule.forRoot({ isGlobal: true }),
-    JwtModule.registerAsync({ ...jwtFactory }),
-    EmployeeDirectoryModule,
-    ChannelPartnerModule,
+    GlobalJwtModule,
+    SequelizeModule.forFeature([Tenant, ApsisUser, User, TenantUser]),
     RequestParamsModule,
-    QuestionnaireModule,
-    ApsisReportsModule,
-    CompetencyModule,
-    DashboardModule,
-    SettingsModule,
-    QuestionModule,
     TenantsModule,
-    ReportsModule,
-    CronjobModule,
-    SurveyModule,
-    MailsModule,
+    QuestionModule,
     UsersModule,
+    SurveyModule,
+    ReportsModule,
+    QuestionnaireModule,
+    DashboardModule,
+    CompetencyModule,
     AuthModule,
+    SettingsModule,
+    ChannelPartnerModule,
+    MailsModule,
+    EmployeeDirectoryModule,
+    CronjobModule,
+    ApsisReportsModule,
   ],
   exports: [],
   providers: [
@@ -82,53 +77,30 @@ import { databaseConfig } from "./config";
       provide: APP_INTERCEPTOR,
       useClass: ResponseInterceptor,
     },
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
   ],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
-      .apply(AuthMiddleware)
-      .exclude(
-        "/media(.*)",
-        "/report(.*)",
-        "/reports/(.*)",
-        "/api/v1/tenant(.*)",
-        "/api/v1/auth(.*)",
-        "(.*)standerd",
-        "/api/v1/survey/decode-token/(.*)",
-        "/api/v1/survey/detail",
-        "/api/v1/survey/detail-old",
-        "/api/v1/nbol-survey/submit-survey-question",
-        "/api/v1/nbol-survey/rater-details",
-        "/api/v1/survey/submit-survey",
-        "/api/v1/nbol-survey/submit-survey",
-        "/api/v1/nbol-survey/single-rater-details",
-        "/api/v1/nbol-survey/single-rater-submit",
-        "/api/v1/nbol-survey/single/rater-submit",
-        "/api/v1/reports/pdf/(.*)",
-        "/api/v1/reports/single-response-report/(.*)",
-        "/api/v1/reports/dual-gap/report/(.*)",
-        "/api/v1/reports/dual-gap/report/download-report(.*)",
-        "/api/v1/reports/dual-gap/composit-report(.*)",
-        "/api/v1/reports/dual-gap/composit-content(.*)",
-        "/api/v1/reports/dual-gap/content(.*)",
-        "/api/v1//test-mail/(.*)"
-      )
-      .forRoutes("*")
       .apply(TenantMiddleware)
       .exclude(
         "/media(.*)",
         "/report(.*)",
         "/api/v1/tenant(.*)",
         "/api/v1/auth(.*)",
-        "/api/v1/survey/decode-token/(.*)",
+        "/api/v1/survey/detail/(.*)",
+        "/api/v1/admin-reports/(.*)",
+        "/api/v1/survey/single-detail/(.*)",
+        "/api/v1/survey/multiple-detail/(.*)",
         "/api/v1/survey/submit-survey",
-        "/api/v1/nbol-survey/submit-survey",
+        "/api/v1/survey/submit-survey-single-ratee",
         "/api/v1/reports/pdf/(.*)",
         "/api/v1/reports/single-response-report/(.*)",
-        "/api/v1/reports/dual-gap/report/(.*)",
-        "/api/v1/reports/dual-gap/composit-report(.*)",
-        "/api/v1//test-mail/(.*)"
+        "/api/v1/setting/industry/apsis-admin"
       )
       .forRoutes("*");
   }

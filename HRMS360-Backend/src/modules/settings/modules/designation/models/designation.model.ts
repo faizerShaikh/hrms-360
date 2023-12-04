@@ -5,7 +5,6 @@ import {
   HasMany,
   Index,
   IsUUID,
-  Model,
   PrimaryKey,
   Table,
   Unique,
@@ -43,10 +42,10 @@ export class Designation extends BaseModel {
     },
     validate: {
       notNull: {
-        msg: "Designation Name can not be empty",
+        msg: "Name can not be empty",
       },
       notEmpty: {
-        msg: "Designation Name can not be empty",
+        msg: "Name can not be empty",
       },
     },
   })

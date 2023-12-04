@@ -1,5 +1,5 @@
 <script>
-  const renderChart = (data, id,raters) => {
+  const renderChart = (data, id, raters) => {
     const option = {
       series: [{ data }],
       chart: {
@@ -79,14 +79,17 @@
         },
       },
       colors: [
-        "#6CBE45",
-        "#A5D05D",
-        "#D5E27C",
-        "#FFF5A0",
-        "#F8BC6C",
-        "#EC7F53",
-        "#DE425B",
-      ],
+        "#3290ad",
+        "#77b5f2",
+        "#9d53f2",
+        "#c398f5",
+        "#26aba4",
+        "#4ed4cd",
+        "#f7a452",
+        "#faca9b",
+        "#f2536d",
+        "#f598a7",
+      ].reverse(),
       xaxis: {
         tooltip: {
           enabled: true,
@@ -113,29 +116,30 @@
     chart.render();
   };
 </script>
-  <div class="dont-break w-[210mm] min-h-[297mm] h-full mx-auto aller p-5">
-      <div class="border p-5 relative h-full min-h-[297mm]">
-        <div class="absolute top-0 right-0">
-          <img
-            src="/report/single-gap/images/reportRightCurv.png"
-            width="59px"
-            alt="right-curv"
-            height="59px"
-          />
-        </div>
-      <div class="">
-        <h3 class="text-[#242424] century-gothic text-base border-b">
-          Response Type : Likert Scale
-        </h3>
-        {{#each likertScale as |question|}} 
-        
-        {{#isSameCompetency @index
-        question.competency.title ../likertScale}}
-        <h2 class="text-[#1C9CF6] text-sm font-semibold mt-10 aller">
+<div
+  class="dont-break w-[793.7007874px] min-h-[1122px] h-full mx-auto aller p-5"
+>
+  <div class="relative h-full">
+    <div class="absolute top-0 right-0 hidden">
+      <img
+        src="/report/single-gap/images/reportRightCurv.png"
+        width="59px"
+        alt="right-curv"
+        height="59px"
+      />
+    </div>
+    <div class="">
+      <h3 class="text-[#242424] century-gothic text-base border-b">
+        Response Type : Likert Scale
+      </h3>
+      {{#each likertScale as |question|}}
+      <div class="break-inside-avoid-page">
+        {{#isSameCompetency @index question.competency.title ../likertScale}}
+        <h2 class="text-[#1C9CF6] text-sm font-semibold mt-2 pt-7 aller">
           {{question.competency.title}}
         </h2>
         {{/isSameCompetency}}
-        <div class="mt-5 break-inside-avoid-page">
+        <div class="mb-4 break-inside-avoid-page pt-8">
           <p class="fc-dark question text-xs border-b pb-2 aller">
             Q{{concat @index 1}} {{question.text}}
           </p>
@@ -171,20 +175,20 @@
               </table>
             </div>
           </div>
-          <div class="flex justify-start flex-wrap p-2 items-start bg-primary-light">
-             {{#each question.responses as | response |}}
-<div
-            
-            class='fc-dark text-[10px] w-1/3 px-3 my-1 aller'
+          <div
+            class="z-40 break-inside-avoid-page flex justify-start flex-wrap p-2 items-start bg-[#e7f5ff]"
           >
-            <span class='text-primary aller'>R{{concat @index 1}}</span> -
-            {{response.label}} ({{response.score}})
-          </div>
-          
-          {{/each}}
+            {{#each question.responses as | response |}}
+            <div class="text-neutral-900 text-[10px] w-1/3 px-3 my-1 aller">
+              <span class="aller text-[#006dca]">R{{concat @index 1}}</span> -
+              {{response.label}} ({{response.score}})
+            </div>
+
+            {{/each}}
           </div>
         </div>
-        {{/each}}
       </div>
+      {{/each}}
     </div>
   </div>
+</div>

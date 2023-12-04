@@ -3,20 +3,17 @@ import { Injectable } from "@nestjs/common";
 import { Queue } from "bull";
 import {
   ALTERNATIVE_SUGGESTION_REQUEST,
-  COMPOSIT_REPORT,
   MAILS_QUEUE,
   REPORT,
   RESPONDENT_APPROVAL_REQUEST,
   SELF_SURVEY,
+  SEND_MAIL,
+  SEND_OTP,
   SEND_TOKEN,
   SURVEY,
   SURVEY_ALERT,
   TENANT_REGISTRATION,
   TENANT_SUBSCRIPTION_ALERT,
-  SURVEY_PROGRESS_MAIL,
-  SINGLE_SURVEY_PROGRESS_MAIL,
-  Test_Mail,
-  SEND_OTP,
 } from "./constants";
 
 import { MailType } from "./types";
@@ -27,22 +24,28 @@ export class MailsService {
 
   async sendTokens(tokens: string[]) {
     try {
-      await this.mailQueue.add(SEND_TOKEN, {
-        tokens: `[${tokens.join(", ")}]`,
-      });
+      await this.mailQueue.add(
+        SEND_TOKEN,
+        {
+          tokens: `[${tokens.join(", ")}]`,
+        },
+        {
+          removeOnComplete: true,
+          delay: 500,
+        }
+      );
     } catch (error) {
-      console.log(error);
-
       console.log("Error while adding task for " + SEND_TOKEN + "email");
     }
   }
 
   async TenantRegisterMail(body: MailType) {
     try {
-      await this.mailQueue.add(TENANT_REGISTRATION, body);
+      await this.mailQueue.add(TENANT_REGISTRATION, body, {
+        removeOnComplete: true,
+        delay: 500,
+      });
     } catch (error) {
-      console.log(error);
-
       console.log(
         "Error while adding task for " + TENANT_REGISTRATION + "email"
       );
@@ -51,49 +54,44 @@ export class MailsService {
 
   async SelfSurveyMail(body: MailType) {
     try {
-      await this.mailQueue.add(SELF_SURVEY, body);
+      await this.mailQueue.add(SELF_SURVEY, body, {
+        removeOnComplete: true,
+        delay: 500,
+      });
     } catch (error) {
-      console.log(error);
-
       console.log("Error while adding task for " + SELF_SURVEY + "email");
     }
   }
 
   async SurveyMail(body: MailType) {
     try {
-      await this.mailQueue.add(SURVEY, body);
+      await this.mailQueue.add(SURVEY, body, {
+        removeOnComplete: true,
+        delay: 500,
+      });
     } catch (error) {
-      console.log(error);
-
-      console.log("Error while adding task for " + SURVEY + " email");
+      console.log("Error while adding task for " + SURVEY + "email");
     }
   }
 
   async SurveyAlertMail(body: MailType) {
     try {
-      await this.mailQueue.add(SURVEY_ALERT, body);
+      await this.mailQueue.add(SURVEY_ALERT, body, {
+        removeOnComplete: true,
+        delay: 500,
+      });
     } catch (error) {
-      console.log(error);
-
       console.log("Error while adding task for " + SURVEY_ALERT + "email");
-    }
-  }
-  async TestMail(body: MailType) {
-    try {
-      await this.mailQueue.add(Test_Mail, body);
-    } catch (error) {
-      console.log(error);
-
-      console.log("Error while adding task for " + Test_Mail + "email");
     }
   }
 
   async RespondentApprovalRequestMail(body: MailType) {
     try {
-      await this.mailQueue.add(RESPONDENT_APPROVAL_REQUEST, body);
+      await this.mailQueue.add(RESPONDENT_APPROVAL_REQUEST, body, {
+        removeOnComplete: true,
+        delay: 500,
+      });
     } catch (error) {
-      console.log(error);
-
       console.log(
         "Error while adding task for " + RESPONDENT_APPROVAL_REQUEST + "email"
       );
@@ -102,10 +100,11 @@ export class MailsService {
 
   async AlternativeSuggestionRequestMail(body: MailType) {
     try {
-      await this.mailQueue.add(ALTERNATIVE_SUGGESTION_REQUEST, body);
+      await this.mailQueue.add(ALTERNATIVE_SUGGESTION_REQUEST, body, {
+        removeOnComplete: true,
+        delay: 500,
+      });
     } catch (error) {
-      console.log(error);
-
       console.log(
         "Error while adding task for " +
           ALTERNATIVE_SUGGESTION_REQUEST +
@@ -116,55 +115,44 @@ export class MailsService {
 
   async ReportsMail(body: MailType) {
     try {
-      await this.mailQueue.add(REPORT, body);
+      await this.mailQueue.add(REPORT, body, {
+        removeOnComplete: true,
+        delay: 500,
+      });
     } catch (error) {
-      console.log(error);
-
       console.log("Error while adding task for " + REPORT + "email");
     }
   }
 
-  async CompositReportMail(body: MailType) {
+  async TenantSubscriptionAlertMail(body: MailType, expired: boolean = false) {
     try {
-      await this.mailQueue.add(COMPOSIT_REPORT, body);
+      await this.mailQueue.add(
+        TENANT_SUBSCRIPTION_ALERT,
+        { ...body, expired },
+        {
+          removeOnComplete: true,
+          delay: 500,
+        }
+      );
     } catch (error) {
-      console.log(error);
-
-      console.log("Error while adding task for " + REPORT + "email");
-    }
-  }
-
-  async TenantSubscriptionAlertMail(body: MailType) {
-    try {
-      await this.mailQueue.add(TENANT_SUBSCRIPTION_ALERT, body);
-    } catch (error) {
-      console.log(error);
-
       console.log(
         "Error while adding task for " + TENANT_SUBSCRIPTION_ALERT + "email"
       );
     }
   }
-  async DailySurveyProgressMail(body: MailType) {
-    try {
-      await this.mailQueue.add(SURVEY_PROGRESS_MAIL, body);
-    } catch (error) {
-      console.log(error);
 
-      console.log(
-        "Error while adding task for " + SURVEY_PROGRESS_MAIL + "email"
-      );
-    }
-  }
-  async DailySingleSurveyProgressMail(body: MailType) {
+  async SendMail(body: MailType) {
     try {
-      await this.mailQueue.add(SINGLE_SURVEY_PROGRESS_MAIL, body);
-    } catch (error) {
-      console.log(error);
-
-      console.log(
-        "Error while adding task for " + SINGLE_SURVEY_PROGRESS_MAIL + "email"
+      await this.mailQueue.add(
+        SEND_MAIL,
+        { ...body },
+        {
+          removeOnComplete: true,
+          delay: 500,
+        }
       );
+    } catch (error) {
+      console.log("Error while adding task for " + SEND_MAIL + "email");
     }
   }
 
@@ -179,8 +167,6 @@ export class MailsService {
         }
       );
     } catch (error) {
-      console.log(error);
-
       console.log("Error while adding task for " + SEND_OTP + "email");
     }
   }

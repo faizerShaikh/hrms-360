@@ -10,18 +10,16 @@ import {
   Index,
   IsEmail,
   IsUUID,
-  Model,
   PrimaryKey,
   Table,
-  Unique,
 } from "sequelize-typescript";
+import { BaseModel } from "src/common/helpers";
 import { Rater } from "src/modules/settings/modules/rater/models";
 import { SurveyDescription } from "src/modules/surveys/models";
 import { Survey } from "src/modules/surveys/models/survey.model";
 import { SurveyRespondant } from "src/modules/surveys/models/surveyRespondants.model";
 import { Department } from "../../settings/modules/department/models";
 import { Designation } from "../../settings/modules/designation/models";
-import { BaseModel } from "src/common/helpers";
 
 @Table({
   tableName: "users",
@@ -43,11 +41,6 @@ export class User extends BaseModel {
 
   @Column({
     type: DataType.STRING,
-  })
-  employee_code: string;
-
-  @Column({
-    type: DataType.STRING,
     allowNull: false,
     validate: {
       notNull: {
@@ -62,30 +55,13 @@ export class User extends BaseModel {
 
   @Column({
     type: DataType.STRING,
-    // allowNull: false,
-    // validate: {
-    //   notNull: {
-    //     msg: "Region can not be empty",
-    //   },
-    //   notEmpty: {
-    //     msg: "Region can not be empty",
-    //   },
-    // },
   })
   region: string;
 
   @IsEmail
-  @Unique({
-    msg: "User with this email already exists!",
-    name: "uniqe-email",
-  })
   @Column({
     type: DataType.STRING,
     allowNull: false,
-    unique: {
-      msg: "User with this email already exists!",
-      name: "uniqe-email",
-    },
     validate: {
       notNull: {
         msg: "Email can not be empty",
@@ -108,6 +84,9 @@ export class User extends BaseModel {
 
   @Column({ type: DataType.BOOLEAN, defaultValue: false })
   is_tenant_admin: boolean;
+
+  @Column({ type: DataType.BOOLEAN, defaultValue: true })
+  is_lm_approval_required: boolean;
 
   @Column({
     type: DataType.STRING,
@@ -150,6 +129,15 @@ export class User extends BaseModel {
 
   @Column({
     type: DataType.STRING,
+    allowNull: false,
+    validate: {
+      notNull: {
+        msg: "Department can not be empty",
+      },
+      notEmpty: {
+        msg: "Department can not be empty",
+      },
+    },
   })
   @ForeignKey(() => Department)
   department_id: string;
@@ -159,15 +147,15 @@ export class User extends BaseModel {
 
   @Column({
     type: DataType.STRING,
-    allowNull: true,
-    // validate: {
-    //   notNull: {
-    //     msg: "Designation can not be empty",
-    //   },
-    //   notEmpty: {
-    //     msg: "Designation can not be empty",
-    //   },
-    // },
+    allowNull: false,
+    validate: {
+      notNull: {
+        msg: "Designation can not be empty",
+      },
+      notEmpty: {
+        msg: "Designation can not be empty",
+      },
+    },
   })
   @ForeignKey(() => Designation)
   designation_id: string;
@@ -206,4 +194,107 @@ export class User extends BaseModel {
     },
   })
   raters: Rater[];
+
+  static _validateIncludedElements(options, tableNames) {
+    if (!options.model) options.model = this;
+    tableNames = tableNames || {};
+    options.includeNames = [];
+    options.includeMap = {};
+    options.hasSingleAssociation = false;
+    options.hasMultiAssociation = false;
+    if (!options.parent) {
+      options.topModel = options.model;
+      options.topLimit = options.limit;
+    }
+    options.include = options.include.map((include) => {
+      include = include.model._conformInclude(include);
+      include = {
+        ...include,
+        model: include.model.schema(options.model._schema),
+      };
+      include.parent = options;
+      include.topLimit = options.topLimit;
+      include.model._validateIncludedElement.call(
+        options.model,
+        include,
+        tableNames,
+        options
+      );
+      if (include.duplicating === void 0) {
+        include.duplicating = include.association.isMultiAssociation;
+      }
+      include.hasDuplicating = include.hasDuplicating || include.duplicating;
+      include.hasRequired = include.hasRequired || include.required;
+      options.hasDuplicating = options.hasDuplicating || include.hasDuplicating;
+      options.hasRequired = options.hasRequired || include.required;
+      options.hasWhere =
+        options.hasWhere || include.hasWhere || !!include.where;
+      return include;
+    });
+    for (const include of options.include) {
+      include.hasParentWhere = options.hasParentWhere || !!options.where;
+      include.hasParentRequired =
+        options.hasParentRequired || !!options.required;
+      if (
+        include.subQuery !== false &&
+        options.hasDuplicating &&
+        options.topLimit
+      ) {
+        if (include.duplicating) {
+          include.subQuery = include.subQuery || false;
+          include.subQueryFilter = include.hasRequired;
+        } else {
+          include.subQuery = include.hasRequired;
+          include.subQueryFilter = false;
+        }
+      } else {
+        include.subQuery = include.subQuery || false;
+        if (include.duplicating) {
+          include.subQueryFilter = include.subQuery;
+        } else {
+          include.subQueryFilter = false;
+          include.subQuery =
+            include.subQuery ||
+            (include.hasParentRequired &&
+              include.hasRequired &&
+              !include.separate);
+        }
+      }
+      options.includeMap[include.as] = include;
+      options.includeNames.push(include.as);
+      if (
+        options.topModel === options.model &&
+        options.subQuery === void 0 &&
+        options.topLimit
+      ) {
+        if (include.subQuery) {
+          options.subQuery = include.subQuery;
+        } else if (include.hasDuplicating) {
+          options.subQuery = true;
+        }
+      }
+      options.hasIncludeWhere =
+        options.hasIncludeWhere || include.hasIncludeWhere || !!include.where;
+      options.hasIncludeRequired =
+        options.hasIncludeRequired ||
+        include.hasIncludeRequired ||
+        !!include.required;
+      if (
+        include.association.isMultiAssociation ||
+        include.hasMultiAssociation
+      ) {
+        options.hasMultiAssociation = true;
+      }
+      if (
+        include.association.isSingleAssociation ||
+        include.hasSingleAssociation
+      ) {
+        options.hasSingleAssociation = true;
+      }
+    }
+    if (options.topModel === options.model && options.subQuery === void 0) {
+      options.subQuery = false;
+    }
+    return options;
+  }
 }

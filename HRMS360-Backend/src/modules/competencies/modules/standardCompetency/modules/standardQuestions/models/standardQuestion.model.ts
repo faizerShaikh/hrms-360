@@ -8,11 +8,10 @@ import {
   HasMany,
   Index,
   IsUUID,
-  Model,
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
-import { BaseModel, enumValidator } from "src/common/helpers";
+import { enumValidator, BaseModel } from "src/common/helpers";
 import { QuestionResponseOptions } from "src/modules/competencies/modules/questions/types";
 import { AreaAssessment } from "src/modules/settings/modules/areaAssessment/models";
 import { StandardCompetency } from "../../../models";
@@ -51,11 +50,6 @@ export class StandardQuestion extends BaseModel {
 
   @Column({
     type: DataType.STRING,
-  })
-  regional_text: string;
-
-  @Column({
-    type: DataType.STRING,
     allowNull: false,
     validate: {
       ...enumValidator(Object.values(QuestionResponseOptions), "Response Type"),
@@ -86,9 +80,6 @@ export class StandardQuestion extends BaseModel {
 
   @Column({ type: DataType.INTEGER, defaultValue: 0 })
   max_score: number;
-
-  @Column({ type: DataType.INTEGER, defaultValue: 0 })
-  order: number;
 
   @BelongsTo(() => StandardCompetency)
   competency: StandardCompetency;

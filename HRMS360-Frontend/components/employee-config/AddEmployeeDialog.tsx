@@ -138,11 +138,11 @@ export const AddEmployeeDialog = ({
         refetch();
       }}
       title={isUpdate ? "update employee" : "add new employee "}
-      maxWidth="lg"
+      maxWidth='lg'
       button={
         <Button
           variant={isUpdate ? "text" : "contained"}
-          className="h-9 capitalize ml-4 px-4  xl:text-sm 2xl:text-semi-base"
+          className='h-9 capitalize ml-4 px-4  xl:text-sm 2xl:text-semi-base'
           startIcon={isUpdate ? <Edit /> : <Add size={24} />}
         >
           {isUpdate ? "View/Edit" : " Employee"}
@@ -166,45 +166,45 @@ export const AddEmployeeDialog = ({
         >
           {({ setFieldValue, values }) => (
             <Form>
-              <Grid container className="py-4" columnSpacing={4}>
+              <Grid container className='py-4' columnSpacing={4}>
                 <Grid container item spacing={4}>
                   <Grid xs={6} item>
-                    <Label className="pb-2" text="Employee Name" />
-                    <Input name="name" />
+                    <Label className='pb-2' text='Employee Name' />
+                    <Input name='name' />
                   </Grid>
                   <Grid xs={6} item>
-                    <Label className="pb-2" text="Designation" />
+                    <Label className='pb-2' text='Designation' />
                     <AutoComplete
-                      name="designation_id"
+                      name='designation_id'
                       options={desData || []}
                       getOptionLabel={(option: any) => option.name || ""}
                     />
                   </Grid>
                   <Grid xs={6} item>
-                    <Label className="pb-2" text="Department" />
+                    <Label className='pb-2' text='Department' />
                     <AutoComplete
-                      name="department_id"
+                      name='department_id'
                       options={data || []}
                       getOptionLabel={(option: any) => option.name || ""}
                     />
                   </Grid>
                   <Grid xs={6} item>
-                    <Label className="pb-2" text="Region" />
-                    <Input name="region" />
+                    <Label className='pb-2' text='Region' />
+                    <Input name='region' />
                   </Grid>
                   <Grid xs={6} item>
-                    <Label className="pb-2" text="Email-Address" />
-                    <Input type="email" name="email" />
+                    <Label className='pb-2' text='Email-Address' />
+                    <Input type='email' name='email' />
                   </Grid>
                   <Grid xs={6} item>
-                    <Label className="pb-2" text="Contact No." />
-                    <Input name="contact" />
+                    <Label className='pb-2' text='Contact No.' />
+                    <Input name='contact' />
                   </Grid>
 
                   <Grid xs={6} item>
-                    <Label className="pb-2" text="Line Manager" />
+                    <Label className='pb-2' text='Line Manager' />
                     <AutoComplete
-                      name="line_manager_id"
+                      name='line_manager_id'
                       options={userData || []}
                       onChange={(_, v) => {
                         if (v) {
@@ -222,8 +222,8 @@ export const AddEmployeeDialog = ({
                       renderOption={(options, row) => (
                         <li {...options}>
                           <div className={`px-2 cursor-pointer`}>
-                            <div className="text-fc-dark">{row.name}</div>
-                            <div className="text-fc-main">{row.email}</div>
+                            <div className='text-fc-dark'>{row.name}</div>
+                            <div className='text-fc-main'>{row.email}</div>
                           </div>
                         </li>
                       )}
@@ -242,7 +242,7 @@ export const AddEmployeeDialog = ({
                     />
                   </Grid> */}
 
-                  <Grid xs={6} item>
+                  {/* <Grid xs={6} item>
                     <Label
                       className="pb-2"
                       text="Is Line Manager Approval Required"
@@ -255,21 +255,21 @@ export const AddEmployeeDialog = ({
                         setFieldValue("is_lm_approval_required", checked);
                       }}
                     />
-                  </Grid>
+                  </Grid> */}
                   <Grid xs={12} item>
-                    <Box className="flex justify-end">
+                    <Box className='flex justify-end'>
                       <Button
-                        color="secondary"
-                        className="px-4 capitalize xl:text-sm 2xl:text-semi-base"
-                        variant="contained"
+                        color='secondary'
+                        className='px-4 capitalize xl:text-sm 2xl:text-semi-base'
+                        variant='contained'
                         onClick={() => onClose()}
                       >
                         Discard
                       </Button>
                       <Button
-                        variant="contained"
-                        className="capitalize ml-4 px-4 xl:text-sm 2xl:text-semi-base"
-                        type="submit"
+                        variant='contained'
+                        className='capitalize ml-4 px-4 xl:text-sm 2xl:text-semi-base'
+                        type='submit'
                         isLoading={isLoading}
                       >
                         {isUpdate ? "Save" : " Add"}
@@ -277,7 +277,7 @@ export const AddEmployeeDialog = ({
                     </Box>
                   </Grid>
                 </Grid>
-                <Grid xs={12} className="my-6">
+                {/* <Grid xs={12} className="my-6">
                   <Divider> OR </Divider>
                 </Grid>
                 <Grid
@@ -300,7 +300,7 @@ export const AddEmployeeDialog = ({
                     This option will allow you to import data only for the
                     existing feilds
                   </Typography>
-                </Grid>
+                </Grid> */}
               </Grid>
             </Form>
           )}

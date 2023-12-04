@@ -1,4 +1,5 @@
 import { Controller } from "@nestjs/common";
+
 import { GenericController } from "src/modules/generics/app/generics.controller";
 import { DesignationDTO } from "../dtos/department.dto";
 import { DesignationService } from "./designation.service";

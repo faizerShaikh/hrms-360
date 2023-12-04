@@ -7,6 +7,7 @@ import {
   Min,
 } from "class-validator";
 import { AdminTypeOptions } from "../types";
+import { ResponseFormOptions } from "src/modules/surveys/type";
 
 export class TenantDto {
   @IsString()
@@ -18,7 +19,7 @@ export class TenantDto {
   schema_name: string;
 
   @IsString()
-  @IsOptional()
+  @IsNotEmpty()
   location: string;
 
   @IsString()
@@ -26,29 +27,26 @@ export class TenantDto {
   industry_id: string;
 
   @IsNumber()
-  @IsOptional()
+  @IsNotEmpty()
   @Min(0)
   no_of_employee: number;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsNumber()
+  @Min(0)
   tenure: number;
 
   @IsString()
-  @IsOptional()
+  @IsNotEmpty()
   start_date: string;
 
   @IsString()
-  @IsOptional()
-  company_registration_number: string;
-
-  @IsString()
-  @IsOptional()
+  @IsNotEmpty()
   end_date: string;
 
   @IsBoolean()
   @IsOptional()
-  is_active: boolean;
+  is_active?: boolean;
 
   @IsBoolean()
   @IsOptional()
@@ -68,4 +66,8 @@ export class TenantDto {
   @IsBoolean()
   @IsOptional()
   is_lm_approval_required?: boolean;
+
+  @IsString()
+  @IsOptional()
+  response_form?: ResponseFormOptions;
 }

@@ -7,6 +7,7 @@ import {
   Post,
   Put,
 } from "@nestjs/common";
+
 import { CreateTenant } from "src/modules/tenants/dtos";
 import { UpdateTenant } from "src/modules/tenants/dtos/updateTenant.dto";
 import { ChannelPartnerService } from "./channelPartner.service";

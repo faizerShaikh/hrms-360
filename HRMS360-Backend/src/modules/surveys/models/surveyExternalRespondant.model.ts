@@ -9,11 +9,10 @@ import {
   Index,
   IsEmail,
   IsUUID,
-  Model,
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
-import { BaseModel, enumValidator } from "src/common/helpers";
+import { enumValidator, BaseModel } from "src/common/helpers";
 import { Rater } from "src/modules/settings/modules/rater/models";
 import { SurveyRespondantStatus } from "../type";
 import { CompetencyComment } from "./competencyComment.model";

@@ -5,26 +5,31 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from "@nestjs/common";
-import { InjectConnection, InjectModel } from "@nestjs/sequelize";
+import { InjectModel } from "@nestjs/sequelize";
 import { Response } from "express";
-import { Sequelize } from "sequelize-typescript";
 import { Tenant } from "src/modules/tenants/models";
-import { DB_PUBLIC_SCHEMA, publicModels } from "../constants";
+import { DB_PUBLIC_SCHEMA } from "../constants";
 import { RequestInterface } from "../interfaces/request.interface";
+import { JwtService } from "@nestjs/jwt";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class TenantMiddleware implements NestMiddleware {
   constructor(
     @InjectModel(Tenant) private readonly tenant: typeof Tenant,
-    @InjectConnection() private readonly sequelize: Sequelize
+    private readonly jwtService: JwtService,
+    private readonly config: ConfigService
   ) {}
   async use(req: RequestInterface, _: Response, next: Function) {
-    if (req.is_apsis_user) {
+    let token: any = req.headers.authorization?.split(" ")[1];
+    let payload: any = token
+      ? this.jwtService.verify(token, this.config.get("JWTKEY"))
+      : null;
+
+    if (payload && payload?.is_apsis_user) {
       return next();
     }
-
-    let schema_name = req.headers["x-tenant-name"] || "epf";
-    // console.log(req.headers, "HEADERS");
+    let schema_name = req.headers["x-tenant-name"];
 
     if (!schema_name)
       throw new UnauthorizedException("Please provide a tenant name");
@@ -38,8 +43,9 @@ export class TenantMiddleware implements NestMiddleware {
     if (!tenant) throw new NotFoundException("Tenant not found");
 
     if (!tenant.is_active)
-      throw new BadRequestException("Tenant is not active");
-
+      throw new BadRequestException(
+        "Tenant is not active, please activate or get in touch with admin!"
+      );
     req.tenant = tenant;
     next();
   }

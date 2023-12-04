@@ -8,8 +8,8 @@ import {
   Param,
   Post,
   Put,
-  Query,
 } from "@nestjs/common";
+
 import { UpdateCompetencyDTO } from "../dtos";
 import { createCompetencyDTO } from "../dtos/createCompetency.dto";
 import { getByIdsDTO } from "../dtos/getByIds.dto";
@@ -26,8 +26,8 @@ export class CompetencyController {
   }
 
   @Get("")
-  getAllCompetency(@Query("is_questions") is_questions: boolean) {
-    return this.competencyService.getAllCompetency(is_questions);
+  getAllCompetency() {
+    return this.competencyService.getAllCompetency();
   }
 
   @Get("by-type/:type")

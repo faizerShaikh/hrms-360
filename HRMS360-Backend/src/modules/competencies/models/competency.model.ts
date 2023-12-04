@@ -1,5 +1,4 @@
 import {
-  BelongsTo,
   BelongsToMany,
   Column,
   DataType,
@@ -7,11 +6,10 @@ import {
   HasMany,
   Index,
   IsUUID,
-  Model,
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
-import { BaseModel, enumValidator } from "src/common/helpers";
+import { enumValidator, BaseModel } from "src/common/helpers";
 import { Questionnaire } from "src/modules/questionnaires/models/questionnaire.model";
 import { QuestionnaireCompetency } from "src/modules/questionnaires/models/questionnaireCompetency.model";
 import { Question } from "src/modules/competencies/modules/questions/models";
@@ -110,9 +108,6 @@ export class Competency extends BaseModel<Competency> {
   @Column({ type: DataType.BOOLEAN, defaultValue: false })
   is_copy: boolean;
 
-  @Column({ type: DataType.INTEGER, defaultValue: 0 })
-  order: number;
-
   @HasMany(() => Question, {
     onUpdate: "CASCADE",
     onDelete: "CASCADE",
@@ -122,13 +117,6 @@ export class Competency extends BaseModel<Competency> {
 
   @BelongsToMany(() => Questionnaire, () => QuestionnaireCompetency)
   questionnaires: Questionnaire[];
-
-  @HasMany(() => QuestionnaireCompetency, {
-    onUpdate: "CASCADE",
-    onDelete: "CASCADE",
-    hooks: true,
-  })
-  questionnaireCompetencies: QuestionnaireCompetency[];
 
   @HasMany(() => CompetencyComment)
   comments: CompetencyComment[];

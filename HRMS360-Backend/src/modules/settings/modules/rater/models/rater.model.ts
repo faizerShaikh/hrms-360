@@ -4,12 +4,10 @@ import {
   Default,
   Index,
   IsUUID,
-  Model,
   PrimaryKey,
   Table,
   HasMany,
   BelongsToMany,
-  Unique,
   ForeignKey,
   BelongsTo,
 } from "sequelize-typescript";
@@ -28,7 +26,7 @@ import { User } from "src/modules/users/models";
   modelName: "Rater",
   paranoid: true,
   defaultScope: {
-    order: [["order", "ASC"]],
+    order: [["createdAt", "DESC"]],
   },
 })
 export class Rater extends BaseModel<Rater> {
@@ -68,18 +66,6 @@ export class Rater extends BaseModel<Rater> {
   name: string;
 
   @Column({
-    type: DataType.INTEGER,
-    defaultValue: 0,
-  })
-  order: number;
-
-  // @Column({
-  //   type: DataType.INTEGER,
-  //   defaultValue: 0,
-  // })
-  // color: number;
-
-  @Column({
     type: DataType.STRING,
     validate: {
       len: {
@@ -104,11 +90,11 @@ export class Rater extends BaseModel<Rater> {
   })
   no_of_raters: number;
 
-  // @Column({
-  //   type: DataType.BOOLEAN,
-  //   defaultValue: true,
-  // })
-  // is_required: boolean;
+  @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: true,
+  })
+  is_required: boolean;
 
   @Column({
     type: DataType.BOOLEAN,

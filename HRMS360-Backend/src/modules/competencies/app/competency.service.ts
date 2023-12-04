@@ -3,8 +3,9 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { InjectModel } from "@nestjs/sequelize";
+import { InjectConnection, InjectModel } from "@nestjs/sequelize";
 import { Op } from "sequelize";
+import { Sequelize } from "sequelize-typescript";
 import {
   commonAttrubutesToExclude,
   DB_PUBLIC_SCHEMA,
@@ -29,41 +30,56 @@ export class CompetencyService {
   constructor(
     @InjectModel(Competency)
     private readonly competency: typeof Competency,
-    @InjectModel(TenantHistory) private tenantHistory: typeof TenantHistory,
-    private reqParamsService: RequestParamsService
+    @InjectModel(TenantHistory)
+    private tenantHistory: typeof TenantHistory,
+    private reqParamsService: RequestParamsService,
+    @InjectConnection() private readonly sequelize: Sequelize
   ) {}
 
   async createCompetency(body: createCompetencyDTO) {
-    const isCompetencyExist = await this.competency
-      .schema(this.reqParamsService.schema_name)
-      .findOne<Competency>({
-        where: {
-          title: body.title,
-          is_copy: false,
-          type: CompetencyTypeOptions.custom,
-        },
-      });
+    const transaction = await this.sequelize.transaction();
+    try {
+      const isCompetencyExist = await this.competency
+        .schema(this.reqParamsService.schema_name)
+        .findOne<Competency>({
+          where: {
+            title: body.title,
+            is_copy: false,
+            type: CompetencyTypeOptions.custom,
+          },
+        });
 
-    if (isCompetencyExist)
-      throw new BadRequestException(
-        "Competency with this title already exists"
+      if (isCompetencyExist)
+        throw new BadRequestException(
+          "Competency with this title already exists"
+        );
+
+      const competency = await this.competency
+        .schema(this.reqParamsService.schema_name)
+        .create<Competency>(
+          {
+            ...body,
+            type: CompetencyTypeOptions.custom,
+          },
+          { transaction }
+        );
+
+      await this.tenantHistory.schema(DB_PUBLIC_SCHEMA).create(
+        {
+          type: TenantHistoryTypes.competency,
+          reference_id: competency.id,
+          tenant_id: this.reqParamsService.tenant.id,
+          group: TenantHistoryGroup.competency,
+        },
+        { transaction }
       );
 
-    const competency = await this.competency
-      .schema(this.reqParamsService.schema_name)
-      .create<Competency>({
-        ...body,
-        type: CompetencyTypeOptions.custom,
-      });
-
-    await this.tenantHistory.schema(DB_PUBLIC_SCHEMA).create({
-      type: TenantHistoryTypes.competency,
-      reference_id: competency.id,
-      tenant_id: this.reqParamsService.tenant.id,
-      group: TenantHistoryGroup.competency,
-    });
-
-    return competency;
+      await transaction.commit();
+      return competency;
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
   }
 
   async updateCompetency(body: UpdateCompetencyDTO, id: string) {
@@ -86,7 +102,10 @@ export class CompetencyService {
       );
 
     const competency = await this.findOneCompetency(id);
-
+    if (competency.type === CompetencyTypeOptions.standard)
+      throw new BadRequestException(
+        "Can't update competency as it is 'Standard Competency'"
+      );
     await competency.update({ ...body });
     return competency;
   }
@@ -116,51 +135,24 @@ export class CompetencyService {
       });
   }
 
-  async getAllCompetency(is_questions: boolean) {
-    var competency;
-    if (is_questions) {
-      competency = await this.competency
-        .schema(this.reqParamsService.schema_name)
-        .unscoped()
-        .findAndCountAll<Competency>({
-          order: [["order", "ASC"]],
-          where: {
-            ...getSearchObject(this.reqParamsService.query, [
-              "title",
-              "description",
-            ]),
-            is_copy: false,
-            no_of_questions: {
-              [Op.gt]: 0,
-            },
-          },
-          ...this.reqParamsService.pagination,
-        });
-    } else {
-      competency = await this.competency
-        .schema(this.reqParamsService.schema_name)
-        .findAndCountAll<Competency>({
-          where: {
-            ...getSearchObject(this.reqParamsService.query, [
-              "title",
-              "description",
-            ]),
-            no_of_questions: {
-              [Op.gt]: 0,
-            },
-          },
-          ...this.reqParamsService.pagination,
-        });
-    }
-    console.log(competency, "competency");
-
-    return competency;
+  async getAllCompetency() {
+    return this.competency
+      .schema(this.reqParamsService.schema_name)
+      .findAndCountAll<Competency>({
+        where: {
+          ...getSearchObject(this.reqParamsService.query, [
+            "title",
+            "description",
+          ]),
+        },
+        ...this.reqParamsService.pagination,
+      });
   }
 
   async findOneCompetency(id?: string) {
     const competency = await this.competency
       .schema(this.reqParamsService.schema_name)
-      .findOne<Competency>({
+      .findOne({
         where: {
           id,
         },
@@ -216,17 +208,24 @@ export class CompetencyService {
   }
 
   async deleteCompetency(id: string) {
-    const competency = await this.findOneCompetency(id);
-    // if (competency.type === CompetencyTypeOptions.standard)
-    //   throw new BadRequestException(
-    //     "Can't delete competency as it is 'Standard Competency'"
-    //   );
+    const transaction = await this.sequelize.transaction();
+    try {
+      const competency = await this.findOneCompetency(id);
+      if (competency.type === CompetencyTypeOptions.standard)
+        throw new BadRequestException(
+          "Can't delete competency as it is a 'Standard Competency'"
+        );
 
-    await competency.destroy();
+      await competency.destroy({ transaction });
 
-    await this.tenantHistory
-      .schema(DB_PUBLIC_SCHEMA)
-      .destroy({ where: { reference_id: id } });
-    return "Competency deleted successfully";
+      await this.tenantHistory
+        .schema(DB_PUBLIC_SCHEMA)
+        .destroy({ where: { reference_id: id }, transaction });
+      await transaction.commit();
+      return "Competency deleted successfully";
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
   }
 }

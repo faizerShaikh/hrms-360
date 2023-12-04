@@ -6,13 +6,12 @@ import {
   ForeignKey,
   Index,
   IsUUID,
-  Model,
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
+import { BaseModel } from "src/common/helpers";
 import { AreaAssessment } from "src/modules/settings/modules/areaAssessment/models";
 import { StandardQuestion } from "./standardQuestion.model";
-import { BaseModel } from "src/common/helpers";
 
 @Table({
   tableName: "standard_question_area_assessments",

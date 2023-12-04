@@ -8,9 +8,8 @@ import {
   Param,
   Post,
   Put,
-  UseInterceptors,
 } from "@nestjs/common";
-import { TransactionInterceptor } from "src/common/interceptors";
+
 import { CreateQuestionnaireDTO, UpdateQuestionnaireDTO } from "../dtos";
 import { QuestionnaireService } from "./questionnaire.service";
 
@@ -20,7 +19,6 @@ export class QuestionnaireController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @UseInterceptors(TransactionInterceptor)
   createQuestionnaire(
     @Body()
     body: CreateQuestionnaireDTO
@@ -47,49 +45,13 @@ export class QuestionnaireController {
     return this.questionnaireService.deleteQuestionnaire(id);
   }
 
-  @Get("competency-questions/:questionnaire_id/:competency_id")
-  getSingleQuestionnaireQuestion(
-    @Param("questionnaire_id") questionnaire_id: string,
-    @Param("competency_id") competency_id: string
-  ) {
-    return this.questionnaireService.getSingleQuestionnaireQuestion(
-      questionnaire_id,
-      competency_id
-    );
-  }
-
-  @Get("competencies/:id")
-  getSingleQuestionnaireCompetencies(@Param("id") id: string) {
-    return this.questionnaireService.getSingleQuestionnaireCompetencies(id);
-  }
-
   @Get(":id")
   getSingleQuestionnaire(@Param("id") id: string) {
     return this.questionnaireService.getSingleQuestionnaire(id);
   }
 
-  @Put("manage-order-questions/:questionnaire_id")
-  manageOrderQuestions(
-    @Body() body: any,
-    @Param("questionnaire_id") questionnaire_id: string
-  ) {
-    return this.questionnaireService.manageOrderQuestions(
-      body,
-      questionnaire_id
-    );
-  }
-
-  @Put("manage-order/:questionnaire_id")
-  manageOrder(
-    @Body() body: any,
-    @Param("questionnaire_id") questionnaire_id: string
-  ) {
-    return this.questionnaireService.manageOrder(body, questionnaire_id);
-  }
-
   @Put(":id")
   @HttpCode(HttpStatus.ACCEPTED)
-  @UseInterceptors(TransactionInterceptor)
   updateQuestionnaire(
     @Body() body: UpdateQuestionnaireDTO,
     @Param("id") id: string

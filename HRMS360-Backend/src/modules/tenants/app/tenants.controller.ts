@@ -71,12 +71,7 @@ export class TenantsController {
     return this.tenantService.createChannelPartner(body);
   }
 
-  @Post("test-mail")
-  // @HttpCode(HttpStatus.NO_CONTENT)
-  testMail(@Body() body: any) {
-    return this.tenantService.testMail(body);
-  }
-
+  @Public()
   @Get("migrate-data/:schema_name")
   @HttpCode(HttpStatus.CREATED)
   migrateData(@Param("schema_name") schema_name: string) {

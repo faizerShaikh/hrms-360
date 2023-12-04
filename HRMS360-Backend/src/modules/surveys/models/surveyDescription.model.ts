@@ -1,4 +1,5 @@
 import {
+  AfterUpdate,
   BelongsTo,
   BelongsToMany,
   Column,
@@ -8,11 +9,10 @@ import {
   HasMany,
   Index,
   IsUUID,
-  Model,
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
-import { BaseModel, enumValidator } from "src/common/helpers";
+import { enumValidator, BaseModel } from "src/common/helpers";
 import { Questionnaire } from "src/modules/questionnaires/models";
 import { Rater } from "src/modules/settings/modules/rater/models";
 import { User } from "src/modules/users/models";
@@ -53,20 +53,6 @@ export class SurveyDescription extends BaseModel<SurveyDescription> {
   title: string;
 
   @Column({
-    type: DataType.STRING,
-    // allowNull: false,
-    // validate: {
-    //   notNull: {
-    //     msg: "Client Contact can not be empty",
-    //   },
-    //   notEmpty: {
-    //     msg: "Client Contact can not be empty",
-    //   },
-    // },
-  })
-  client_contact: string;
-
-  @Column({
     type: DataType.TEXT,
     allowNull: false,
     validate: {
@@ -101,12 +87,7 @@ export class SurveyDescription extends BaseModel<SurveyDescription> {
 
   @Column({
     type: DataType.STRING,
-    validate: {
-      ...enumValidator(
-        Object.values(SurveyDescriptionStatus),
-        "Survey description"
-      ),
-    },
+    allowNull: true,
   })
   previous_status: string;
 
@@ -120,7 +101,7 @@ export class SurveyDescription extends BaseModel<SurveyDescription> {
   total_assessments: number;
 
   @Column({
-    type: DataType.DATE,
+    type: DataType.STRING,
     allowNull: false,
     validate: {
       notNull: {
@@ -135,10 +116,36 @@ export class SurveyDescription extends BaseModel<SurveyDescription> {
 
   @Column({
     type: DataType.STRING,
-    allowNull: false,
-    defaultValue: "1 Day",
+    // allowNull: false,
+    // validate: {
+    //   notNull: {
+    //     msg: "Respondant Cut Off Date can not be empty",
+    //   },
+    //   notEmpty: {
+    //     msg: "Respondant Cut Off Date can not be empty",
+    //   },
+    // },
   })
-  reminder_frequency: string;
+  respondant_cut_off_date: string;
+
+  @Column({
+    type: DataType.STRING,
+    // allowNull: false,
+    // validate: {
+    //   notNull: {
+    //     msg: "LM approval cut off Date can not be empty",
+    //   },
+    //   notEmpty: {
+    //     msg: "LM approval cut off Date can not be empty",
+    //   },
+    // },
+  })
+  lm_approval_cut_off_date: string;
+
+  @Column({
+    type: DataType.STRING,
+  })
+  response_form: string;
 
   @ForeignKey(() => Questionnaire)
   @Column({
@@ -154,6 +161,12 @@ export class SurveyDescription extends BaseModel<SurveyDescription> {
     },
   })
   questionnaire_id: string;
+
+  @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: true,
+  })
+  is_lm_approval_required: boolean;
 
   @BelongsTo(() => Questionnaire)
   questionnaire: Questionnaire;
@@ -174,4 +187,16 @@ export class SurveyDescription extends BaseModel<SurveyDescription> {
     hooks: true,
   })
   raters: Rater[];
+
+  // @AfterUpdate
+  // static async checkStatus(instance: SurveyDescription) {
+  //   const previousValues = await instance.previous();
+
+  //   if (previousValues?.status) {
+  //     // instance.previous_status = previousValues?.status;
+  //     instance.update({
+  //       previous_status: previousValues?.status,
+  //     });
+  //   }
+  // }
 }

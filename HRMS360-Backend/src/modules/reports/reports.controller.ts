@@ -1,6 +1,8 @@
 import { Body, Controller, Get, Param, Post, Res } from "@nestjs/common";
 import { Response } from "express";
 import { createReadStream, statSync } from "fs";
+import { Public } from "src/common/decorators";
+
 import { NewReportService } from "./newReport.service";
 import { ReportsService } from "./reports.service";
 
@@ -80,6 +82,7 @@ export class ReportsController {
     return this.reportsServivce.getQuestionWiseReport(id, survey_id);
   }
 
+  @Public()
   @Get("single-response-report-data/:id")
   async getSingleResponseReportData(
     @Res() res: Response,
@@ -89,24 +92,14 @@ export class ReportsController {
     return res.render("single-gap/report", data);
   }
 
+  @Public()
   @Get("single-response-report/:token")
-  async singleResponseReport(
-    @Param("token") token: string,
-    @Res() res: Response
-  ) {
+  async singleResponseReport(@Param("token") token: string) {
     const path = await this.newReportService.getSingleResponseReport(token);
-    var file = createReadStream(path);
-    var stat = statSync(path);
-    res.setHeader("Content-Length", stat.size);
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename=${path.split(`reports/`)[1]}`
-    );
-    file.pipe(res);
-    return;
+    return { filePath: path.split(`src/public`)[1] };
   }
 
+  @Public()
   @Get("pdf/:token")
   async savePdf(@Param("token") token: string, @Res() res: Response) {
     const path = await this.reportsServivce.genratePDF(token);
@@ -125,6 +118,13 @@ export class ReportsController {
   @Get("download-report/:id")
   async getReport(@Param("id") id: string) {
     return this.reportsServivce.getReport(id);
+  }
+
+  @Get("genrate/:id")
+  async genrateReport(@Param("id") id: string) {
+    return this.reportsServivce.genrateReport(id, {
+      schema_name: "zunoks_consulting",
+    });
   }
 
   @Get("get-report-data/:id")

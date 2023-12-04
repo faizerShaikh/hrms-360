@@ -59,7 +59,7 @@ export class ApsisReportsService {
       ).findAll({
         include: [
           {
-            model: Survey.schema(tenant.schema_name),
+            model: Survey,
             attributes: ["id", "no_of_respondents"],
           },
         ],
@@ -178,13 +178,13 @@ export class ApsisReportsService {
       },
       include: [
         {
-          model: Tenant.schema(DB_PUBLIC_SCHEMA),
+          model: Tenant,
           as: "parent_tenant",
           attributes: [["name", "channel_partner_name"]],
         },
         {
           as: "admin",
-          model: TenantUser.schema(DB_PUBLIC_SCHEMA),
+          model: TenantUser,
           required: false,
           on: literal('"Tenant"."admin_id" = "admin"."id"'),
           attributes: ["email", "name"],
@@ -208,7 +208,7 @@ export class ApsisReportsService {
         attributes: ["id", "title", "total_assessments"],
         include: [
           {
-            model: Survey.schema(tenant.schema_name),
+            model: Survey,
             attributes: ["id", "no_of_respondents"],
           },
         ],
@@ -431,7 +431,7 @@ export class ApsisReportsService {
             attributes: ["id", "title", "total_assessments"],
             include: [
               {
-                model: Survey.schema(childTenant.schema_name),
+                model: Survey,
                 attributes: ["id", "no_of_respondents"],
               },
             ],

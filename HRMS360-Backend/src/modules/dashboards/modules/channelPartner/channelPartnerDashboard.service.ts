@@ -3,8 +3,10 @@ import { InjectConnection, InjectModel } from "@nestjs/sequelize";
 import * as moment from "moment";
 import { col, fn, literal, Op, Sequelize } from "sequelize";
 import { DB_PUBLIC_SCHEMA } from "src/common/constants";
+import { getSearchObject } from "src/common/helpers";
 import { RequestParamsService } from "src/common/modules";
 import { Industry } from "src/modules/settings/modules/industry/models";
+import { SurveyDescription } from "src/modules/surveys/models";
 import { Tenant, TenantHistory } from "src/modules/tenants/models";
 import {
   TenantHistoryGroup,
@@ -14,6 +16,8 @@ import {
 @Injectable()
 export class ChannelPartnerDashboardService {
   constructor(
+    @InjectModel(SurveyDescription)
+    private readonly surveyDescription: typeof SurveyDescription,
     @InjectModel(TenantHistory) private tenantHistory: typeof TenantHistory,
     @InjectModel(Tenant) private tenant: typeof Tenant,
     @InjectModel(Industry) private industry: typeof Industry,
@@ -580,7 +584,7 @@ export class ChannelPartnerDashboardService {
       .subtract(interval[range].sub_value, interval[range].by)
       .format("YYYY/MM/DD");
 
-    const industryCountGet = this.industry
+    const industryCountGet = await this.industry
       .schema(DB_PUBLIC_SCHEMA)
       .unscoped()
       .findAll({
@@ -590,7 +594,7 @@ export class ChannelPartnerDashboardService {
         },
         include: [
           {
-            model: Tenant,
+            model: Tenant.schema(DB_PUBLIC_SCHEMA),
             attributes: ["id"],
             required: false,
             where: {
@@ -602,7 +606,7 @@ export class ChannelPartnerDashboardService {
         ],
       });
 
-    const lastCountGet = this.tenant
+    const lastCountGet = await this.tenant
       .unscoped()
       .schema(DB_PUBLIC_SCHEMA)
       .count({
@@ -645,22 +649,26 @@ export class ChannelPartnerDashboardService {
   }
 
   async getCompetency() {
-    const competencyGet = this.tenantHistory.schema(DB_PUBLIC_SCHEMA).count({
-      where: {
-        tenant_id: this.requestParams.tenant.id,
-        type: TenantHistoryTypes.competency,
-      },
-    });
-
-    const thisWeekCountGet = this.tenantHistory.schema(DB_PUBLIC_SCHEMA).count({
-      where: {
-        tenant_id: this.requestParams.tenant.id,
-        type: TenantHistoryTypes.competency,
-        createdAt: {
-          [Op.gte]: literal(`date_trunc('week', now())`),
+    const competencyGet = await this.tenantHistory
+      .schema(DB_PUBLIC_SCHEMA)
+      .count({
+        where: {
+          tenant_id: this.requestParams.tenant.id,
+          type: TenantHistoryTypes.competency,
         },
-      },
-    });
+      });
+
+    const thisWeekCountGet = await this.tenantHistory
+      .schema(DB_PUBLIC_SCHEMA)
+      .count({
+        where: {
+          tenant_id: this.requestParams.tenant.id,
+          type: TenantHistoryTypes.competency,
+          createdAt: {
+            [Op.gte]: literal(`date_trunc('week', now())`),
+          },
+        },
+      });
 
     const [competency, thisWeekCount] = await Promise.all([
       competencyGet,
@@ -671,22 +679,26 @@ export class ChannelPartnerDashboardService {
   }
 
   async getQuestions() {
-    const questionGet = this.tenantHistory.schema(DB_PUBLIC_SCHEMA).count({
-      where: {
-        tenant_id: this.requestParams.tenant.id,
-        type: TenantHistoryTypes.question,
-      },
-    });
-
-    const thisWeekCountGet = this.tenantHistory.schema(DB_PUBLIC_SCHEMA).count({
-      where: {
-        tenant_id: this.requestParams.tenant.id,
-        type: TenantHistoryTypes.question,
-        createdAt: {
-          [Op.gte]: literal(`date_trunc('week', now())`),
+    const questionGet = await this.tenantHistory
+      .schema(DB_PUBLIC_SCHEMA)
+      .count({
+        where: {
+          tenant_id: this.requestParams.tenant.id,
+          type: TenantHistoryTypes.question,
         },
-      },
-    });
+      });
+
+    const thisWeekCountGet = await this.tenantHistory
+      .schema(DB_PUBLIC_SCHEMA)
+      .count({
+        where: {
+          tenant_id: this.requestParams.tenant.id,
+          type: TenantHistoryTypes.question,
+          createdAt: {
+            [Op.gte]: literal(`date_trunc('week', now())`),
+          },
+        },
+      });
 
     const [question, thisWeekCount] = await Promise.all([
       questionGet,
@@ -706,7 +718,9 @@ export class ChannelPartnerDashboardService {
         "tenant_pic",
         "is_active",
         "no_of_employee",
+        "createdAt",
       ],
+      limit: 15,
       where: {
         parent_tenant_id: this.requestParams.tenant.id,
       },
@@ -714,9 +728,9 @@ export class ChannelPartnerDashboardService {
         {
           model: TenantHistory,
           attributes: ["type"],
-          // where: {
-          //   type: TenantHistoryTypes.completed_survey,
-          // },
+          where: {
+            type: TenantHistoryTypes.completed_survey,
+          },
           required: false,
         },
       ],
@@ -724,41 +738,12 @@ export class ChannelPartnerDashboardService {
     return tenants;
   }
 
-  // private getDate(range: string, arr: any): any {
-  //   let result = []
-  //   let extraData: any = []
-  //   if (range === "day") {
-  //     let tempArr: any = []
-  //     let sumCount: number = +arr[0][0].sum_value
-  //     arr[0].forEach((item: any) => {
-  //       tempArr.push({ cur_day: item.cur_day, sum_value: sumCount })
-  //       sumCount += +item.sum_value
-  //       result = tempArr.reverse().slice(0, 30)
-  //       extraData = tempArr.reverse().slice(30, 60)
-  //     })
-  //   } else if (range === "week") {
-  //     let tempArr: any = []
-  //     let sumCount: number = +arr[0][0].sum_value
-  //     arr[0].forEach((item: any) => {
-  //       tempArr.push({ cur_day: item.cur_day, sum_value: sumCount })
-  //       sumCount += +item.sum_value
-  //       result = tempArr.reverse().slice(0, 7)
-  //       extraData = tempArr.reverse().slice(7, 14)
-  //     })
-  //   } else if (range === "allTime") {
-  //     let tempArr: any = []
-  //     let sumCount: number = +arr[0][0].sum_value
-  //     arr[0].forEach((item: any) => {
-  //       tempArr.push({ cur_day: item.cur_day, sum_value: sumCount })
-  //       sumCount += +item.sum_value
-  //       result = tempArr.reverse().slice(0, 365)
-  //       extraData = tempArr.reverse().slice(365, 730)
-  //     })
-  //   }
-
-  //   return {
-  //     result,
-  //     extraData,
-  //   }
-  // }
+  async getAllSurveysForTenant(id: string) {
+    return this.surveyDescription.schema(id).findAndCountAll({
+      where: {
+        ...getSearchObject(this.requestParams.query, ["title", "status"]),
+      },
+      ...this.requestParams.pagination,
+    });
+  }
 }

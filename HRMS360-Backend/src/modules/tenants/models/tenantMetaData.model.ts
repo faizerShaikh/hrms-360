@@ -3,11 +3,11 @@ import {
   Column,
   DataType,
   ForeignKey,
-  Model,
   Table,
 } from "sequelize-typescript";
+import { enumValidator, BaseModel } from "src/common/helpers";
+import { ResponseFormOptions } from "src/modules/surveys/type";
 import { Tenant } from "./tenant.model";
-import { BaseModel } from "src/common/helpers";
 
 @Table({
   tableName: "tenant_meta_deta",
@@ -36,6 +36,15 @@ export class TenantMetaData extends BaseModel<TenantMetaData> {
     },
   })
   name: string;
+
+  @Column({
+    type: DataType.STRING,
+    defaultValue: ResponseFormOptions.Single_Ratee,
+    validate: {
+      ...enumValidator(Object.values(ResponseFormOptions), "Response Form"),
+    },
+  })
+  response_form: string;
 
   @Column({
     type: DataType.INTEGER,

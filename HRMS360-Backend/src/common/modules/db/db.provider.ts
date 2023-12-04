@@ -13,7 +13,6 @@ import {
 } from "src/modules/competencies/modules/questions/models";
 import { AreaAssessment } from "src/modules/settings/modules/areaAssessment/models";
 import {
-  DraftSurvey,
   Survey,
   SurveyDescription,
   SurveyExternalRespondant,
@@ -36,7 +35,8 @@ import {
   StandardQuestionAreaAssessment,
   StandardQuestionResponse,
 } from "src/modules/competencies/modules/standardCompetency/modules/standardQuestions/models";
-
+import { config } from "dotenv";
+config();
 export const DBProvider = [
   SequelizeModule.forRoot({
     ...databaseConfig[process.env.NODE_ENV || "development"],
@@ -69,10 +69,6 @@ export const DBProvider = [
       SurveyResponse,
       TenantHistory,
       TenantMetaData,
-      DraftSurvey,
     ],
-    // sync:{alter:true},
-    // synchronize:true,
   }),
-
 ];

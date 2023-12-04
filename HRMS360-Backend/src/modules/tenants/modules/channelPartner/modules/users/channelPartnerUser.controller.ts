@@ -9,8 +9,8 @@ import {
   Post,
   Put,
 } from "@nestjs/common";
-import { UpdateTenatUserDto } from "src/modules/tenants/dtos";
-import { TenantUser } from "src/modules/tenants/models";
+
+import { TenantUserDto, UpdateTenatUserDto } from "src/modules/tenants/dtos";
 import { ChannelPartnerUserService } from "./channelPartnerUser.service";
 
 @Controller("channel-partner/user")
@@ -21,7 +21,7 @@ export class ChannelPartnerUserController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  create(@Body() body: TenantUser) {
+  create(@Body() body: TenantUserDto) {
     return this.channelPartnerUserService.create(body);
   }
 

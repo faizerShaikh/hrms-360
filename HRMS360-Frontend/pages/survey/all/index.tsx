@@ -162,74 +162,74 @@ const AllSurvey: BaseProps<SurveyDescriptionInterface[]> = ({ data }) => {
         />
       ),
     },
-    {
-      headerName: "Respondant Nominee Cut-off Date",
-      field: "respondant_cut_off_date",
-      flex: 1.5,
-      minWidth: 240,
-      renderCell: (params: GridRenderCellParams) => (
-        <>
-          {[
-            "terminated",
-            "completed",
-            "closed",
-            "ongoing",
-            "pending approval",
-          ].includes(params.row?.status?.toLowerCase()) ? (
-            <p className='ml-3'>
-              {getFormattedDate(params.row?.respondant_cut_off_date, true)}
-            </p>
-          ) : (
-            <Input
-              type={"datetime-local"}
-              defaultValue={params.row?.respondant_cut_off_date}
-              onBlur={(value) =>
-                handleChange(
-                  {
-                    id: params.row?.id,
-                    name: "respondant_cut_off_date",
-                    value: value.target.value,
-                  },
-                  params.row
-                )
-              }
-            />
-          )}
-        </>
-      ),
-    },
-    {
-      headerName: "LM approval cut-off Date",
-      field: "lm_approval_cut_off_date",
-      flex: 1.5,
-      minWidth: 240,
-      renderCell: (params: GridRenderCellParams) => (
-        <>
-          {["terminated", "completed", "closed", "ongoing"].includes(
-            params.row?.status?.toLowerCase()
-          ) ? (
-            <p className='ml-3'>
-              {getFormattedDate(params.row?.lm_approval_cut_off_date, true)}
-            </p>
-          ) : (
-            <Input
-              type={"datetime-local"}
-              defaultValue={params.row?.lm_approval_cut_off_date}
-              onBlur={(value) =>
-                handleChange(
-                  {
-                    id: params.row?.id,
-                    name: "lm_approval_cut_off_date",
-                    value: value.target.value,
-                  },
-                  params.row
-                )
-              }
-            />
-          )}
-        </>
-      ),
-    },
+    // {
+    //   headerName: "Respondant Nominee Cut-off Date",
+    //   field: "respondant_cut_off_date",
+    //   flex: 1.5,
+    //   minWidth: 240,
+    //   renderCell: (params: GridRenderCellParams) => (
+    //     <>
+    //       {[
+    //         "terminated",
+    //         "completed",
+    //         "closed",
+    //         "ongoing",
+    //         "pending approval",
+    //       ].includes(params.row?.status?.toLowerCase()) ? (
+    //         <p className='ml-3'>
+    //           {getFormattedDate(params.row?.respondant_cut_off_date, true)}
+    //         </p>
+    //       ) : (
+    //         <Input
+    //           type={"datetime-local"}
+    //           defaultValue={params.row?.respondant_cut_off_date}
+    //           onBlur={(value) =>
+    //             handleChange(
+    //               {
+    //                 id: params.row?.id,
+    //                 name: "respondant_cut_off_date",
+    //                 value: value.target.value,
+    //               },
+    //               params.row
+    //             )
+    //           }
+    //         />
+    //       )}
+    //     </>
+    //   ),
+    // },
+    // {
+    //   headerName: "LM approval cut-off Date",
+    //   field: "lm_approval_cut_off_date",
+    //   flex: 1.5,
+    //   minWidth: 240,
+    //   renderCell: (params: GridRenderCellParams) => (
+    //     <>
+    //       {["terminated", "completed", "closed", "ongoing"].includes(
+    //         params.row?.status?.toLowerCase()
+    //       ) ? (
+    //         <p className='ml-3'>
+    //           {getFormattedDate(params.row?.lm_approval_cut_off_date, true)}
+    //         </p>
+    //       ) : (
+    //         <Input
+    //           type={"datetime-local"}
+    //           defaultValue={params.row?.lm_approval_cut_off_date}
+    //           onBlur={(value) =>
+    //             handleChange(
+    //               {
+    //                 id: params.row?.id,
+    //                 name: "lm_approval_cut_off_date",
+    //                 value: value.target.value,
+    //               },
+    //               params.row
+    //             )
+    //           }
+    //         />
+    //       )}
+    //     </>
+    //   ),
+    // },
     {
       headerName: "End Date",
       field: "end_date",

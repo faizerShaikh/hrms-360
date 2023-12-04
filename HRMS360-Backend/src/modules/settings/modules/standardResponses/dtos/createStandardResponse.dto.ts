@@ -15,7 +15,12 @@ export class CreateStandardResponse {
   @IsNotEmpty()
   score: string;
 
+  @IsBoolean()
+  @Equals(true)
+  @IsNotEmpty()
+  is_standard: boolean;
+
   @IsString()
   @IsNotEmpty()
-  group_id: string;
+  type: string;
 }

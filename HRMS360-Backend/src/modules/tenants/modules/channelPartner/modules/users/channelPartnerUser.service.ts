@@ -9,10 +9,6 @@ import { DB_PUBLIC_SCHEMA } from "src/common/constants";
 import { bcrypt, getRandomPassword, getSearchObject } from "src/common/helpers";
 import { RequestParamsService } from "src/common/modules";
 import { MailsService } from "src/common/modules/mails";
-import {
-  defaultAttachments,
-  defaultContext,
-} from "src/common/modules/mails/constants";
 import { TenantUserDto, UpdateTenatUserDto } from "src/modules/tenants/dtos";
 import { TenantUser } from "src/modules/tenants/models";
 
@@ -20,17 +16,17 @@ export class ChannelPartnerUserService {
   constructor(
     @InjectModel(TenantUser)
     private readonly tenantUser: typeof TenantUser,
-    private readonly requestParams: RequestParamsService,
+    private readonly requestPatams: RequestParamsService,
     private readonly config: ConfigService,
     private readonly mailsService: MailsService
   ) {}
 
   async create(body: TenantUserDto) {
-    if (!this.requestParams.user["is_tenant_admin"])
+    if (!this.requestPatams.getUser()["is_tenant_admin"])
       throw new UnauthorizedException("Only admin can create new user");
     let password = getRandomPassword();
     body.password = await bcrypt.createHash(password);
-    body.tenant_id = this.requestParams.tenant.id;
+    body.tenant_id = this.requestPatams.tenant.id;
 
     const user = await this.tenantUser.schema(DB_PUBLIC_SCHEMA).findOne({
       where: { email: body.email },
@@ -47,21 +43,18 @@ export class ChannelPartnerUserService {
       subject: "User Login Details",
       context: {
         email: tenantUser.email,
-        firstName: tenantUser.name,
         password: password,
         system_link: `${this.config.get("FE_URL")}/sign-in`,
         be_link: this.config.get("BE_URL"),
         logo: "cid:company-logo",
-        ...defaultContext,
         is_tenant: true,
       },
       attachments: [
         {
-          filename: "nbol-email-logo",
-          path: "src/public/media/images/nbol-email-logo.png",
+          filename: "company-logo",
+          path: "src/public/media/images/company-logo.png",
           cid: "company-logo",
         },
-        ...defaultAttachments,
       ],
     };
 
@@ -70,19 +63,18 @@ export class ChannelPartnerUserService {
   }
 
   async getAll() {
-    const data = await this.tenantUser
-      .schema(DB_PUBLIC_SCHEMA)
-      .findAndCountAll({
-        distinct: true,
-        where: {
-          tenant_id: this.requestParams.tenant.id,
-          ...getSearchObject(this.requestParams.query, ["name", "region"]),
-        },
-        group: ["id"],
-        ...this.requestParams.pagination,
-      });
-
-    return { rows: data.rows, count: data.count.length };
+    return this.tenantUser.schema(DB_PUBLIC_SCHEMA).findAndCountAll({
+      where: {
+        tenant_id: this.requestPatams.tenant.id,
+        ...getSearchObject(this.requestPatams.query, [
+          "name",
+          "region",
+          "email",
+        ]),
+      },
+      group: ["email", "id"],
+      ...this.requestPatams.pagination,
+    });
   }
 
   async update(body: UpdateTenatUserDto, id: string) {
@@ -100,8 +92,8 @@ export class ChannelPartnerUserService {
   }
 
   async delete(id: string) {
-    if (!this.requestParams.user["is_tenant_admin"])
-      throw new UnauthorizedException("Only admin can delete new user");
+    if (!this.requestPatams.getUser()["is_tenant_admin"])
+      throw new UnauthorizedException("Only admin can delete user");
     const user = await this.tenantUser.schema(DB_PUBLIC_SCHEMA).findOne({
       where: {
         id,

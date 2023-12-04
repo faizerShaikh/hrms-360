@@ -6,11 +6,10 @@ import {
   ForeignKey,
   Index,
   IsUUID,
-  Model,
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
-import { BaseModel, enumValidator } from "src/common/helpers";
+import { enumValidator, BaseModel } from "src/common/helpers";
 import { QuestionResponseOptions } from "src/modules/competencies/modules/questions/types";
 import { StandardQuestion } from "./standardQuestion.model";
 

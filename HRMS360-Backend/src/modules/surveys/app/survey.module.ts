@@ -3,7 +3,6 @@ import { Module } from "@nestjs/common";
 import { SequelizeModule } from "@nestjs/sequelize";
 import {
   CompetencyComment,
-  DraftSurvey,
   Survey,
   SurveyDescription,
   SurveyExternalRespondant,
@@ -27,29 +26,16 @@ import { Competency } from "src/modules/competencies/models";
 import { Rater } from "src/modules/settings/modules/rater/models";
 import { GetSurveyController } from "./getSurvey.controller";
 import { GetSurveyService } from "./getSurvey.service";
-import { JwtModule } from "@nestjs/jwt";
-import { jwtFactory } from "src/modules/auth/jwt";
-import { Tenant, TenantHistory, TenantUser } from "src/modules/tenants/models";
-import { ReportsModule } from "src/modules/reports/reports.module";
+import {
+  Tenant,
+  TenantHistory,
+  TenantMetaData,
+} from "src/modules/tenants/models";
 import { ReportsService } from "src/modules/reports/reports.service";
-import { NbolSurveyController } from "./nbolSurvey.controller";
-import { NbolSurveyService } from "./nbolSurvey.service";
-import { Designation } from "src/modules/settings/modules/designation/models";
-import { Department } from "src/modules/settings/modules/department/models";
-import { SurveyProcessor } from "./nbolsurvey.processor";
-import { SUREVY_QUEUE } from "../constants";
-import { BullModule } from "@nestjs/bull";
-import { CommentResponse } from "../models/commentResponse.model";
 
 @Module({
   imports: [
-    BullModule.registerQueue({
-      name: SUREVY_QUEUE,
-    }),
-    JwtModule.registerAsync({ ...jwtFactory }),
     SequelizeModule.forFeature([
-      Tenant,
-      TenantUser,
       Survey,
       SurveyDescription,
       SurveyExternalRespondant,
@@ -66,30 +52,13 @@ import { CommentResponse } from "../models/commentResponse.model";
       Rater,
       SurveySuggestionsLogs,
       TenantHistory,
-      ReportsModule,
-      Designation,
       CompetencyComment,
-      Department,
-      DraftSurvey,
-      TenantUser,
-      CommentResponse,
+      TenantMetaData,
+      Tenant,
     ]),
   ],
-  controllers: [SurveyController, GetSurveyController, NbolSurveyController],
-  providers: [
-    SurveyService,
-    GetSurveyService,
-    ReportsService,
-    NbolSurveyService,
-    SurveyProcessor,
-  ],
-  exports: [
-    SurveyService,
-    SurveyService,
-    GetSurveyService,
-    ReportsService,
-    NbolSurveyService,
-    SurveyProcessor,
-  ],
+  controllers: [SurveyController, GetSurveyController],
+  providers: [SurveyService, GetSurveyService, ReportsService],
+  exports: [SurveyService],
 })
 export class SurveyModule {}

@@ -13,7 +13,7 @@ import { ServiceOptions } from "../interface";
 export class GenericsService<CreateDTO = any, UpdateDTO = any> {
   defaultOptions: Includeable | Includeable[] = [];
   isSoftDelete: boolean = false;
-  defaultWhere: WhereOptions = {};
+  defaultWhere: WhereOptions;
   options?: ServiceOptions;
   reqParam?: RequestParamsService;
 

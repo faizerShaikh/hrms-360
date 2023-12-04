@@ -6,11 +6,11 @@ export interface IDatabaseConfigAttributes {
   port?: number | string;
   dialect?: string;
   urlDatabase?: string;
-  logging?: any;
+  logging?: boolean;
 }
 
 export interface IDatabaseConfig {
   development: IDatabaseConfigAttributes;
-  uat: IDatabaseConfigAttributes;
+  test: IDatabaseConfigAttributes;
   production: IDatabaseConfigAttributes;
 }

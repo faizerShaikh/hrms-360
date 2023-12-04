@@ -6,7 +6,6 @@ dist
 /node_modules
 
 
-
 # Logs
 
 logs
@@ -22,11 +21,7 @@ yarn-debug.log*
 yarn-error.log*
 
 lerna-debug.log*
-   
-   
-   
-   
-   
+
 
 
 # OS
@@ -59,8 +54,8 @@ lerna-debug.log*
 
 *.sublime-workspace
 
-
 Jenkinsfile
+
 # IDE - VSCode
 
 .vscode/*

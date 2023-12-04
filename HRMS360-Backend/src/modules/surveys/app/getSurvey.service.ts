@@ -1,17 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
-import { InjectConnection, InjectModel } from "@nestjs/sequelize";
-import * as moment from "moment";
+import { InjectModel } from "@nestjs/sequelize";
 import { literal, Op } from "sequelize";
-import { Sequelize } from "sequelize-typescript";
-import { getSearchObject } from "src/common/helpers";
+import { bcrypt, getRandomPassword, getSearchObject } from "src/common/helpers";
 import { RequestParamsService } from "src/common/modules";
 import { MailsService } from "src/common/modules/mails";
-import {
-  defaultAttachments,
-  defaultContext,
-} from "src/common/modules/mails/constants";
 import { Competency } from "src/modules/competencies/models";
 import {
   Question,
@@ -19,7 +13,7 @@ import {
 } from "src/modules/competencies/modules/questions/models";
 import { QuestionResponseOptions } from "src/modules/competencies/modules/questions/types";
 import {
-  QuestionnaireCompetency,
+  Questionnaire,
   QuestionnaireQuestion,
 } from "src/modules/questionnaires/models";
 import { Department } from "src/modules/settings/modules/department/models";
@@ -27,7 +21,7 @@ import { Designation } from "src/modules/settings/modules/designation/models";
 import { Rater } from "src/modules/settings/modules/rater/models";
 import { User } from "src/modules/users/models";
 import {
-  // CompetencyComment,
+  CompetencyComment,
   Survey,
   SurveyDescription,
   SurveyExternalRespondant,
@@ -35,10 +29,15 @@ import {
   SurveyResponse,
   SurveySuggestionsLogs,
 } from "../models";
-import { SurveyRespondantStatus, SurveyStatus } from "../type";
-import { log } from "util";
-import { constants } from "buffer";
-import { CommentResponse } from "../models/commentResponse.model";
+import {
+  SurveyDescriptionStatus,
+  SurveyRespondantStatus,
+  SurveyStatus,
+} from "../type";
+import {
+  defaultAttachments,
+  defaultContext,
+} from "src/common/modules/mails/constants";
 const ExcelJS = require("exceljs");
 @Injectable()
 export class GetSurveyService {
@@ -59,17 +58,12 @@ export class GetSurveyService {
     @InjectModel(SurveyRespondant)
     private readonly surveyRespondant: typeof SurveyRespondant,
     private readonly jwtService: JwtService,
-    @InjectConnection() private readonly sequelize: Sequelize,
     private readonly mailsService: MailsService,
     private readonly config: ConfigService,
     @InjectModel(SurveyResponse)
     private readonly surveyResponses: typeof SurveyResponse,
     @InjectModel(Question)
-    private readonly question: typeof Question,
-    @InjectModel(Competency)
-    private readonly competency: typeof Competency,
-    @InjectModel(CommentResponse)
-    private readonly commentResponse: typeof CommentResponse
+    private readonly question: typeof Question
   ) {}
 
   async getAllSurveys() {
@@ -79,19 +73,6 @@ export class GetSurveyService {
         where: {
           ...getSearchObject(this.requestParams.query, ["title", "status"]),
         },
-        include: [
-          {
-            model: Survey,
-            include: [
-              {
-                model: SurveyRespondant,
-              },
-              {
-                model: SurveyExternalRespondant,
-              },
-            ],
-          },
-        ],
         ...this.requestParams.pagination,
       });
   }
@@ -111,37 +92,25 @@ export class GetSurveyService {
         include: {
           model: Survey,
           where: {
-            employee_id: this.requestParams.user.id,
+            employee_id: this.requestParams.getUser().id,
           },
+          required: true,
           attributes: ["id", "status", "no_of_respondents"],
         },
       });
   }
 
-  async getOneSurvey(id: string, surveyDecriptionQuery: string) {
-    let surveyDescription = {};
-
-    if (!surveyDecriptionQuery) {
-      surveyDescription = await this.surveyDescription
-        .schema(this.requestParams.schema_name)
-        .findOne({
-          where: { id },
-          attributes: ["id", "title", "status"],
-        });
-    }
-
-    const surveys = await this.survey
+  async getOneSurvey(id: string) {
+    return await this.surveyDescription
       .schema(this.requestParams.schema_name)
-      .findAndCountAll({
-        where: {
-          survey_id: id,
-        },
-        distinct: true,
-        ...this.requestParams.pagination,
+      .findOne({
+        where: { id },
+        attributes: ["id", "title", "status"],
         include: [
           {
             model: User,
             attributes: ["id", "name", "email", "contact"],
+            through: { attributes: ["status", "id"] },
             include: [
               {
                 model: Department,
@@ -156,53 +125,6 @@ export class GetSurveyService {
                 as: "line_manager",
                 attributes: ["name"],
               },
-            ],
-          },
-          {
-            model: SurveyRespondant,
-            include: [
-              {
-                model: User,
-                attributes: ["name", "email", "id", "contact"],
-                include: [
-                  {
-                    model: Department,
-                    attributes: ["name"],
-                  },
-                  {
-                    model: Designation,
-                    attributes: ["name"],
-                  },
-                ],
-              },
-            ],
-          },
-          { model: SurveyExternalRespondant },
-        ],
-      });
-
-    if (surveyDecriptionQuery) {
-      return surveys;
-    }
-
-    return { ...JSON.parse(JSON.stringify(surveyDescription)), surveys };
-  }
-
-  async getOneSurveyForMailSend(id: string) {
-    return this.surveyDescription
-      .schema(this.requestParams.schema_name)
-      .findOne({
-        where: { id },
-        attributes: ["id", "title", "status"],
-        include: [
-          {
-            model: User,
-            attributes: ["id", "name", "email", "contact"],
-            through: { attributes: ["status", "id"] },
-            include: [
-              { model: Department, attributes: ["name"] },
-              { model: Designation, attributes: ["name"] },
-              { model: User, as: "line_manager", attributes: ["name"] },
             ],
           },
         ],
@@ -229,48 +151,37 @@ export class GetSurveyService {
       });
 
     const data = await Promise.all([
-      this.user
-        .unscoped()
-        .schema(this.requestParams.schema_name)
-        .findAll({
-          attributes: ["id", "name", "email", "contact", "employee_code"],
-          order: [
-            [
-              { model: SurveyRespondant, as: "respondant" },
-              { model: Rater, as: "rater" },
-              "order",
-              "asc",
-            ],
-          ],
-          include: [
-            {
-              model: SurveyRespondant,
-              as: "respondant",
-              attributes: ["id", "status", "response_date"],
-              include: [
-                {
-                  model: Rater,
-                  attributes: ["category_name", "is_external", "order", "id"],
-                },
-              ],
-              required: true,
-              where: {
-                survey_id: survey_recipient_id,
+      this.user.schema(this.requestParams.schema_name).findAll({
+        attributes: ["id", "name", "email", "contact"],
+        include: [
+          {
+            model: SurveyRespondant,
+            as: "respondant",
+            attributes: ["id", "status", "response_date"],
+            include: [
+              {
+                model: Rater,
+                attributes: ["name"],
               },
+            ],
+            required: true,
+            where: {
+              survey_id: survey_recipient_id,
             },
-            {
-              model: Designation,
-              attributes: ["name"],
-            },
-          ],
-        }),
+          },
+          {
+            model: Designation,
+            attributes: ["name"],
+          },
+        ],
+      }),
       this.surveyExternalRespondant
         .schema(this.requestParams.schema_name)
         .findAll({
           include: [
             {
               model: Rater,
-              attributes: ["category_name", "is_external", "order", "id"],
+              attributes: ["name"],
             },
           ],
           where: { survey_id: survey_recipient_id },
@@ -285,17 +196,22 @@ export class GetSurveyService {
       .schema(this.requestParams.schema_name)
       .findAndCountAll({
         where: {
-          '$"surveys"."employee_id"$': this.requestParams.user.id,
+          '$"surveys"."employee_id"$': this.requestParams.getUser().id,
           [Op.and]: {
             '$"surveys->survey_respondants"."survey_id"$': null,
             '$"surveys->survey_external_respondants"."survey_id"$': null,
+          },
+          "status": {
+            [Op.notIn]: [
+              SurveyDescriptionStatus.Closed,
+              SurveyDescriptionStatus.Terminated,
+            ],
           },
           ...getSearchObject(this.requestParams.query, ["title", "status"]),
         },
         distinct: true,
         ...this.requestParams.pagination,
         subQuery: false,
-
         include: {
           model: Survey,
           attributes: ["id", "status", "employee_id"],
@@ -312,22 +228,28 @@ export class GetSurveyService {
   }
 
   async getAllRaterCategory(id: string) {
-    const user = await this.user
+    const survey = await this.survey
       .schema(this.requestParams.schema_name)
       .findOne({
+        where: { id },
+        attributes: ["survey_id", "status"],
         include: [
           {
-            model: Survey,
-            where: { id },
-            attributes: ["survey_id"],
+            model: SurveyDescription,
+            attributes: ["title", "id", "is_lm_approval_required"],
           },
           {
-            model: Department,
-            attributes: ["name"],
-          },
-          {
-            model: Designation,
-            attributes: ["name"],
+            model: User,
+            include: [
+              {
+                model: Department,
+                attributes: ["name"],
+              },
+              {
+                model: Designation,
+                attributes: ["name"],
+              },
+            ],
           },
         ],
       });
@@ -337,9 +259,7 @@ export class GetSurveyService {
       .findAll({
         where: {
           name: { [Op.ne]: "Self" },
-          survey_description_id: user.surveys[0]
-            ? user.surveys[0].survey_id
-            : undefined,
+          survey_description_id: survey ? survey.survey_id : undefined,
         },
         include: [
           {
@@ -408,7 +328,12 @@ export class GetSurveyService {
         ],
       });
 
-    return { raters, user };
+    return {
+      raters,
+      user: survey.employee,
+      surveyDescription: survey.survey_description,
+      survey,
+    };
   }
 
   async getAllPendingApprovalSurvey() {
@@ -418,7 +343,9 @@ export class GetSurveyService {
         ...this.requestParams.pagination,
         distinct: true,
         where: {
-          '$"surveys->employee"."line_manager_id"$': this.requestParams.user.id,
+          "status": SurveyDescriptionStatus.PendingApproval,
+          '$"surveys->employee"."line_manager_id"$':
+            this.requestParams.getUser().id,
           '$"surveys"."status"$': [
             SurveyStatus.In_Progress,
             SurveyStatus.Suggested_by_EMP,
@@ -458,8 +385,14 @@ export class GetSurveyService {
         include: [
           {
             model: User,
-            attributes: ["id", "name", "email", "contact"],
-            where: { line_manager_id: this.requestParams.user.id },
+            attributes: [
+              "id",
+              "name",
+              "email",
+              "contact",
+              "is_lm_approval_required",
+            ],
+            where: { line_manager_id: this.requestParams.getUser().id },
             through: {
               attributes: ["status", "id"],
               where: {
@@ -496,6 +429,12 @@ export class GetSurveyService {
         distinct: true,
         where: {
           ...getSearchObject(this.requestParams.query, ["title", "status"]),
+          status: {
+            [Op.notIn]: [
+              SurveyDescriptionStatus.Closed,
+              SurveyDescriptionStatus.Terminated,
+            ],
+          },
         },
         ...this.requestParams.pagination,
         subQuery: false,
@@ -503,7 +442,7 @@ export class GetSurveyService {
           model: Survey,
           attributes: ["id", "status"],
           where: {
-            employee_id: this.requestParams.user.id,
+            employee_id: this.requestParams.getUser().id,
             status: SurveyStatus.Suggested_by_LM,
           },
         },
@@ -527,26 +466,223 @@ export class GetSurveyService {
       });
   }
 
-  async getFullDetailOfSurvey(token: any) {
+  async getFullDetailOfSurveyForSingleRatee(id: string) {
+    const token: any = await this.jwtService.decode(id);
+
+    if (!token) {
+      return { user: null, survey: null };
+    }
+
+    // await this.sequelize.query(`set search_path to ${token.schema_name}`);
+
+    let surveyRespondant;
+
+    if (token.is_external) {
+      surveyRespondant = await this.surveyExternalRespondant
+        .schema(token.schema_name)
+        .findOne({
+          where: { id: token?.respondant_id },
+        });
+    } else {
+      surveyRespondant = await this.surveyRespondant
+        .schema(token.schema_name)
+        .findOne({
+          where: { id: token?.respondant_id },
+        });
+    }
+
+    if (surveyRespondant?.status !== SurveyStatus.Ongoing) {
+      return { user: null, survey: null };
+    }
+
+    const survey = await this.surveyDescription
+      .schema(token.schema_name)
+      .findOne({
+        attributes: [
+          "id",
+          "title",
+          "description",
+          "end_date",
+          "status",
+          "questionnaire_id",
+          "createdAt",
+        ],
+        order: [
+          [
+            {
+              model: Questionnaire,
+              as: "questionnaire",
+            },
+            {
+              model: Question,
+              as: "questions",
+            },
+            {
+              model: Competency,
+              as: "competency",
+            },
+            "title",
+            "ASC",
+          ],
+          [
+            {
+              model: Questionnaire,
+              as: "questionnaire",
+            },
+            {
+              model: Question,
+              as: "questions",
+            },
+            {
+              model: QuestionResponse,
+              as: "responses",
+            },
+            "order",
+            "DESC",
+          ],
+          [
+            {
+              model: Questionnaire,
+              as: "questionnaire",
+            },
+            {
+              model: Question,
+              as: "questions",
+            },
+            {
+              model: QuestionResponse,
+              as: "responses",
+            },
+            "order",
+            "DESC",
+          ],
+        ],
+        include: [
+          {
+            model: Survey,
+            where: {
+              id: surveyRespondant?.survey_id,
+              status: SurveyStatus.Ongoing,
+            },
+            attributes: ["id", "status", "survey_id"],
+          },
+          {
+            model: Questionnaire,
+            attributes: ["id", "title", "description", "no_of_questions"],
+            required: false,
+            where: { is_copy: true },
+            include: [
+              {
+                attributes: ["id", "text", "response_type"],
+                model: Question,
+                required: false,
+                through: { attributes: [] },
+                where: { is_copy: true },
+                include: [
+                  {
+                    model: Competency,
+                    attributes: [
+                      "id",
+                      "title",
+                      "description",
+                      "no_of_questions",
+                      "type",
+                    ],
+                    required: false,
+                    where: { is_copy: true },
+                    include: [
+                      {
+                        model: CompetencyComment,
+                        required: false,
+                        where: {
+                          [Op.or]: [
+                            {
+                              survey_respondent_id: surveyRespondant.id,
+                            },
+                            {
+                              survey_external_respondent_id:
+                                surveyRespondant.id,
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                  {
+                    model: QuestionResponse,
+                    required: false,
+                    attributes: [
+                      "score",
+                      ["id", "value"],
+                      "type",
+                      [
+                        literal(`concat("questionnaire->questions->responses"."label", (case
+                        when "questionnaire->questions->responses"."type" = 'likert_scale' then concat(' (', "questionnaire->questions->responses"."score", ')')
+                        else ''
+                        end))`),
+                        "label",
+                      ],
+                    ],
+                    where: { is_copy: true },
+                  },
+                  {
+                    model: SurveyResponse,
+                    required: false,
+                    where: {
+                      [Op.or]: {
+                        survey_respondant_id: surveyRespondant.id,
+                        survey_external_respondant_id: surveyRespondant.id,
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      });
+
+    const user = await this.user.schema(token.schema_name).findOne({
+      attributes: ["name", "email", "createdAt"],
+      subQuery: false,
+      include: [
+        {
+          model: Survey,
+          where: { id: surveyRespondant.survey_id },
+          attributes: ["id", "status"],
+        },
+        {
+          model: Department,
+          attributes: ["name"],
+        },
+        {
+          model: Designation,
+          attributes: ["name"],
+        },
+      ],
+    });
+
+    return { survey, user };
+  }
+
+  async getFullDetailOfSurvey(id: string) {
+    const token: any = await this.jwtService.decode(id);
+    if (!token) {
+      return { user: null, survey: null };
+    }
+    // await this.sequelize.query(`set search_path to ${token.schema_name}`);
     let respondentInclude = [];
     let respondentIncludeComments = [];
     let respondents;
     let responseWhere = {};
 
     if (!token.is_external) {
-      respondents = await SurveyRespondant.schema(
-        this.requestParams.schema_name
-      ).findAll({
+      respondents = await SurveyRespondant.schema(token.schema_name).findAll({
         where: {
           respondant_id: token.id,
           status: SurveyRespondantStatus.Ongoing,
         },
-        include: [
-          {
-            model: Survey,
-            where: { survey_id: token.survey_id },
-          },
-        ],
+        include: [{ model: Survey, where: { survey_id: token.survey_id } }],
       });
       responseWhere = {
         survey_respondant_id: respondents.map((item) => item.id),
@@ -554,23 +690,16 @@ export class GetSurveyService {
       respondentIncludeComments.push({
         model: SurveyRespondant,
         where: {
-          // id: token.survey_respondant_id,
           respondant_id: token.id,
-          status: SurveyRespondantStatus.Ongoing,
         },
         include: [
-          {
-            model: Rater,
-            attributes: ["id", ["category_name", "name"], "order"],
-          },
+          { model: Rater, attributes: ["id", ["category_name", "name"]] },
         ],
       });
       respondentInclude.push({
         model: SurveyRespondant,
         where: {
-          // id: token.survey_respondant_id,
           respondant_id: token.id,
-          status: SurveyRespondantStatus.Ongoing,
         },
         include: [
           {
@@ -579,26 +708,18 @@ export class GetSurveyService {
             as: "respondant",
           },
 
-          {
-            model: Rater,
-            attributes: ["id", ["category_name", "name"], "order"],
-          },
+          { model: Rater, attributes: ["id", ["category_name", "name"]] },
         ],
       });
     } else {
       respondents = await SurveyExternalRespondant.schema(
-        this.requestParams.schema_name
+        token.schema_name
       ).findAll({
         where: {
           respondant_email: token.email,
           status: SurveyRespondantStatus.Ongoing,
         },
-        include: [
-          {
-            model: Survey,
-            where: { survey_id: token.survey_id },
-          },
-        ],
+        include: [{ model: Survey, where: { survey_id: token.survey_id } }],
       });
       responseWhere = {
         survey_external_respondant_id: respondents.map((item) => item.id),
@@ -607,26 +728,18 @@ export class GetSurveyService {
         model: SurveyExternalRespondant,
         where: {
           respondant_email: token.email,
-          status: SurveyRespondantStatus.Ongoing,
         },
         include: [
-          {
-            model: Rater,
-            attributes: ["id", ["category_name", "name"], "order"],
-          },
+          { model: Rater, attributes: ["id", ["category_name", "name"]] },
         ],
       });
       respondentInclude.push({
         model: SurveyExternalRespondant,
         where: {
           respondant_email: token.email,
-          status: SurveyRespondantStatus.Ongoing,
         },
         include: [
-          {
-            model: Rater,
-            attributes: ["id", ["category_name", "name"], "order"],
-          },
+          { model: Rater, attributes: ["id", ["category_name", "name"]] },
         ],
       });
     }
@@ -635,37 +748,13 @@ export class GetSurveyService {
       return { user: null, survey: null };
     }
 
-    if (respondents.every((item) => item.status === SurveyStatus.Completed)) {
-      return { user: null, survey: null };
-    }
-
     const surveyDescription = await this.surveyDescription
-      .unscoped()
-      .schema(this.requestParams.schema_name)
+      .schema(token.schema_name)
       .findOne({
         where: {
           id: token.survey_id,
+          status: SurveyDescriptionStatus.Ongoing,
         },
-        order: [
-          token.is_external
-            ? [
-                { model: Survey, as: "surveys" },
-                {
-                  model: SurveyExternalRespondant,
-                  as: "survey_external_respondants",
-                },
-                { model: Rater, as: "rater" },
-                "order",
-                "ASC",
-              ]
-            : [
-                { model: Survey, as: "surveys" },
-                { model: SurveyRespondant, as: "survey_respondants" },
-                { model: Rater, as: "rater" },
-                "order",
-                "ASC",
-              ],
-        ],
         include: [
           {
             model: Survey,
@@ -674,8 +763,6 @@ export class GetSurveyService {
                 model: User,
                 attributes: ["email", "id", "name"],
               },
-              { model: CommentResponse },
-
               ...respondentInclude,
             ],
           },
@@ -683,29 +770,24 @@ export class GetSurveyService {
       });
 
     const questions = await this.question
-      .schema(this.requestParams.schema_name)
+      .schema(token.schema_name)
       .unscoped()
       .findAll({
-        subQuery: false,
         order: [
           [
             {
               model: Competency,
               as: "competency",
             },
-            {
-              model: QuestionnaireCompetency,
-              as: "questionnaireCompetencies",
-            },
-            "order",
+            "title",
             "ASC",
           ],
           [
             {
-              model: QuestionnaireQuestion,
-              as: "questionnaireQuestion",
+              model: QuestionResponse,
+              as: "responses",
             },
-            "order",
+            "score",
             "ASC",
           ],
           [
@@ -716,7 +798,6 @@ export class GetSurveyService {
             "order",
             "ASC",
           ],
-          // ["order", "ASC"],
         ],
         include: [
           {
@@ -724,7 +805,21 @@ export class GetSurveyService {
             attributes: ["id", "title"],
             include: [
               {
-                model: QuestionnaireCompetency.unscoped(),
+                model: CompetencyComment,
+                required: false,
+                include: [
+                  ...respondentIncludeComments,
+                  {
+                    model: Survey,
+                    include: [
+                      {
+                        model: User,
+                        attributes: ["email", "id", "name"],
+                      },
+                      ...respondentInclude,
+                    ],
+                  },
+                ],
               },
             ],
           },
@@ -748,7 +843,7 @@ export class GetSurveyService {
             where: {
               questionnaire_id: surveyDescription.questionnaire_id,
             },
-            attributes: ["order"],
+            attributes: [],
           },
           {
             model: SurveyResponse,
@@ -759,308 +854,332 @@ export class GetSurveyService {
         ],
       });
 
-    // const competencyComments = await this.competency
-    //   .unscoped()
-    //   .schema(this.requestParams.schema_name)
-    //   .findAll({
-    //     include: [
-    //       {
-    //         model: QuestionnaireCompetency.unscoped(),
-    //         where: {
-    //           questionnaire_id: surveyDescription.questionnaire_id,
-    //         },
-    //         attributes: [],
-    //       },
-    //       {
-    //         model: CompetencyComment,
-    //         required: false,
-    //         include: [...respondentIncludeComments],
-    //       },
-    //     ],
-    //   });
-
-    const commentResponses = await this.commentResponse
-      .unscoped()
-      .schema(this.requestParams.schema_name)
-      .findAll({
-        include: [
-          ...respondentIncludeComments,
-          {
-            model: Survey,
-            required: true,
-            include: {
-              model: SurveyDescription,
-              where: {
-                id: token.survey_id,
-              },
-            },
-          },
-        ],
-      });
-
-    // return { questions: questions, surveyDescription, competencyComments };
-    return { questions: questions, surveyDescription, commentResponses };
+    return { questions: questions, surveyDescription };
   }
 
-  async getSurveyToken(body: any) {
+  async getSurveyToken(id: string) {
+    let tokens = [];
     const surveyDescription = await this.surveyDescription
       .schema(this.requestParams.schema_name)
       .findOne({
-        where: { id: body.survey_descriptions_id },
-      });
-
-    const respondants = await this.user
-      .schema(this.requestParams.schema_name)
-      .findAll({
         where: {
-          id: body.survey_respondent_ids,
-        },
-        attributes: ["name", "email", "id"],
-      });
-    const externalRespondants = await this.surveyExternalRespondant
-      .schema(this.requestParams.schema_name)
-      .unscoped()
-      .findAll({
-        where: {
-          id: body.survey_respondent_ids,
+          id,
         },
         include: [
           {
-            attributes: [],
             model: Survey,
+            include: [
+              {
+                model: User,
+                include: [
+                  {
+                    model: User,
+                    as: "line_manager",
+                    attributes: ["id", "name", "email", "password"],
+                  },
+                  {
+                    model: Designation,
+                    attributes: ["name"],
+                  },
+                ],
+                attributes: ["name", "email", "is_lm_approval_required", "id"],
+              },
+            ],
           },
         ],
       });
 
-    const maxLength = Math.max(respondants.length, externalRespondants.length);
-    let alreadySent = [];
-    let alreadySentExternal = [];
-    let tokens = [];
-    for (let index = 0; index < maxLength; index++) {
-      if (
-        respondants[index] &&
-        !alreadySent.includes(respondants[index].email)
-      ) {
-        const token = await this.jwtService.signAsync({
-          id: respondants[index].id,
-          survey_respondant_id: respondants[index].id,
-          survey_id: surveyDescription.id,
-          schema_name: this.requestParams.tenant.schema_name,
-          is_external: false,
-        });
-        if (tokens) {
-          tokens.push(token);
+    if (
+      [
+        SurveyDescriptionStatus.Initiated.toString(),
+        SurveyDescriptionStatus.In_Progress.toString(),
+      ].includes(surveyDescription.status)
+    ) {
+      for (const survey of surveyDescription.surveys) {
+        if (survey.status === SurveyStatus.Initiated) {
+          await this.sendToRepondentForInitiated(
+            survey.employee,
+            surveyDescription
+          );
         }
-
-        let Mail = {
-          to: respondants[index].email,
-          subject: `Reminder to fill Feedback Survey | ${surveyDescription.title}`,
-          context: {
-            link: `${this.config.get(
-              "FE_URL"
-            )}/survey/assessment/instructions/${token}`,
-            username: respondants[index].name,
-            logo: "cid:company-logo",
-            surveyTitle: surveyDescription.title,
-            tenantName: this.requestParams.tenant.name,
-            endDate: moment(surveyDescription.end_date).format("DD/MM/YY"),
-            ...defaultContext,
-          },
-          attachments: [
-            {
-              filename: "nbol-email-logo",
-              path: "src/public/media/images/nbol-email-logo.png",
-              cid: "company-logo",
-            },
-            ...defaultAttachments,
-          ],
-        };
-
-        this.mailsService.SurveyMail(Mail);
-        alreadySent.push(respondants[index].email);
       }
-      if (
-        externalRespondants[index] &&
-        !alreadySentExternal.includes(
-          externalRespondants[index].respondant_email
-        )
-      ) {
-        const token = await this.jwtService.signAsync({
-          email: externalRespondants[index].respondant_email,
-          schema_name: this.requestParams.tenant.schema_name,
-          survey_id: surveyDescription.id,
-          is_external: true,
-        });
-
-        if (tokens) {
-          tokens.push(token);
+    } else if (
+      [SurveyDescriptionStatus.PendingApproval.toString()].includes(
+        surveyDescription.status
+      )
+    ) {
+      for (const survey of surveyDescription.surveys) {
+        if (SurveyStatus.Suggested_by_EMP === survey.status) {
+          await this.sendToLMForSuggestion(survey, surveyDescription);
+        } else if (SurveyStatus.Suggested_by_LM === survey.status) {
+          this.sendToRequesterForSuggestion(survey, surveyDescription);
+        } else if (SurveyStatus.In_Progress === survey.status) {
+          await this.sendToRepondentForInProgress(survey, surveyDescription);
         }
-
-        let Mail = {
-          to: externalRespondants[index].respondant_email,
-          subject: `Reminder to fill Feedback Survey | ${surveyDescription.title}`,
-          context: {
-            link: `${this.config.get(
-              "FE_URL"
-            )}/survey/assessment/instructions/${token}`,
-            username: externalRespondants[index].respondant_name,
-            logo: "cid:company-logo",
-            surveyTitle: surveyDescription.title,
-            tenantName: this.requestParams.tenant.name,
-            endDate: moment(surveyDescription.end_date).format("DD/MM/YY"),
-            ...defaultContext,
-          },
-          attachments: [
-            {
-              filename: "nbol-email-logo",
-              path: "src/public/media/images/nbol-email-logo.png",
-              cid: "company-logo",
-            },
-            ...defaultAttachments,
-          ],
-        };
-
-        this.mailsService.SurveyMail(Mail);
-        alreadySentExternal.push(externalRespondants[index].respondant_email);
       }
-    }
-
-    return tokens;
-  }
-
-  async getRespondentsGroupByRaters(survey_id: string, id: string) {
-    return this.rater.schema(this.requestParams.schema_name).findAll({
-      where: {
-        survey_description_id: survey_id,
-        name: {
-          [Op.ne]: "Self",
-        },
-      },
-      include: [
-        {
-          model: SurveyRespondant,
-          include: [
-            { model: Survey, where: { id } },
-            {
-              model: User,
-              attributes: ["name", "email", "id", "contact", "employee_code"],
+    } else if (surveyDescription.status === SurveyDescriptionStatus.Ongoing) {
+      if (surveyDescription?.response_form === "Multiple Ratee") {
+        try {
+          const respondents = await this.surveyRespondant
+            .schema(this.requestParams.schema_name)
+            .findAll({
+              where: {
+                status: SurveyRespondantStatus.Ongoing,
+              },
               include: [
                 {
-                  model: Department,
-                  attributes: ["name"],
+                  attributes: [],
+                  model: Survey,
+                  where: {
+                    status: SurveyRespondantStatus.Ongoing,
+                    survey_id: surveyDescription.id,
+                  },
                 },
                 {
-                  model: Designation,
-                  attributes: ["name"],
+                  model: User,
+                  attributes: ["name", "email", "id"],
+                },
+                { model: Rater },
+              ],
+            });
+          const externalRespondants = await this.surveyExternalRespondant
+            .schema(this.requestParams.schema_name)
+            .unscoped()
+            .findAll({
+              where: {
+                status: SurveyRespondantStatus.Ongoing,
+              },
+              include: [
+                {
+                  attributes: [],
+                  model: Survey,
+                  where: {
+                    status: SurveyRespondantStatus.Ongoing,
+                    survey_id: surveyDescription.id,
+                  },
                 },
               ],
-            },
-          ],
-        },
-        {
-          model: SurveyExternalRespondant,
-          include: [{ model: Survey, where: { id } }],
-        },
-      ],
-    });
-  }
+            });
 
-  //////OLD SEND MAIL
-  async getSurveyToken2(id: string) {
-    const surveyDescription = await this.surveyDescription
-      .schema(this.requestParams.schema_name)
-      .findOne({
-        where: { id },
-      });
-    const respondants = await this.surveyRespondant
-      .schema(this.requestParams.schema_name)
-      .findAll({
-        where: {
-          status: SurveyRespondantStatus.Ongoing,
-        },
-        include: [
-          {
-            attributes: [],
-            model: Survey,
-            where: {
-              survey_id: id,
-            },
-          },
-          {
-            model: User,
-            attributes: ["name", "email", "id"],
-          },
-        ],
-      });
-    const externalRespondants = await this.surveyExternalRespondant
-      .schema(this.requestParams.schema_name)
-      .unscoped()
-      .findAll({
-        where: {
-          status: SurveyRespondantStatus.Ongoing,
-        },
-        include: [
-          {
-            attributes: [],
-            model: Survey,
-            where: {
-              survey_id: id,
-            },
-          },
-        ],
-      });
-    const maxLength = Math.max(respondants.length, externalRespondants.length);
-    let alreadySent = [];
-    let alreadySentExternal = [];
-    let tokens = [];
-    for (let index = 0; index < maxLength; index++) {
-      if (
-        respondants[index] &&
-        !alreadySent.includes(respondants[index].respondant.email)
-      ) {
-        const token = await this.jwtService.signAsync({
-          id: respondants[index].respondant.id,
-          survey_id: surveyDescription.id,
-          schema_name: this.requestParams.tenant.schema_name,
-          is_external: false,
-        });
-        if (tokens) {
-          tokens.push(token);
+          console.log(externalRespondants);
+
+          const maxLength = Math.max(
+            respondents.length,
+            externalRespondants.length
+          );
+
+          let alreadySent = [];
+          let alreadySentExternal = [];
+          let tokens = [];
+
+          for (let index = 0; index < maxLength; index++) {
+            const url = "multiple";
+            if (
+              respondents[index] &&
+              !alreadySent.includes(respondents[index].respondant.email)
+            ) {
+              await this.sendToRepondent(
+                respondents[index],
+                surveyDescription,
+                tokens,
+                url
+              );
+              alreadySent.push(respondents[index].respondant.email);
+            }
+
+            if (
+              externalRespondants[index] &&
+              !alreadySentExternal.includes(
+                externalRespondants[index].respondant_email
+              )
+            ) {
+              await this.sendToExternalRespondent(
+                externalRespondants[index],
+                surveyDescription,
+                tokens,
+                url
+              );
+              alreadySentExternal.push(
+                externalRespondants[index].respondant_email
+              );
+            }
+          }
+          this.mailsService.sendTokens(tokens);
+        } catch (error) {
+          throw error;
         }
+      } else {
+        try {
+          for (const element of surveyDescription.surveys) {
+            if (element.status === "Ongoing") {
+              const respondents = await this.surveyRespondant
+                .schema(this.requestParams.schema_name)
+                .findAll({
+                  where: {
+                    survey_id: element.id,
+                    status: SurveyRespondantStatus.Ongoing,
+                  },
+                  attributes: ["id"],
+                  include: [
+                    {
+                      model: User,
+                      attributes: ["name", "email", "id"],
+                    },
+                    {
+                      model: Rater,
+                      attributes: ["category_name"],
+                    },
+                  ],
+                });
 
-        alreadySent.push(respondants[index].respondant.email);
-      }
-      if (
-        externalRespondants[index] &&
-        !alreadySentExternal.includes(
-          externalRespondants[index].respondant_email
-        )
-      ) {
-        const token = await this.jwtService.signAsync({
-          email: externalRespondants[index].respondant_email,
-          schema_name: this.requestParams.tenant.schema_name,
-          survey_id: surveyDescription.id,
-          is_external: true,
-        });
+              const externalRespondents = await this.surveyExternalRespondant
+                .schema(this.requestParams.schema_name)
+                .findAll({
+                  where: {
+                    survey_id: element.id,
+                    status: SurveyRespondantStatus.Ongoing,
+                  },
+                  attributes: ["id", "respondant_email", "respondant_name"],
+                  include: [
+                    {
+                      model: Rater,
+                      attributes: ["category_name"],
+                    },
+                  ],
+                });
 
-        if (tokens) {
-          tokens.push(token);
+              const maxLength = Math.max(
+                respondents.length,
+                externalRespondents.length
+              );
+
+              let tokens = [];
+              for (let index = 0; index < maxLength; index++) {
+                const url = "single";
+                if (respondents[index]) {
+                  await this.sendToRepondent(
+                    respondents[index],
+                    surveyDescription,
+                    tokens,
+                    url
+                  );
+                }
+                if (externalRespondents[index]) {
+                  await this.sendToExternalRespondent(
+                    externalRespondents[index],
+                    surveyDescription,
+                    tokens,
+                    url
+                  );
+                }
+              }
+
+              this.mailsService.sendTokens(tokens);
+            }
+          }
+        } catch (error) {
+          throw error;
         }
-
-        alreadySentExternal.push(externalRespondants[index].respondant_email);
       }
+      // for (const survey of surveyDescription.surveys) {
+      //   if (survey.status === SurveyStatus.Ongoing) {
+      //     const respondents = await this.surveyRespondant
+      //       .schema(this.requestParams.schema_name)
+      //       .findAll({
+      //         where: {
+      //           status: SurveyRespondantStatus.Ongoing,
+      //         },
+      //         include: [
+      //           {
+      //             attributes: [],
+      //             model: Survey,
+      //             where: {
+      //               id: survey.id,
+      //             },
+      //           },
+      //           {
+      //             model: User,
+      //             attributes: ["name", "email", "id"],
+      //           },
+      //           { model: Rater },
+      //         ],
+      //       });
+      //     const externalRespondants = await this.surveyExternalRespondant
+      //       .schema(this.requestParams.schema_name)
+      //       .unscoped()
+      //       .findAll({
+      //         where: {
+      //           status: SurveyRespondantStatus.Ongoing,
+      //         },
+      //         include: [
+      //           {
+      //             attributes: [],
+      //             model: Survey,
+      //             where: {
+      //               id: survey.id,
+      //             },
+      //           },
+      //         ],
+      //       });
+      //     const maxLength = Math.max(
+      //       respondents.length,
+      //       externalRespondants.length
+      //     );
+      //     let alreadySent = [];
+      //     let alreadySentExternal = [];
+      //     let tokens = [];
+      //     const url =
+      //       surveyDescription.response_form === "Multiple Ratee"
+      //         ? "multiple"
+      //         : "single";
+      //     for (let index = 0; index < maxLength; index++) {
+      //       if (
+      //         respondents[index] &&
+      //         !alreadySent.includes(respondents[index].respondant.email)
+      //       ) {
+      //         await this.sendToRepondent(
+      //           respondents[index],
+      //           survey,
+      //           tokens,
+      //           url
+      //         );
+      //         alreadySent.push(respondents[index].respondant.email);
+      //       }
+      //       if (
+      //         externalRespondants[index] &&
+      //         !alreadySentExternal.includes(
+      //           externalRespondants[index].respondant_email
+      //         )
+      //       ) {
+      //         await this.sendToExternalRespondent(
+      //           externalRespondants[index],
+      //           survey,
+      //           tokens,
+      //           url
+      //         );
+      //         alreadySentExternal.push(
+      //           externalRespondants[index].respondant_email
+      //         );
+      //       }
+      //     }
+      //     this.mailsService.sendTokens(tokens);
+      //   }
+      // }
     }
 
     return tokens;
   }
-  //////
+
   async sendToRepondent(
-    survey: Survey,
     resp: SurveyRespondant,
-    tokens?: string[]
+    survey_description: SurveyDescription,
+    tokens?: string[],
+    url?: string
   ) {
     const token = await this.jwtService.signAsync({
-      id: resp.id,
+      id: resp.respondant_id,
+      respondant_id: resp.id,
+      survey_id: survey_description.id,
       schema_name: this.requestParams.tenant.schema_name,
       is_external: false,
     });
@@ -1068,108 +1187,141 @@ export class GetSurveyService {
       tokens.push(token);
     }
 
-    if (survey.employee.id === resp.respondant.id) {
-      let Mail = {
-        to: resp.respondant.email,
-        subject: `Request to complete Self Feedabck | ${survey.survey_description.title}`,
-        context: {
-          link: `${this.config.get(
-            "FE_URL"
-          )}/survey/assessment/dual-gap/${token}`,
-          username: resp.respondant.name,
-          logo: "cid:company-logo",
-          ...defaultContext,
+    let Mail = {
+      to: resp.respondant.email,
+      subject: `Request to fill feedback survey | ${survey_description.title}`,
+      context: {
+        link: `${this.config.get("FE_URL")}/survey/assessment/${url}/${token}`,
+        username: resp.respondant.name,
+        logo: "cid:company-logo",
+        survey_name: survey_description.title,
+      },
+      attachments: [
+        {
+          filename: "company-logo",
+          path: "src/public/media/images/company-logo.png",
+          cid: "company-logo",
         },
-        attachments: [
-          {
-            filename: "nbol-email-logo",
-            path: "src/public/media/images/nbol-email-logo.png",
-            cid: "company-logo",
-          },
-          ...defaultAttachments,
-        ],
-      };
+      ],
+    };
 
-      this.mailsService.SelfSurveyMail(Mail);
-    } else {
-      let Mail = {
-        to: resp.respondant.email,
-        subject: `Request to fill feedback survey | ${survey.survey_description.title}`,
-        context: {
-          link: `${this.config.get(
-            "FE_URL"
-          )}/survey/assessment/dual-gap/${token}`,
-          username: resp.respondant.name,
-          logo: "cid:company-logo",
-          requester: `${survey.employee.name} ${
-            survey.employee.designation
-              ? `(${survey.employee.designation.name})`
-              : ""
-          } `,
-          relation: resp.rater.category_name,
-          survey_name: survey.survey_description.title,
-          ...defaultContext,
-        },
-        attachments: [
-          {
-            filename: "nbol-email-logo",
-            path: "src/public/media/images/nbol-email-logo.png",
-            cid: "company-logo",
-          },
-          ...defaultAttachments,
-        ],
-      };
-
-      this.mailsService.SurveyMail(Mail);
-    }
-    return token;
+    await this.mailsService.SurveyMail(Mail);
   }
 
   async sendToExternalRespondent(
     resp: SurveyExternalRespondant,
-    survey: Survey,
-    tokens: string[]
+    survey_description: SurveyDescription,
+    tokens?: string[],
+    url?: any
   ) {
     const token = await this.jwtService.signAsync({
-      id: resp.id,
+      email: resp.respondant_email,
       schema_name: this.requestParams.tenant.schema_name,
       is_external: true,
+      survey_id: survey_description.id,
+      respondant_id: resp.id,
     });
 
     if (tokens) {
       tokens.push(token);
     }
-
     let Mail = {
       to: resp.respondant_email,
-      subject: `Request to fill feedback survey | ${survey.survey_description.title}`,
+      subject: `Request to fill feedback survey | ${survey_description.title}`,
       context: {
-        link: `${this.config.get(
-          "FE_URL"
-        )}/survey/assessment/dual-gap/${token}`,
+        link: `${this.config.get("FE_URL")}/survey/assessment/${url}/${token}`,
         username: resp.respondant_name,
         logo: "cid:company-logo",
-        requester: `${survey.employee.name} ${
-          survey.employee.designation
-            ? `(${survey.employee.designation.name})`
-            : ""
-        }`,
-        relation: resp.rater.category_name,
-        survey_name: survey.survey_description.title,
-        ...defaultContext,
+        survey_name: survey_description.title,
       },
       attachments: [
         {
-          filename: "nbol-email-logo",
-          path: "src/public/media/images/nbol-email-logo.png",
+          filename: "company-logo",
+          path: "src/public/media/images/company-logo.png",
           cid: "company-logo",
         },
-        ...defaultAttachments,
       ],
     };
 
-    this.mailsService.SurveyMail(Mail);
-    return token;
+    await this.mailsService.SurveyMail(Mail);
+  }
+
+  async sendToRepondentForInitiated(
+    resp: User,
+    surveyDescription: SurveyDescription
+  ) {
+    let Mail = {
+      to: resp.email,
+      subject: `Request to nominate Respondents | New Survey Created | ${surveyDescription.title}`,
+      context: {
+        email: resp.email,
+        is_already_created: true,
+        is_lm_approval_req: !resp.is_lm_approval_required
+          ? false
+          : !surveyDescription.is_lm_approval_required
+          ? false
+          : true,
+        is_tenant: false,
+        system_link: `${this.config.get(
+          "FE_URL"
+        )}/survey/my/nominate-respondents`,
+        be_link: this.config.get("BE_URL"),
+        logo: "cid:company-logo",
+      },
+      attachments: [
+        {
+          filename: "company-logo",
+          path: "src/public/media/images/company-logo.png",
+          cid: "company-logo",
+        },
+      ],
+    };
+
+    this.mailsService.TenantRegisterMail(Mail);
+  }
+
+  async sendToRepondentForInProgress(
+    resp: Survey,
+    surveyDescription: SurveyDescription
+  ) {
+    let password = "";
+    if (!resp.employee.line_manager.password) {
+      password = getRandomPassword();
+      let hashPassword = await bcrypt.createHash(password);
+      await resp.employee.line_manager.update(
+        {
+          password: hashPassword,
+        }
+        // { transaction }
+      );
+    }
+    let Mail = {
+      to: resp.employee.line_manager.email,
+      subject: `Respondent Nomination Approval Request | ${surveyDescription.title}`,
+      context: {
+        link: `${this.config.get("FE_URL")}/survey/approval-requests/${
+          surveyDescription.id
+        }/${resp.id}`,
+        username: resp.employee.line_manager.name,
+        email: resp.employee.line_manager.email,
+        password,
+        is_new_user: Boolean(password),
+        requester: `${resp.employee.name} ${
+          resp.employee.designation ? `(${resp.employee.designation.name})` : ""
+        }`,
+        survey_name: surveyDescription.title,
+        logo: "cid:company-logo",
+      },
+      attachments: [
+        {
+          filename: "company-logo",
+          path: "src/public/media/images/company-logo.png",
+          cid: "company-logo",
+        },
+      ],
+    };
+
+    this.mailsService.RespondentApprovalRequestMail(Mail);
   }
 
   async getResponsesExcel(id: string) {
@@ -1180,7 +1332,7 @@ export class GetSurveyService {
         include: [
           {
             model: User,
-            attributes: ["name", "email"],
+            attributes: ["name"],
           },
           { model: SurveyDescription },
         ],
@@ -1216,15 +1368,6 @@ export class GetSurveyService {
             },
             {
               model: QuestionResponse,
-              as: "response",
-              where: {
-                is_copy: true,
-                type: { [Op.ne]: QuestionResponseOptions.text },
-              },
-            },
-            {
-              model: QuestionResponse,
-              as: "expected_response",
               where: {
                 is_copy: true,
                 type: { [Op.ne]: QuestionResponseOptions.text },
@@ -1244,20 +1387,18 @@ export class GetSurveyService {
           ],
         });
 
-      const sheet = workbook.addWorksheet(survey.employee.email, {
+      const sheet = workbook.addWorksheet(survey.employee.name, {
         views: [{ state: "frozen", ySplit: 1 }],
       });
 
       sheet.columns = [
+        { header: "Competency", key: "competency", width: 50 },
         { header: "Question", key: "question", width: 100 },
         { header: "Type", key: "type", width: 30 },
-        { header: "Competency", key: "competency", width: 50 },
-        { header: "Respondent", key: "respondent", width: 30 },
         { header: "Response", key: "response", width: 30 },
+        { header: "Score", key: "score", width: 30 },
+        { header: "Respondent", key: "respondent", width: 30 },
         { header: "Rater", key: "rater", width: 30 },
-        { header: "Response Score", key: "score", width: 30 },
-        { header: "Expected Response", key: "expected_response", width: 30 },
-        { header: "Expected Response Score", key: "expected_score", width: 30 },
       ];
       let dataToAdd = [];
 
@@ -1266,13 +1407,7 @@ export class GetSurveyService {
           competency: row?.question?.competency.title,
           question: row?.question?.text,
           response: row?.response?.label,
-          expected_response: row.expected_response
-            ? row.expected_response.label
-            : "-",
           score: row?.response?.score,
-          expected_score: row.expected_response
-            ? row.expected_response.score
-            : "-",
           rater: row?.rater?.category_name,
           type: row?.response?.type.replace(/_/g, " "),
           respondent: row?.survey_respondant
@@ -1296,349 +1431,73 @@ export class GetSurveyService {
     }.xlsx`;
   }
 
-  getDecodedToken(token: string) {
-    return this.jwtService.decode(token);
-  }
-
-  async getAllRespondentsOfSurvey(id: string, is_external: string) {
-    let respondents = { rows: [], count: [] };
-
-    if (is_external === "true") {
-      respondents = await this.surveyExternalRespondant
-        .unscoped()
-        .schema(this.requestParams.schema_name)
-        .findAndCountAll({
-          where: {
-            ...getSearchObject(this.requestParams.query, [
-              "respondant_email",
-              "respondant_name",
-            ]),
-          },
-          ...this.requestParams.pagination,
-          group: [
-            "respondant_email",
-            "respondant_name",
-            "SurveyExternalRespondant.id",
-          ],
-          attributes: [
-            "respondant_email",
-            "respondant_name",
-            ["id", "respondant_id"],
-          ],
-          include: [
-            {
-              model: Survey,
-              as: "survey",
-              attributes: [],
-              where: {
-                survey_id: id,
-              },
-            },
-          ],
-          distinct: true,
-        });
-    } else {
-      respondents = await this.user
-        .unscoped()
-        .schema(this.requestParams.schema_name)
-        .findAndCountAll({
-          where: {
-            ...getSearchObject(this.requestParams.query, ["email", "name"]),
-          },
-          ...this.requestParams.pagination,
-          group: ['"User"."id"'],
-          // attributes: ["id"],
-          distinct: true,
-          include: [
-            {
-              model: SurveyRespondant,
-              as: "respondant",
-              attributes: [],
-              where: { status: SurveyRespondantStatus.Ongoing },
-              include: [
-                {
-                  model: Survey,
-                  attributes: [],
-                  where: {
-                    survey_id: id,
-                  },
-                },
-              ],
-            },
-          ],
-          // distinct: true,
-        });
-    }
-
-    return {
-      rows: respondents?.rows,
-      count: Array.isArray(respondents.count)
-        ? respondents?.count.length
-        : respondents?.count,
+  async sendToRequesterForSuggestion(
+    survey: Survey,
+    surveyDescription: SurveyDescription
+  ) {
+    let Mail = {
+      to: survey.employee.email,
+      subject: `Alternate Respondent suggested by Line Manager | ${surveyDescription.title}`,
+      context: {
+        link: `${this.config.get("FE_URL")}/survey/approval-requests/${
+          surveyDescription.id
+        }/${survey.id}`,
+        username: survey.employee.line_manager.name,
+        logo: "cid:company-logo",
+        requester: `${survey.employee.name} (${survey.employee.designation.name})`,
+        survey_name: surveyDescription.title,
+        from_user: true,
+        ...defaultContext,
+      },
+      attachments: [
+        {
+          filename: "company-logo",
+          path: "src/public/media/images/company-logo.png",
+          cid: "company-logo",
+        },
+        ...defaultAttachments,
+      ],
     };
+    this.mailsService.AlternativeSuggestionRequestMail(Mail);
   }
+  async sendToLMForSuggestion(
+    survey: Survey,
+    surveyDescription: SurveyDescription
+  ) {
+    let password = "";
 
-  async getFullDetailOfSurvey1(token: any) {
-    let respondentInclude = [];
-    let respondentIncludeComments = [];
-    let respondents;
-    let responseWhere = {};
-
-    if (!token.is_external) {
-      respondents = await SurveyRespondant.schema(
-        this.requestParams.schema_name
-      ).findAll({
-        where: {
-          respondant_id: token.id,
-          status: SurveyRespondantStatus.Ongoing,
-        },
-        include: [
-          {
-            model: Survey,
-            where: { survey_id: token.survey_id },
-          },
-        ],
-      });
-      responseWhere = {
-        survey_respondant_id: respondents.map((item) => item.id),
-      };
-
-      respondentInclude.push({
-        model: SurveyRespondant,
-        where: {
-          respondant_id: token.id,
-          status: SurveyRespondantStatus.Ongoing,
-        },
-        include: [
-          {
-            model: User,
-            attributes: ["email", "id", "name"],
-            as: "respondant",
-          },
-
-          {
-            model: Rater,
-            attributes: ["id", ["category_name", "name"], "order"],
-          },
-        ],
-      });
-    } else {
-      respondents = await SurveyExternalRespondant.schema(
-        this.requestParams.schema_name
-      ).findAll({
-        where: {
-          respondant_email: token.email,
-          status: SurveyRespondantStatus.Ongoing,
-        },
-        include: [
-          {
-            model: Survey,
-            where: { survey_id: token.survey_id },
-          },
-        ],
-      });
-      responseWhere = {
-        survey_external_respondant_id: respondents.map((item) => item.id),
-      };
-
-      respondentInclude.push({
-        model: SurveyExternalRespondant,
-        where: {
-          respondant_email: token.email,
-          status: SurveyRespondantStatus.Ongoing,
-        },
-        include: [
-          {
-            model: Rater,
-            attributes: ["id", ["category_name", "name"], "order"],
-          },
-        ],
+    if (!survey.employee.line_manager.password) {
+      password = getRandomPassword();
+      let hashPassword = await bcrypt.createHash(password);
+      await survey.employee.line_manager.update({
+        password: hashPassword,
       });
     }
-
-    if (!respondents.length) {
-      return { user: null, survey: null };
-    }
-
-    if (respondents.every((item) => item.status === SurveyStatus.Completed)) {
-      return { user: null, survey: null };
-    }
-
-    const surveyDescription = await this.surveyDescription
-      .unscoped()
-      .schema(this.requestParams.schema_name)
-      .findOne({
-        where: {
-          id: token.survey_id,
+    let Mail = {
+      to: survey.employee.line_manager.email,
+      subject: `Approval Request for Alternate Nomination | ${surveyDescription.title}`,
+      context: {
+        link: `${this.config.get("FE_URL")}/survey/approval-requests/${
+          surveyDescription.id
+        }/${survey.id}`,
+        username: survey.employee.line_manager.name,
+        email: survey.employee.line_manager.email,
+        password,
+        is_new_user: Boolean(password),
+        logo: "cid:company-logo",
+        requester: `${survey.employee.name} (${survey.employee.designation.name})`,
+        survey_name: surveyDescription.title,
+        from_user: true,
+        ...defaultContext,
+      },
+      attachments: [
+        {
+          filename: "company-logo",
+          path: "src/public/media/images/company-logo.png",
+          cid: "company-logo",
         },
-        order: [
-          token.is_external
-            ? [
-                { model: Survey, as: "surveys" },
-                {
-                  model: SurveyExternalRespondant,
-                  as: "survey_external_respondants",
-                },
-                { model: Rater, as: "rater" },
-                "order",
-                "ASC",
-              ]
-            : [
-                { model: Survey, as: "surveys" },
-                { model: SurveyRespondant, as: "survey_respondants" },
-                { model: Rater, as: "rater" },
-                "order",
-                "ASC",
-              ],
-        ],
-        include: [
-          {
-            model: Survey,
-            include: [
-              {
-                model: User,
-                attributes: ["email", "id", "name"],
-              },
-
-              ...respondentInclude,
-            ],
-          },
-        ],
-      });
-
-    const questions = await this.question
-      .schema(this.requestParams.schema_name)
-      .unscoped()
-      .findAll({
-        subQuery: false,
-        order: [
-          [
-            {
-              model: Competency,
-              as: "competency",
-            },
-            "title",
-            "ASC",
-          ],
-          [
-            {
-              model: QuestionResponse,
-              as: "responses",
-            },
-            "score",
-            "ASC",
-          ],
-          [
-            {
-              model: QuestionResponse,
-              as: "responses",
-            },
-            "order",
-            "ASC",
-          ],
-          ["createdAt", "DESC"],
-        ],
-        include: [
-          {
-            model: Competency.unscoped(),
-            attributes: ["id", "title"],
-          },
-          {
-            model: QuestionResponse.unscoped(),
-            attributes: [
-              "order",
-              "score",
-              ["id", "value"],
-              "type",
-              [
-                literal(
-                  `concat("responses"."label", (case when "responses"."type" = 'likert_scale' then concat(' (', "responses"."score", ')') else '' end))`
-                ),
-                "label",
-              ],
-            ],
-          },
-          {
-            model: QuestionnaireQuestion.unscoped(),
-            where: {
-              questionnaire_id: surveyDescription.questionnaire_id,
-            },
-            attributes: [],
-          },
-        ],
-      });
-    return { surveyDescription, questions };
-  }
-
-  async getQuestionDetail(token, id) {
-    let respondentInclude = [];
-
-    if (token.is_external === "false") {
-      respondentInclude.push({
-        model: SurveyRespondant,
-        where: {
-          respondant_id: token.id,
-          status: SurveyRespondantStatus.Ongoing,
-        },
-        include: [
-          {
-            model: User,
-            attributes: ["email", "id", "name"],
-            as: "respondant",
-          },
-
-          {
-            model: Rater,
-            attributes: ["id", ["category_name", "name"], "order"],
-          },
-        ],
-      });
-    } else {
-      respondentInclude.push({
-        model: SurveyExternalRespondant,
-        where: {
-          respondant_email: token.email,
-          status: SurveyRespondantStatus.Ongoing,
-        },
-        include: [
-          {
-            model: Rater,
-            attributes: ["id", ["category_name", "name"], "order"],
-          },
-        ],
-      });
-    }
-
-    const surveys = await this.survey
-      .schema(this.requestParams.schema_name)
-      .findAll({
-        where: {
-          survey_id: token.survey_id,
-        },
-        include: [
-          {
-            model: User,
-            attributes: ["email", "id", "name"],
-          },
-          ...respondentInclude,
-          {
-            model: SurveyResponse,
-            required: false,
-            where: {
-              question_id: id,
-            },
-            include: [
-              {
-                model: SurveyRespondant,
-                where: {
-                  respondant_id: token.id,
-                },
-              },
-            ],
-          },
-        ],
-      });
-
-    return surveys;
+      ],
+    };
+    this.mailsService.AlternativeSuggestionRequestMail(Mail);
   }
 }

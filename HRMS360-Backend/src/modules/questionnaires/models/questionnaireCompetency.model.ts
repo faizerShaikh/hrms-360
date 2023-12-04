@@ -9,9 +9,9 @@ import {
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
+import { BaseModel } from "src/common/helpers";
 import { Competency } from "src/modules/competencies/models";
 import { Questionnaire } from "./questionnaire.model";
-import { BaseModel } from "src/common/helpers";
 
 @Table({
   tableName: "questionnaire_competency",
@@ -44,9 +44,6 @@ export class QuestionnaireCompetency extends BaseModel<QuestionnaireCompetency> 
 
   @Column({ type: DataType.BOOLEAN, defaultValue: false })
   is_copy: boolean;
-
-  @Column({ type: DataType.INTEGER, defaultValue: 0 })
-  order: number;
 
   @BelongsTo(() => Competency)
   competency: Competency;
